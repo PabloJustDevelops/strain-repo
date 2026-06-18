@@ -13,16 +13,6 @@
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.strain.app",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["audio"],
-        "UIRequiresFullScreen": false,
-        "UIStatusBarStyle": "UIStatusBarStyleLightContent"
-      }
-    },
     "android": {
       "package": "com.strain.app",
       "adaptiveIcon": {
@@ -39,10 +29,7 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      [
-        "expo-document-picker",
-        { "iCloudContainerEnvironment": "Production" }
-      ]
+      "expo-document-picker"
     ],
     "experiments": {
       "typedRoutes": true,

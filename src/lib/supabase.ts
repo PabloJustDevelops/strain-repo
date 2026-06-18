@@ -109,23 +109,20 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 // ============================================================
-// OAuth (Google + Apple)
+// OAuth (Google / GitHub)
 // ============================================================
 
 /**
- * Inicia el flujo de OAuth con un provider (google / apple / github).
+ * Inicia el flujo de OAuth con un provider (google / github).
  *
  * Implementación:
  * - Usa `signInWithIdToken` si provees el idToken (recomendado para nativo con expo-auth-session)
- * - Usa `signInWithOAuth` con `WebBrowser` como fallback que funciona en web + nativo.
- *
- * Para Apple Sign-In nativo puro, considera `@react-native-apple-authentication` (iOS 13+).
- * Aquí usamos el flujo web de Supabase que es compatible con web + iOS + Android.
+ * - Usa `signInWithOAuth` con `WebBrowser` como fallback que funciona en web + Android.
  */
 WebBrowser.maybeCompleteAuthSession();
 
 export async function signInWithOAuth(
-  provider: 'google' | 'apple' | 'github',
+  provider: 'google' | 'github',
   idToken?: string,
 ) {
   const sb = getSupabase();

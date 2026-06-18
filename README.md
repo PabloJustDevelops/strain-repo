@@ -1,6 +1,6 @@
 # Strain
 
-App multiplataforma (web + iOS + Android) para seguimiento de entrenamientos de gimnasio, estilo Hevy, construida con **un único código base** en Expo + TypeScript.
+App multiplataforma (Web + Android) para seguimiento de entrenamientos de gimnasio, estilo Hevy, construida con **un único código base** en Expo + TypeScript.
 
 ## Características
 

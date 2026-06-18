@@ -16,7 +16,7 @@ import { Card } from '@components/Card';
 /**
  * Pantalla de inicio de sesión.
  * - Email + contraseña
- * - OAuth con Google y Apple
+ * - OAuth con Google (y GitHub si está configurado)
  * - Link a registro y a recuperar contraseña
  */
 export default function LoginScreen() {
@@ -56,7 +56,7 @@ export default function LoginScreen() {
     }
   };
 
-  const handleOAuth = async (provider: 'google' | 'apple') => {
+  const handleOAuth = async (provider: 'google') => {
     if (haptics) Haptics.selectionAsync();
     setLoading(true);
     try {
@@ -144,13 +144,6 @@ export default function LoginScreen() {
             label="Continuar con Google"
             icon={<Ionicons name="logo-google" size={20} color={colors.text} />}
             onPress={() => handleOAuth('google')}
-            disabled={!isSupabaseConfigured || loading}
-            colors={colors}
-          />
-          <OAuthButton
-            label="Continuar con Apple"
-            icon={<Ionicons name="logo-apple" size={22} color={colors.text} />}
-            onPress={() => handleOAuth('apple')}
             disabled={!isSupabaseConfigured || loading}
             colors={colors}
           />

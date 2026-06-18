@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Platform, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useColorScheme } from 'react-native';
@@ -38,7 +38,7 @@ export default function TabsLayout() {
           borderTopColor: colors.border,
           // En pantallas anchas ocultamos la tab bar inferior
           display: isWide ? 'none' : 'flex',
-          height: Platform.select({ ios: 84, android: 64, default: 64 }),
+          height: 64,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         headerStyle: { backgroundColor: colors.background },

@@ -1,0 +1,11 @@
+packages:
+  - .
+allowBuilds:
+  dtrace-provider: set this to true or false
+  esbuild: set this to true or false
+  unrs-resolver: set this to true or false
+
+# Cuando crezcamos, añadiremos aquí paquetes compartidos:
+#   - "packages/ui"
+#   - "packages/db"
+#   - "packages/api"

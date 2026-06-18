@@ -1,9 +1,12 @@
 import { create } from 'zustand';
-import { SessionsRepo } from '@db/repositories';
+import { SessionsRepo, RoutinesRepo } from '@db/repositories';
 import type {
   ActiveSessionView,
   SessionExerciseView,
   SetView,
+  MuscleGroup,
+  Equipment,
+  SetType,
 } from '@/types/domain';
 
 /**
@@ -52,8 +55,8 @@ function mapDbToView(db: Awaited<ReturnType<typeof SessionsRepo.getFullSession>>
       id: ex.id,
       exerciseId: ex.exerciseId,
       name: ex.exercise.name,
-      muscleGroup: ex.exercise.muscleGroup,
-      equipment: ex.exercise.equipment,
+      muscleGroup: ex.exercise.muscleGroup as MuscleGroup,
+      equipment: ex.exercise.equipment as Equipment,
       orderIndex: ex.orderIndex,
       notes: ex.notes,
       targetSets: ex.sets.length,
@@ -62,7 +65,7 @@ function mapDbToView(db: Awaited<ReturnType<typeof SessionsRepo.getFullSession>>
       sets: ex.sets.map<SetView>((s) => ({
         id: s.id,
         setIndex: s.setIndex,
-        type: s.setType,
+        type: s.setType as SetType,
         weight: s.weight,
         reps: s.reps,
         isCompleted: s.isCompleted,
@@ -103,9 +106,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   },
 
   async startFromRoutine(routineId) {
-    const full = await import('@db/repositories').then((m) =>
-      m.RoutinesRepo.getWithExercises(routineId)
-    );
+    const full = await RoutinesRepo.getWithExercises(routineId);
     if (!full) return;
     const session = await SessionsRepo.start({
       name: full.routine.name,
@@ -258,6 +259,29 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     const { session } = get();
     if (!session) return;
     await SessionsRepo.finish(session.id);
+
+    // Sincronizar con Health Connect (best effort, no bloquea la UX).
+    try {
+      const { useHealthConnect } = await import('@stores/healthConnectStore');
+      const status = useHealthConnect.getState().status;
+      if (status === 'ready') {
+        const { writeWorkoutSession, estimateCalories } = await import('@/lib/healthConnect');
+        const end = new Date();
+        const start = session.startedAt ?? new Date(end.getTime() - 60 * 60 * 1000);
+        const durationSec = Math.max(60, Math.floor((end.getTime() - start.getTime()) / 1000));
+        await writeWorkoutSession({
+          title: session.name,
+          notes: `${session.completedSets} series completadas`,
+          startTime: start,
+          endTime: end,
+          activeCalories: estimateCalories(session.totalVolume, durationSec),
+          totalCalories: estimateCalories(session.totalVolume, durationSec),
+        });
+      }
+    } catch (err) {
+      console.warn('[workout] no se pudo sincronizar con Health Connect:', err);
+    }
+
     set({
       session: null,
       isResting: false,

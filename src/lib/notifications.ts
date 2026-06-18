@@ -13,6 +13,14 @@ import { usePreferences } from '@stores/preferencesStore';
  * 3. Programar recordatorios diarios/semanales.
  */
 
+// Días de la semana para recordatorios (1=Domingo, 7=Sábado según expo-notifications)
+type WeekdayNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+function clampWeekday(day: number): WeekdayNumber {
+  // Acepta 0-6 (estilo JS) o 1-7 (estilo expo) y normaliza a 1-7
+  if (day === 0) return 7;
+  return Math.max(1, Math.min(7, day)) as WeekdayNumber;
+}
+
 let initialized = false;
 let channelReady = false;
 
@@ -99,7 +107,7 @@ export async function scheduleReminders(config: ReminderConfig): Promise<void> {
   for (const day of days) {
     const trigger: Notifications.WeeklyTriggerInput = {
       type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-      weekday: day as Notifications.Weekday,
+      weekday: clampWeekday(day),
       hour: config.hour,
       minute: config.minute,
     };

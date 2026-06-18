@@ -2,6 +2,11 @@
 node_modules/
 .pnp
 .pnp.js
+.pnpm-store/
+
+# Lockfiles: usamos pnpm, el resto se ignora
+package-lock.json
+yarn.lock
 
 # Expo
 .expo/

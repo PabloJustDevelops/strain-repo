@@ -243,3 +243,19 @@ export type Set = typeof sets.$inferSelect;
 export type NewSet = typeof sets.$inferInsert;
 export type PersonalRecord = typeof personalRecords.$inferSelect;
 export type NewPersonalRecord = typeof personalRecords.$inferInsert;
+
+// ============================================================
+// Namespace `schema` — para usar con `db.select().from(schema.X)`
+// y para hacer destructuring dinámico desde repositorios.
+// ============================================================
+export const schema = {
+  exercises,
+  routines,
+  routineExercises,
+  workoutSessions,
+  sessionExercises,
+  sets,
+  personalRecords,
+  syncQueue,
+};
+export default schema;

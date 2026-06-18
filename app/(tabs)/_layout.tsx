@@ -93,6 +93,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="health"
+        options={{
+          title: 'Salud',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Ajustes',

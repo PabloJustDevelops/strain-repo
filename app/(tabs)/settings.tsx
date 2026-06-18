@@ -59,7 +59,10 @@ export default function SettingsScreen() {
     try {
       const json = await exportData();
       const result = await Sharing.shareAsync('data:application/json;base64,' + btoa(unescape(encodeURIComponent(json))));
-      if (result.action === Sharing.SharedAction.dismissedAction) {
+      // expo-sharing devuelve { action: 'sharedAction' | 'dismissedAction' }
+      // (TS marca `result` como void en algunas versiones; casteamos a any)
+      const action = (result as any)?.action;
+      if (action === 'dismissedAction') {
         Alert.alert('Cancelado', 'No se ha exportado.');
       }
     } catch (err) {
@@ -178,7 +181,7 @@ export default function SettingsScreen() {
               </Text>
               <Link href="/auth/login" asChild>
                 <Pressable>
-                  <Button title="Iniciar sesión / Crear cuenta" fullWidth />
+                  <Button title="Iniciar sesión / Crear cuenta" fullWidth onPress={() => {}} />
                 </Pressable>
               </Link>
             </View>

@@ -1,5 +1,5 @@
 import { db, getRawDb, schema } from './client';
-import { eq, and, gte, desc, sql, asc, isNull } from 'drizzle-orm';
+import { eq, and, gte, desc, sql, asc, isNull, inArray } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import type {
   Exercise,
@@ -178,7 +178,11 @@ export const RoutinesRepo = {
     return clone;
   },
 
-  async addExercise(routineId: string, exerciseId: string): Promise<void> {
+  async addExercise(
+    routineId: string,
+    exerciseId: string,
+    opts: { supersetGroup?: string | null } = {}
+  ): Promise<void> {
     const last = db
       .select({ maxOrder: sql<number>`MAX(${schema.routineExercises.orderIndex})` })
       .from(schema.routineExercises)
@@ -193,8 +197,49 @@ export const RoutinesRepo = {
         targetSets: 3,
         targetReps: '8-12',
         restSeconds: 90,
+        supersetGroup: opts.supersetGroup ?? null,
       })
       .run();
+    await this.touch(routineId);
+  },
+
+  /**
+   * Marca un grupo de superset. Asigna la misma letra `group` a varios
+   * `routineExerciseId` consecutivos y la quita del resto.
+   */
+  async setSupersetGroup(
+    routineId: string,
+    routineExerciseIds: string[],
+    group: string | null
+  ): Promise<void> {
+    if (group) {
+      db.transaction((tx) => {
+        tx.update(schema.routineExercises)
+          .set({ supersetGroup: null })
+          .where(and(
+            eq(schema.routineExercises.routineId, routineId),
+            eq(schema.routineExercises.supersetGroup, group)
+          ))
+          .run();
+        for (const id of routineExerciseIds) {
+          tx.update(schema.routineExercises)
+            .set({ supersetGroup: group })
+            .where(and(
+              eq(schema.routineExercises.id, id),
+              eq(schema.routineExercises.routineId, routineId)
+            ))
+            .run();
+        }
+      });
+    } else {
+      db.update(schema.routineExercises)
+        .set({ supersetGroup: null })
+        .where(and(
+          eq(schema.routineExercises.routineId, routineId),
+          inArray(schema.routineExercises.id, routineExerciseIds)
+        ))
+        .run();
+    }
     await this.touch(routineId);
   },
 
@@ -228,7 +273,14 @@ export const SessionsRepo = {
   async start(input: {
     name: string;
     routineId?: string;
-    fromRoutineExercises?: { exerciseId: string; targetSets: number; targetReps: string; targetWeight?: number; restSeconds: number }[];
+    fromRoutineExercises?: {
+      exerciseId: string;
+      targetSets: number;
+      targetReps: string;
+      targetWeight?: number;
+      restSeconds: number;
+      supersetGroup?: string | null;
+    }[];
   }): Promise<WorkoutSession> {
     const id = nanoid();
     const now = new Date();
@@ -254,6 +306,7 @@ export const SessionsRepo = {
             sessionId: id,
             exerciseId: ex.exerciseId,
             orderIndex: idx + 1,
+            supersetGroup: ex.supersetGroup ?? null,
           })
           .run();
 
@@ -274,6 +327,19 @@ export const SessionsRepo = {
     });
 
     return (await this.byId(id))!;
+  },
+
+  /**
+   * Actualiza el grupo de superset de un ejercicio de la sesión activa.
+   */
+  async setSessionExerciseSuperset(
+    sessionExerciseId: string,
+    group: string | null
+  ): Promise<void> {
+    db.update(schema.sessionExercises)
+      .set({ supersetGroup: group })
+      .where(eq(schema.sessionExercises.id, sessionExerciseId))
+      .run();
   },
 
   async byId(id: string): Promise<WorkoutSession | undefined> {
@@ -692,6 +758,29 @@ export const AnalyticsRepo = {
       ))
       .get();
     return totals ?? { sessions: 0, totalSets: 0, totalVolume: 0 };
+  },
+
+  /**
+   * Volumen por día para alimentar el heatmap de consistencia.
+   * Devuelve una entrada por cada día con sesión completada en el rango.
+   */
+  async dailyVolume(sinceDays = 365): Promise<{ date: string; count: number; volume: number }[]> {
+    const since = new Date();
+    since.setDate(since.getDate() - sinceDays);
+    const rows = db
+      .select({
+        date: sql<string>`strftime('%Y-%m-%d', ${schema.workoutSessions.startedAt}, 'unixepoch')`,
+        count: sql<number>`COUNT(DISTINCT ${schema.workoutSessions.id})`,
+        volume: sql<number>`COALESCE(SUM(${schema.workoutSessions.totalVolume}), 0)`,
+      })
+      .from(schema.workoutSessions)
+      .where(and(
+        eq(schema.workoutSessions.status, 'completed'),
+        gte(schema.workoutSessions.startedAt, since),
+      ))
+      .groupBy(sql`date`)
+      .all();
+    return rows;
   },
 };
 

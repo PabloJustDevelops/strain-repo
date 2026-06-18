@@ -87,6 +87,8 @@ export const routineExercises = sqliteTable(
     targetWeight: real('target_weight'),
     // Descanso entre series en segundos
     restSeconds: integer('rest_seconds').notNull().default(90),
+    // Etiqueta de superset: "A", "B", "C"... Si dos ejercicios comparten etiqueta, forman superset.
+    supersetGroup: text('superset_group'),
     notes: text('notes'),
   },
   (table) => ({
@@ -139,6 +141,8 @@ export const sessionExercises = sqliteTable(
       .notNull()
       .references(() => exercises.id, { onDelete: 'restrict' }),
     orderIndex: integer('order_index').notNull(),
+    // Etiqueta de superset (copiada de la rutina al iniciar la sesión)
+    supersetGroup: text('superset_group'),
     notes: text('notes'),
   },
   (table) => ({

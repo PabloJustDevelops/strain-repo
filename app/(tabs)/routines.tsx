@@ -10,7 +10,7 @@ import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDateTime } from '@lib/format';
-import type { Routine } from '@types/domain';
+import type { Routine } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
 import { Sidebar } from '@components/Sidebar';

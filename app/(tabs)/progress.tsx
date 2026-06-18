@@ -8,9 +8,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { AnalyticsRepo, ExercisesRepo } from '@db/repositories';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import type { Exercise } from '@types/domain';
+import type { Exercise } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Sidebar } from '@components/Sidebar';
+import { Heatmap, type HeatmapDay } from '@components/Heatmap';
 import { formatDateShort } from '@lib/format';
 
 /**
@@ -34,10 +35,12 @@ export default function ProgressScreen() {
   const [streak, setStreak] = useState(0);
   const [prs, setPrs] = useState<{ exerciseName: string; oneRm: number }[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [heatmapData, setHeatmapData] = useState<HeatmapDay[]>([]);
 
   useEffect(() => {
     AnalyticsRepo.volumePerWeek(12).then(setWeeklyVolume);
     AnalyticsRepo.currentStreak().then(setStreak);
+    AnalyticsRepo.dailyVolume(365).then(setHeatmapData);
     ExercisesRepo.list().then(setExercises);
     AnalyticsRepo.personalRecords().then((records) => {
       const map = new Map(exercises.map((e) => [e.id, e.name]));
@@ -71,6 +74,18 @@ export default function ProgressScreen() {
             </Text>
           </View>
         </View>
+      </Card>
+
+      <Card>
+        <Text style={{ color: colors.text, fontWeight: '700', fontSize: fontSize.lg, marginBottom: spacing.sm }}>
+          Consistencia (últimas 26 semanas)
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <Heatmap data={heatmapData} weeks={26} cellSize={14} />
+        </ScrollView>
+        <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginTop: spacing.sm }}>
+          Más oscuro = más volumen ese día. Toca una celda para ver el detalle.
+        </Text>
       </Card>
 
       <Card>

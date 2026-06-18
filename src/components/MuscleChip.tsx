@@ -2,7 +2,7 @@ import { View, Text, Pressable } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, type MuscleGroup } from '@types/domain';
+import { MUSCLE_GROUP_LABELS, type MuscleGroup } from '@/types/domain';
 
 interface MuscleChipProps {
   group: MuscleGroup;

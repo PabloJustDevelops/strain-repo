@@ -17,7 +17,7 @@ import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
 import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
-import type { SetView } from '@types/domain';
+import type { SetView } from '@/types/domain';
 
 interface SetRowProps {
   set: SetView;

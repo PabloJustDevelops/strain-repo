@@ -9,7 +9,7 @@ import { SessionsRepo } from '@db/repositories';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration, formatDateTime } from '@lib/format';
-import type { WorkoutSession } from '@types/domain';
+import type { WorkoutSession } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Sidebar } from '@components/Sidebar';
 

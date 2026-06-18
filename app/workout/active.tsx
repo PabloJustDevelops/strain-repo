@@ -19,7 +19,8 @@ import { Card } from '@components/Card';
 import { PlateCalculatorSheet } from '@components/PlateCalculatorSheet';
 import { RestTimer } from '@components/RestTimer';
 import { NumericKeypad } from '@components/NumericKeypad';
-import type { SetView } from '@types/domain';
+import { SetDetailsSheet } from '@components/SetDetailsSheet';
+import type { SetView } from '@/types/domain';
 
 /**
  * Pantalla del workout activo.
@@ -52,12 +53,14 @@ export default function ActiveWorkoutScreen() {
   const deleteSet = useActiveWorkout((s) => s.deleteSet);
   const addSet = useActiveWorkout((s) => s.addSet);
   const startRest = useActiveWorkout((s) => s.startRest);
+  const setSupersetGroup = useActiveWorkout((s) => s.setSupersetGroup);
   const finishWorkout = useActiveWorkout((s) => s.finishWorkout);
   const discardWorkout = useActiveWorkout((s) => s.discardWorkout);
 
   // Estados de UI
   const [platesFor, setPlatesFor] = useState<PlateResult | null>(null);
   const [editingSet, setEditingSet] = useState<{ id: string; weight: number; reps: number; previousWeight: number | null; previousReps: number | null; field: 'weight' | 'reps' } | null>(null);
+  const [detailsSet, setDetailsSet] = useState<SetView | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Re-render cada segundo para el cronómetro
@@ -155,63 +158,141 @@ export default function ActiveWorkoutScreen() {
 
       {/* Contenido */}
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: 200, gap: spacing.lg }}>
-        {session.exercises.map((ex) => (
-          <Card key={ex.id}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
-                  {ex.name}
-                </Text>
-                <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
-                  {ex.sets.filter((s) => s.isCompleted).length} / {ex.sets.length} series
-                </Text>
-              </View>
-              <Pressable onPress={() => addSet(ex.id)} hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Ionicons name="add-circle" size={22} color={colors.primary} />
-                <Text style={{ color: colors.primary, fontWeight: '600' }}>Set</Text>
-              </Pressable>
-            </View>
+        {session.exercises.map((ex, exIdx) => {
+          const prevEx = exIdx > 0 ? session.exercises[exIdx - 1] : null;
+          const showSupersetHeader =
+            ex.supersetGroup &&
+            (!prevEx || prevEx.supersetGroup !== ex.supersetGroup);
+          const nextEx = exIdx < session.exercises.length - 1 ? session.exercises[exIdx + 1] : null;
+          const isSupersetEnd = ex.supersetGroup && (!nextEx || nextEx.supersetGroup !== ex.supersetGroup);
 
-            <View style={{ marginTop: spacing.sm }}>
-              {ex.sets.map((s) => {
-                const previous = ex.sets.filter((p) => p.setIndex < s.setIndex && p.isCompleted).pop();
-                return (
-                  <SetRow
-                    key={s.id}
-                    set={s}
-                    previous={previous}
-                    units={units}
-                    onComplete={() => handleComplete(s.id)}
-                    onUncomplete={() => uncompleteSet(s.id)}
-                    onUpdate={(patch) => updateSet(s.id, patch)}
-                    onDelete={() => deleteSet(s.id)}
-                    onShowPlates={(r) => setPlatesFor(r)}
-                    onEditWeight={() => {
-                      setEditingSet({
-                        id: s.id,
-                        weight: s.weight,
-                        reps: s.reps,
-                        previousWeight: previous?.weight ?? null,
-                        previousReps: previous?.reps ?? null,
-                        field: 'weight',
-                      });
+          return (
+            <View key={ex.id}>
+              {showSupersetHeader && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                    paddingVertical: spacing.sm,
+                    paddingHorizontal: spacing.md,
+                    backgroundColor: colors.primary + '22',
+                    borderRadius: radius.md,
+                    marginBottom: spacing.sm,
+                  }}
+                >
+                  <Ionicons name="link" size={18} color={colors.primary} />
+                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: fontSize.sm }}>
+                    Superset {ex.supersetGroup}
+                  </Text>
+                  <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginLeft: 'auto' }}>
+                    descansa solo cuando termines ambos
+                  </Text>
+                </View>
+              )}
+
+              <Card>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
+                      {ex.name}
+                    </Text>
+                    <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
+                      {ex.sets.filter((s) => s.isCompleted).length} / {ex.sets.length} series
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => addSet(ex.id)}
+                    hitSlop={10}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                  >
+                    <Ionicons name="add-circle" size={22} color={colors.primary} />
+                    <Text style={{ color: colors.primary, fontWeight: '600' }}>Set</Text>
+                  </Pressable>
+                </View>
+
+                <View style={{ marginTop: spacing.sm }}>
+                  {ex.sets.map((s) => {
+                    const previous = ex.sets.filter((p) => p.setIndex < s.setIndex && p.isCompleted).pop();
+                    return (
+                      <Pressable key={s.id} onLongPress={() => setDetailsSet(s)} delayLongPress={350}>
+                        <SetRow
+                          set={s}
+                          previous={previous}
+                          units={units}
+                          onComplete={() => handleComplete(s.id)}
+                          onUncomplete={() => uncompleteSet(s.id)}
+                          onUpdate={(patch) => updateSet(s.id, patch)}
+                          onDelete={() => deleteSet(s.id)}
+                          onShowPlates={(r) => setPlatesFor(r)}
+                          onEditWeight={() => {
+                            setEditingSet({
+                              id: s.id,
+                              weight: s.weight,
+                              reps: s.reps,
+                              previousWeight: previous?.weight ?? null,
+                              previousReps: previous?.reps ?? null,
+                              field: 'weight',
+                            });
+                          }}
+                          onEditReps={() => {
+                            setEditingSet({
+                              id: s.id,
+                              weight: s.weight,
+                              reps: s.reps,
+                              previousWeight: previous?.weight ?? null,
+                              previousReps: previous?.reps ?? null,
+                              field: 'reps',
+                            });
+                          }}
+                        />
+                        {(s.rpe != null || (s.notes && s.notes.length > 0)) && (
+                          <View style={{ flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.sm, marginTop: -spacing.xs, marginBottom: spacing.sm }}>
+                            {s.rpe != null && (
+                              <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>
+                                RPE {s.rpe}
+                              </Text>
+                            )}
+                            {s.notes && s.notes.length > 0 && (
+                              <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, flex: 1 }} numberOfLines={1}>
+                                {s.notes}
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                {!isSupersetEnd && (
+                  <Pressable
+                    onPress={() => {
+                      const newGroup = ex.supersetGroup ? null : 'A';
+                      setSupersetGroup(ex.id, newGroup);
                     }}
-                    onEditReps={() => {
-                      setEditingSet({
-                        id: s.id,
-                        weight: s.weight,
-                        reps: s.reps,
-                        previousWeight: previous?.weight ?? null,
-                        previousReps: previous?.reps ?? null,
-                        field: 'reps',
-                      });
+                    style={{
+                      marginTop: spacing.sm,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      paddingVertical: spacing.xs,
                     }}
-                  />
-                );
-              })}
+                  >
+                    <Ionicons
+                      name={ex.supersetGroup ? 'link' : 'add-circle-outline'}
+                      size={16}
+                      color={ex.supersetGroup ? colors.primary : colors.textMuted}
+                    />
+                    <Text style={{ color: ex.supersetGroup ? colors.primary : colors.textMuted, fontSize: fontSize.xs }}>
+                      {ex.supersetGroup ? `En superset ${ex.supersetGroup} (toca para quitar)` : 'Hacer superset con el siguiente'}
+                    </Text>
+                  </Pressable>
+                )}
+              </Card>
             </View>
-          </Card>
-        ))}
+          );
+        })}
       </ScrollView>
 
       {/* Timer de descanso */}
@@ -235,6 +316,17 @@ export default function ActiveWorkoutScreen() {
         }
         onConfirm={handleKeypadConfirm}
         onCancel={handleKeypadCancel}
+      />
+
+      {/* Sheet: detalles opcionales del set (RPE + notas) */}
+      <SetDetailsSheet
+        visible={!!detailsSet}
+        set={detailsSet}
+        units={units}
+        onSave={(patch) => {
+          if (detailsSet) updateSet(detailsSet.id, patch);
+        }}
+        onClose={() => setDetailsSet(null)}
       />
     </SafeAreaView>
   );

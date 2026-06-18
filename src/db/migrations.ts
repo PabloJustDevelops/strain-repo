@@ -121,6 +121,19 @@ const MIGRATIONS: { id: number; name: string; sql: string }[] = [
       );
     `,
   },
+  {
+    id: 2,
+    name: 'add_superset_group',
+    sql: `
+      -- Supersets/tri-sets: agrupar ejercicios consecutivos en rutinas y sesiones
+      ALTER TABLE routine_exercises ADD COLUMN superset_group TEXT;
+      ALTER TABLE session_exercises ADD COLUMN superset_group TEXT;
+
+      -- Índices para acelerar el render del workout activo y el builder
+      CREATE INDEX IF NOT EXISTS routine_exercises_superset_idx ON routine_exercises(superset_group);
+      CREATE INDEX IF NOT EXISTS session_exercises_superset_idx ON session_exercises(superset_group);
+    `,
+  },
 ];
 
 /**

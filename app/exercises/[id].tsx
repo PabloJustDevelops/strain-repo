@@ -10,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { ExercisesRepo, AnalyticsRepo } from '@db/repositories';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, type Exercise } from '@types/domain';
+import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, type Exercise } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
 import { Sidebar } from '@components/Sidebar';

@@ -29,7 +29,13 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-document-picker"
+      "expo-document-picker",
+      [
+        "expo-notifications",
+        {
+          "color": "#3b82f6"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -49,6 +49,7 @@ create table public.routine_exercises (
   target_reps text not null default '8-12',
   target_weight real,
   rest_seconds integer not null default 90,
+  superset_group text,
   notes text,
   unique (routine_id, order_index)
 );
@@ -73,6 +74,7 @@ create table public.session_exercises (
   session_id text references public.workout_sessions(id) on delete cascade,
   exercise_id text references public.exercises(id) on delete restrict,
   order_index integer not null,
+  superset_group text,
   notes text
 );
 

@@ -4,6 +4,10 @@
  * Los tipos de filas crudas de BD viven en `@db/schema`.
  */
 
+// Re-exports: las filas crudas de BD vienen de `@db/schema`, pero para que la UI
+// no tenga que importar de dos sitios, las exponemos desde aquí también.
+export type { Exercise, Routine, RoutineExercise, WorkoutSession, SessionExercise, Set as DbSet, PersonalRecord } from '@db/schema';
+
 export type MuscleGroup =
   | 'chest'
   | 'back'
@@ -77,6 +81,7 @@ export interface SetView {
   reps: number;
   isCompleted: boolean;
   rpe?: number | null;
+  notes?: string | null;
   previousWeight?: number | null;   // peso de la última vez que se hizo
   previousReps?: number | null;
 }
@@ -89,6 +94,7 @@ export interface SessionExerciseView {
   muscleGroup: MuscleGroup;
   equipment: Equipment;
   orderIndex: number;
+  supersetGroup?: string | null;     // "A", "B"... ejercicios con la misma letra forman grupo
   sets: SetView[];
   targetSets: number;
   targetReps: string;

@@ -8,7 +8,7 @@ import { useColorScheme } from 'react-native';
 import { ExercisesRepo } from '@db/repositories';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, type Exercise, type MuscleGroup } from '@types/domain';
+import { MUSCLE_GROUP_LABELS, type Exercise, type MuscleGroup } from '@/types/domain';
 import { Card } from '@components/Card';
 import { MuscleChip } from '@components/MuscleChip';
 import { Sidebar } from '@components/Sidebar';

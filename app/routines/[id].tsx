@@ -13,7 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { RoutinesRepo } from '@db/repositories';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, type Exercise, type Routine, type RoutineExercise } from '@types/domain';
+import { MUSCLE_GROUP_LABELS, type Exercise, type Routine, type RoutineExercise } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
 import { Sidebar } from '@components/Sidebar';
@@ -64,18 +64,55 @@ export default function RoutineDetailScreen() {
     await refresh();
   };
 
+  /**
+   * Asigna una letra de superset reutilizando huecos libres: A, B, C...
+   * Si el ejercicio ya está en un grupo, devuelve la siguiente letra libre
+   * para permitir reasignarlo rápidamente.
+   */
+  const promptSupersetLetter = (current: string | null): string | null => {
+    const used = new Set(exercises.map((e) => e.supersetGroup).filter(Boolean) as string[]);
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    for (const l of letters) {
+      if (!used.has(l)) return l;
+    }
+    return current ?? 'A';
+  };
+
   const renderItem = ({ item, drag, isActive }: RenderItemParams<RoutineExerciseRow>) => (
     <ScaleDecorator>
       <Pressable onLongPress={drag} disabled={isActive} delayLongPress={150}>
         <Card padded={false}>
           <View style={{ padding: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <Ionicons name="menu" size={22} color={colors.textMuted} />
+            {item.supersetGroup ? (
+              <View style={{ width: 26, alignItems: 'center' }}>
+                <Text style={{ color: colors.primary, fontWeight: '800' }}>{item.supersetGroup}</Text>
+              </View>
+            ) : (
+              <Ionicons name="menu" size={22} color={colors.textMuted} />
+            )}
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>{item.exercise.name}</Text>
               <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
                 {item.targetSets} × {item.targetReps} · {item.restSeconds}s descanso
               </Text>
             </View>
+            <Pressable
+              onPress={async () => {
+                if (!id) return;
+                const next = item.supersetGroup ? null : promptSupersetLetter(item.supersetGroup);
+                await RoutinesRepo.setSupersetGroup(id, [item.id], next);
+                if (haptics) Haptics.selectionAsync();
+                await refresh();
+              }}
+              hitSlop={10}
+              style={{ paddingHorizontal: 4 }}
+            >
+              <Ionicons
+                name={item.supersetGroup ? 'link' : 'link-outline'}
+                size={20}
+                color={item.supersetGroup ? colors.primary : colors.textMuted}
+              />
+            </Pressable>
             <Pressable onPress={() => handleRemove(item.id)} hitSlop={10}>
               <Ionicons name="trash-outline" size={20} color={colors.danger} />
             </Pressable>

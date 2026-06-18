@@ -4,7 +4,7 @@ import type {
   ActiveSessionView,
   SessionExerciseView,
   SetView,
-} from '@types/domain';
+} from '@/types/domain';
 
 /**
  * Estado del workout en curso.
@@ -31,6 +31,7 @@ interface ActiveWorkoutState {
   updateSet: (setId: string, patch: Partial<SetView>) => Promise<void>;
   addSet: (sessionExerciseId: string) => Promise<void>;
   deleteSet: (setId: string) => Promise<void>;
+  setSupersetGroup: (sessionExerciseId: string, group: string | null) => Promise<void>;
   startRest: (seconds: number) => void;
   skipRest: () => void;
   tickRest: () => void;           // llamado por un useEffect cada segundo
@@ -179,7 +180,32 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         })),
       },
     });
-    await SessionsRepo.updateSet(setId, patch);
+    // SetView usa 'type'/'isCompleted', la tabla usa 'setType'/'isCompleted'+completedAt.
+    const dbPatch: Record<string, unknown> = {};
+    if ('weight' in patch) dbPatch.weight = patch.weight;
+    if ('reps' in patch) dbPatch.reps = patch.reps;
+    if ('rpe' in patch) dbPatch.rpe = patch.rpe;
+    if ('notes' in patch) dbPatch.notes = patch.notes;
+    if ('isCompleted' in patch) {
+      dbPatch.isCompleted = patch.isCompleted;
+      if (patch.isCompleted) dbPatch.completedAt = new Date();
+      else dbPatch.completedAt = null;
+    }
+    await SessionsRepo.updateSet(setId, dbPatch);
+  },
+
+  async setSupersetGroup(sessionExerciseId, group) {
+    const { session } = get();
+    if (!session) return;
+    set({
+      session: {
+        ...session,
+        exercises: session.exercises.map((ex) =>
+          ex.id === sessionExerciseId ? { ...ex, supersetGroup: group } : ex
+        ),
+      },
+    });
+    await SessionsRepo.setSessionExerciseSuperset(sessionExerciseId, group);
   },
 
   async addSet(sessionExerciseId) {

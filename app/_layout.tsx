@@ -5,7 +5,6 @@ import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import * as SystemUI from 'expo-system-ui';
 
 import { usePreferences } from '@stores/preferencesStore';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
@@ -13,6 +12,7 @@ import { useAuth } from '@stores/authStore';
 import { runMigrations } from '@db/migrations';
 import { seedExercises } from '@db/seed';
 import { darkTheme, lightTheme } from '@lib/theme';
+import { initNotifications, scheduleReminders } from '@lib/notifications';
 
 // Mantén el splash hasta que la BD esté lista
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -43,6 +43,12 @@ export default function RootLayout() {
         await seedExercises();
         await loadActive();
         await initAuth();
+        await initNotifications();
+        // Re-aplica los recordatorios guardados por si el usuario los tenía activos
+        const reminder = usePreferences.getState().reminder;
+        if (reminder?.enabled) {
+          await scheduleReminders(reminder);
+        }
       } catch (err) {
         console.error('[strain] Error inicializando:', err);
       } finally {
@@ -56,7 +62,7 @@ export default function RootLayout() {
 
   // Pinta la barra de estado en nativo
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync(colors.background).catch(() => {});
+    // No-op ahora que quitamos expo-system-ui (no compatible con SDK 52)
   }, [colors.background]);
 
   return (

@@ -18,6 +18,7 @@ import { Button } from '@components/Button';
 import { Card } from '@components/Card';
 import { PlateCalculatorSheet } from '@components/PlateCalculatorSheet';
 import { RestTimer } from '@components/RestTimer';
+import { NumericKeypad } from '@components/NumericKeypad';
 import type { SetView } from '@types/domain';
 
 /**
@@ -56,7 +57,7 @@ export default function ActiveWorkoutScreen() {
 
   // Estados de UI
   const [platesFor, setPlatesFor] = useState<PlateResult | null>(null);
-  const [editingSet, setEditingSet] = useState<{ id: string; weight: string; reps: string } | null>(null);
+  const [editingSet, setEditingSet] = useState<{ id: string; weight: number; reps: number; previousWeight: number | null; previousReps: number | null; field: 'weight' | 'reps' } | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Re-render cada segundo para el cronómetro
@@ -84,7 +85,17 @@ export default function ActiveWorkoutScreen() {
     const setDef = session.exercises.flatMap((e) => e.sets).find((s) => s.id === setId);
     if (!setDef) return;
     if (setDef.weight === 0 || setDef.reps === 0) {
-      setEditingSet({ id: setId, weight: '', reps: '' });
+      // Buscar el set anterior (mismo ejercicio, índice menor)
+      const exercise = session.exercises.find((e) => e.sets.some((s) => s.id === setId));
+      const previous = exercise?.sets.filter((s) => s.setIndex < setDef.setIndex).pop();
+      setEditingSet({
+        id: setId,
+        weight: 0,
+        reps: 0,
+        previousWeight: previous?.weight ?? null,
+        previousReps: previous?.reps ?? null,
+        field: 'weight',
+      });
       return;
     }
     await completeSet(setId);
@@ -92,15 +103,28 @@ export default function ActiveWorkoutScreen() {
     if (exercise) startRest(exercise.restSeconds);
   };
 
-  const handleSaveEditing = async () => {
+  const handleKeypadConfirm = async (value: number) => {
     if (!editingSet) return;
-    const weight = parseFloat(editingSet.weight) || 0;
-    const reps = parseInt(editingSet.reps, 10) || 0;
-    await updateSet(editingSet.id, { weight, reps });
-    await completeSet(editingSet.id, weight, reps);
+    if (editingSet.field === 'weight') {
+      // Guardar peso y pasar a pedir reps
+      await updateSet(editingSet.id, { weight: value });
+      setEditingSet({ ...editingSet, weight: value, field: 'reps' });
+    } else {
+      // Guardar reps y completar
+      await updateSet(editingSet.id, { reps: value });
+      await completeSet(editingSet.id, editingSet.weight, value);
+      setEditingSet(null);
+      const exercise = session.exercises.find((e) => e.sets.some((s) => s.id === editingSet.id));
+      if (exercise) startRest(exercise.restSeconds);
+    }
+  };
+
+  const handleKeypadCancel = async () => {
+    // Si cancela en la segunda pantalla, deshace el peso
+    if (editingSet && editingSet.field === 'reps' && editingSet.weight > 0) {
+      await updateSet(editingSet.id, { weight: 0 });
+    }
     setEditingSet(null);
-    const exercise = session.exercises.find((e) => e.sets.some((s) => s.id === editingSet.id));
-    if (exercise) startRest(exercise.restSeconds);
   };
 
   const handleFinish = async () => {
@@ -149,18 +173,42 @@ export default function ActiveWorkoutScreen() {
             </View>
 
             <View style={{ marginTop: spacing.sm }}>
-              {ex.sets.map((s) => (
-                <SetRow
-                  key={s.id}
-                  set={s}
-                  units={units}
-                  onComplete={() => handleComplete(s.id)}
-                  onUncomplete={() => uncompleteSet(s.id)}
-                  onUpdate={(patch) => updateSet(s.id, patch)}
-                  onDelete={() => deleteSet(s.id)}
-                  onShowPlates={(r) => setPlatesFor(r)}
-                />
-              ))}
+              {ex.sets.map((s) => {
+                const previous = ex.sets.filter((p) => p.setIndex < s.setIndex && p.isCompleted).pop();
+                return (
+                  <SetRow
+                    key={s.id}
+                    set={s}
+                    previous={previous}
+                    units={units}
+                    onComplete={() => handleComplete(s.id)}
+                    onUncomplete={() => uncompleteSet(s.id)}
+                    onUpdate={(patch) => updateSet(s.id, patch)}
+                    onDelete={() => deleteSet(s.id)}
+                    onShowPlates={(r) => setPlatesFor(r)}
+                    onEditWeight={() => {
+                      setEditingSet({
+                        id: s.id,
+                        weight: s.weight,
+                        reps: s.reps,
+                        previousWeight: previous?.weight ?? null,
+                        previousReps: previous?.reps ?? null,
+                        field: 'weight',
+                      });
+                    }}
+                    onEditReps={() => {
+                      setEditingSet({
+                        id: s.id,
+                        weight: s.weight,
+                        reps: s.reps,
+                        previousWeight: previous?.weight ?? null,
+                        previousReps: previous?.reps ?? null,
+                        field: 'reps',
+                      });
+                    }}
+                  />
+                );
+              })}
             </View>
           </Card>
         ))}
@@ -172,34 +220,22 @@ export default function ActiveWorkoutScreen() {
       {/* Sheet: calculadora de discos */}
       <PlateCalculatorSheet result={platesFor} onClose={() => setPlatesFor(null)} />
 
-      {/* Sheet: edición rápida de peso/reps */}
-      <Modal visible={!!editingSet} transparent animationType="slide" onRequestClose={() => setEditingSet(null)}>
-        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={() => setEditingSet(null)} />
-        <View style={{ backgroundColor: colors.surface, padding: spacing.lg, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, gap: spacing.md }}>
-          <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>Registrar set</Text>
-          <View style={{ flexDirection: 'row', gap: spacing.md }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>Peso ({units})</Text>
-              <Pressable
-                onPress={() => {
-                  /* abre teclado numérico grande, ver Inputs.NumberPad */
-                }}
-                style={{ backgroundColor: colors.background, padding: spacing.lg, borderRadius: radius.md, marginTop: spacing.xs }}
-              >
-                <Text style={{ color: colors.text, fontSize: fontSize.xxl, fontWeight: '700' }}>
-                  {editingSet?.weight || '0'}
-                </Text>
-              </Pressable>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>Repeticiones</Text>
-              <Text style={{ color: colors.text, fontSize: fontSize.xxl, fontWeight: '700', marginTop: spacing.xs }}>{editingSet?.reps || '0'}</Text>
-            </View>
-          </View>
-          <Button title="Guardar y completar" onPress={handleSaveEditing} />
-          <Button title="Cancelar" variant="ghost" onPress={() => setEditingSet(null)} />
-        </View>
-      </Modal>
+      {/* Sheet: edición rápida de peso/reps con teclado numérico custom */}
+      <NumericKeypad
+        visible={!!editingSet}
+        initialValue={editingSet ? (editingSet.field === 'weight' ? editingSet.weight : editingSet.reps) : 0}
+        field={editingSet?.field ?? 'weight'}
+        units={units}
+        previousValue={
+          editingSet
+            ? editingSet.field === 'weight'
+              ? editingSet.previousWeight ?? null
+              : editingSet.previousReps ?? null
+            : null
+        }
+        onConfirm={handleKeypadConfirm}
+        onCancel={handleKeypadCancel}
+      />
     </SafeAreaView>
   );
 }

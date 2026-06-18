@@ -1,16 +1,17 @@
 import { View, Text, ScrollView, Switch, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter, Stack, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 
 import { usePreferences } from '@stores/preferencesStore';
+import { useAuth } from '@stores/authStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
-import { exportData, importData, importHevyZip } from '@lib/exportImport';
+import { exportData, importData, importStrongZip } from '@lib/exportImport';
 
 /**
  * Pantalla de ajustes:
@@ -36,6 +37,11 @@ export default function SettingsScreen() {
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
   const colors = isDark ? darkTheme : lightTheme;
+
+  // Auth
+  const session = useAuth((s) => s.session);
+  const user = useAuth((s) => s.user);
+  const signOut = useAuth((s) => s.signOut);
 
   const handleExport = async () => {
     try {
@@ -65,17 +71,66 @@ export default function SettingsScreen() {
     try {
       const doc = await DocumentPicker.getDocumentAsync({ type: 'application/zip' });
       if (doc.canceled) return;
-      await importHevyZip(doc.assets[0].uri);
-      Alert.alert('Listo', 'Datos importados desde Hevy.');
+      const result = await importStrongZip(doc.assets[0].uri);
+      Alert.alert('Listo', `Importadas ${result.workouts} sesiones con ${result.sets} sets.`);
     } catch (err) {
       Alert.alert('Error', String(err));
     }
+  };
+
+  const handleSignOut = () => {
+    Alert.alert('Cerrar sesión', '¿Estás seguro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Cerrar sesión',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+        },
+      },
+    ]);
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom']}>
       <Stack.Screen options={{ title: 'Ajustes' }} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+        {/* Cuenta */}
+        <Card>
+          <SectionTitle title="Cuenta" />
+          {session && user ? (
+            <View style={{ gap: spacing.md }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#fff', fontSize: fontSize.lg, fontWeight: '800' }}>
+                    {(user.email ?? '?').charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>
+                    {user.email}
+                  </Text>
+                  <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
+                    Sesión activa
+                  </Text>
+                </View>
+              </View>
+              <Button title="Cerrar sesión" variant="danger" onPress={handleSignOut} fullWidth />
+            </View>
+          ) : (
+            <View style={{ gap: spacing.md }}>
+              <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
+                Inicia sesión para sincronizar entre dispositivos.
+              </Text>
+              <Link href="/auth/login" asChild>
+                <Pressable>
+                  <Button title="Iniciar sesión / Crear cuenta" fullWidth />
+                </Pressable>
+              </Link>
+            </View>
+          )}
+        </Card>
+
         {/* Apariencia */}
         <Card>
           <SectionTitle title="Apariencia" />
@@ -115,7 +170,7 @@ export default function SettingsScreen() {
           <View style={{ height: spacing.sm }} />
           <Button title="Importar JSON" variant="secondary" onPress={handleImport} fullWidth />
           <View style={{ height: spacing.sm }} />
-          <Button title="Importar desde Hevy (.zip)" variant="secondary" onPress={handleImportHevy} fullWidth />
+          <Button title="Importar desde Strong (.zip o .csv)" variant="secondary" onPress={handleImportHevy} fullWidth />
         </Card>
 
         <Card>

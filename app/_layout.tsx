@@ -9,6 +9,7 @@ import * as SystemUI from 'expo-system-ui';
 
 import { usePreferences } from '@stores/preferencesStore';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
+import { useAuth } from '@stores/authStore';
 import { runMigrations } from '@db/migrations';
 import { seedExercises } from '@db/seed';
 import { darkTheme, lightTheme } from '@lib/theme';
@@ -32,6 +33,7 @@ export default function RootLayout() {
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
   const colors = isDark ? darkTheme : lightTheme;
   const loadActive = useActiveWorkout((s) => s.loadActive);
+  const initAuth = useAuth((s) => s.init);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,6 +42,7 @@ export default function RootLayout() {
         runMigrations();
         await seedExercises();
         await loadActive();
+        await initAuth();
       } catch (err) {
         console.error('[strain] Error inicializando:', err);
       } finally {
@@ -49,7 +52,7 @@ export default function RootLayout() {
     return () => {
       cancelled = true;
     };
-  }, [loadActive]);
+  }, [loadActive, initAuth]);
 
   // Pinta la barra de estado en nativo
   useEffect(() => {

@@ -599,6 +599,100 @@ export const AnalyticsRepo = {
     }
     return db.select().from(schema.personalRecords).all() as PersonalRecord[];
   },
+
+  /**
+   * Serie temporal del peso máximo por sesión para un ejercicio.
+   * Devuelve { date, maxWeight, volume, oneRmEstimated, sessionId } ordenado por fecha.
+   */
+  async exerciseTimeline(exerciseId: string, sinceDays = 365) {
+    const since = new Date();
+    since.setDate(since.getDate() - sinceDays);
+    const rows = db
+      .select({
+        sessionId: schema.workoutSessions.id,
+        date: schema.workoutSessions.startedAt,
+        maxWeight: sql<number>`MAX(${schema.sets.weight})`,
+        maxReps: sql<number>`MAX(${schema.sets.reps})`,
+        totalVolume: sql<number>`SUM(${schema.sets.weight} * ${schema.sets.reps})`,
+        totalSets: sql<number>`COUNT(${schema.sets.id})`,
+        bestOneRm: sql<number>`MAX(${schema.sets.weight} * (1 + ${schema.sets.reps} / 30.0))`,
+      })
+      .from(schema.sets)
+      .innerJoin(schema.sessionExercises, eq(schema.sessionExercises.id, schema.sets.sessionExerciseId))
+      .innerJoin(schema.workoutSessions, eq(schema.workoutSessions.id, schema.sessionExercises.sessionId))
+      .where(and(
+        eq(schema.sessionExercises.exerciseId, exerciseId),
+        eq(schema.sets.isCompleted, true),
+        eq(schema.workoutSessions.status, 'completed'),
+        gte(schema.workoutSessions.startedAt, since),
+      ))
+      .groupBy(schema.workoutSessions.id, schema.workoutSessions.startedAt)
+      .orderBy(asc(schema.workoutSessions.startedAt))
+      .all();
+    return rows;
+  },
+
+  /** Mejor set (por 1RM estimado) en cada mes para un ejercicio. */
+  async monthlyBest(exerciseId: string, sinceDays = 365) {
+    const since = new Date();
+    since.setDate(since.getDate() - sinceDays);
+    return db
+      .select({
+        month: sql<string>`strftime('%Y-%m', ${schema.workoutSessions.startedAt}, 'unixepoch')`,
+        bestOneRm: sql<number>`MAX(${schema.sets.weight} * (1 + ${schema.sets.reps} / 30.0))`,
+        bestWeight: sql<number>`MAX(${schema.sets.weight})`,
+        bestReps: sql<number>`MAX(${schema.sets.reps})`,
+      })
+      .from(schema.sets)
+      .innerJoin(schema.sessionExercises, eq(schema.sessionExercises.id, schema.sets.sessionExerciseId))
+      .innerJoin(schema.workoutSessions, eq(schema.workoutSessions.id, schema.sessionExercises.sessionId))
+      .where(and(
+        eq(schema.sessionExercises.exerciseId, exerciseId),
+        eq(schema.sets.isCompleted, true),
+        eq(schema.workoutSessions.status, 'completed'),
+        gte(schema.workoutSessions.startedAt, since),
+      ))
+      .groupBy(sql`month`)
+      .orderBy(sql`month`)
+      .all();
+  },
+
+  /** Lista de PRs alcanzados para un ejercicio, ordenados por fecha. */
+  async exercisePrHistory(exerciseId: string) {
+    return db
+      .select({
+        id: schema.personalRecords.id,
+        recordType: schema.personalRecords.recordType,
+        value: schema.personalRecords.value,
+        reps: schema.personalRecords.reps,
+        weight: schema.personalRecords.weight,
+        achievedAt: schema.personalRecords.achievedAt,
+      })
+      .from(schema.personalRecords)
+      .where(eq(schema.personalRecords.exerciseId, exerciseId))
+      .orderBy(asc(schema.personalRecords.achievedAt))
+      .all();
+  },
+
+  /** Conteo de veces que se ha hecho el ejercicio. */
+  async exerciseStats(exerciseId: string) {
+    const totals = db
+      .select({
+        sessions: sql<number>`COUNT(DISTINCT ${schema.workoutSessions.id})`,
+        totalSets: sql<number>`COUNT(${schema.sets.id})`,
+        totalVolume: sql<number>`COALESCE(SUM(${schema.sets.weight} * ${schema.sets.reps}), 0)`,
+      })
+      .from(schema.sets)
+      .innerJoin(schema.sessionExercises, eq(schema.sessionExercises.id, schema.sets.sessionExerciseId))
+      .innerJoin(schema.workoutSessions, eq(schema.workoutSessions.id, schema.sessionExercises.sessionId))
+      .where(and(
+        eq(schema.sessionExercises.exerciseId, exerciseId),
+        eq(schema.sets.isCompleted, true),
+        eq(schema.workoutSessions.status, 'completed'),
+      ))
+      .get();
+    return totals ?? { sessions: 0, totalSets: 0, totalVolume: 0 };
+  },
 };
 
 /** Exporta todo el repositorio en un solo objeto para fácil importación. */

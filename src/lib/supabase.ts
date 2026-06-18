@@ -1,6 +1,8 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient, type Session, type User } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
+import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
+import { makeRedirectUri } from 'expo-auth-session';
 
 /**
  * Cliente de Supabase opcional.
@@ -52,20 +54,121 @@ export const isSupabaseConfigured = !!SUPABASE_URL && !!SUPABASE_ANON_KEY;
 
 export async function signInWithEmail(email: string, password: string) {
   const sb = getSupabase();
-  if (!sb) throw new Error('Supabase no configurado');
-  return sb.auth.signInWithPassword({ email, password });
+  if (!sb) throw new Error('Supabase no configurado. Añade EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY en .env');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
 }
 
 export async function signUpWithEmail(email: string, password: string) {
   const sb = getSupabase();
   if (!sb) throw new Error('Supabase no configurado');
-  return sb.auth.signUp({ email, password });
+  const { data, error } = await sb.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: makeRedirectUri({ scheme: 'strain' }) },
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function resetPassword(email: string) {
+  const sb = getSupabase();
+  if (!sb) throw new Error('Supabase no configurado');
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: makeRedirectUri({ scheme: 'strain' }),
+  });
+  if (error) throw error;
+}
+
+export async function updatePassword(newPassword: string) {
+  const sb = getSupabase();
+  if (!sb) throw new Error('Supabase no configurado');
+  const { error } = await sb.auth.updateUser({ password: newPassword });
+  if (error) throw error;
 }
 
 export async function signOut() {
   const sb = getSupabase();
   if (!sb) return;
   await sb.auth.signOut();
+}
+
+/** Devuelve la sesión actual (o null si no hay). */
+export async function getSession(): Promise<Session | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+  const { data } = await sb.auth.getSession();
+  return data.session;
+}
+
+/** Devuelve el usuario actual. */
+export async function getCurrentUser(): Promise<User | null> {
+  const session = await getSession();
+  return session?.user ?? null;
+}
+
+// ============================================================
+// OAuth (Google + Apple)
+// ============================================================
+
+/**
+ * Inicia el flujo de OAuth con un provider (google / apple / github).
+ *
+ * Implementación:
+ * - Usa `signInWithIdToken` si provees el idToken (recomendado para nativo con expo-auth-session)
+ * - Usa `signInWithOAuth` con `WebBrowser` como fallback que funciona en web + nativo.
+ *
+ * Para Apple Sign-In nativo puro, considera `@react-native-apple-authentication` (iOS 13+).
+ * Aquí usamos el flujo web de Supabase que es compatible con web + iOS + Android.
+ */
+WebBrowser.maybeCompleteAuthSession();
+
+export async function signInWithOAuth(
+  provider: 'google' | 'apple' | 'github',
+  idToken?: string,
+) {
+  const sb = getSupabase();
+  if (!sb) throw new Error('Supabase no configurado');
+
+  if (idToken) {
+    const { data, error } = await sb.auth.signInWithIdToken({
+      provider,
+      token: idToken,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  const redirectTo = makeRedirectUri({ scheme: 'strain' });
+  const { data, error } = await sb.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo,
+      skipBrowserRedirect: false,
+    },
+  });
+  if (error) throw error;
+
+  if (data?.url) {
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type === 'success' && result.url) {
+      // Extraer tokens del fragmento URL
+      const url = new URL(result.url);
+      const params = new URLSearchParams(url.hash.slice(1));
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      if (accessToken && refreshToken) {
+        const { data: sessionData, error: sessErr } = await sb.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (sessErr) throw sessErr;
+        return sessionData;
+      }
+    }
+  }
+  return null;
 }
 
 // ============================================================

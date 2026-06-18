@@ -28,6 +28,8 @@ interface SetRowProps {
   onUpdate: (patch: Partial<SetView>) => void;
   onDelete: () => void;
   onShowPlates: (result: PlateResult) => void;
+  onEditWeight?: () => void;
+  onEditReps?: () => void;
 }
 
 /**
@@ -49,6 +51,8 @@ export function SetRow({
   onUpdate,
   onDelete,
   onShowPlates,
+  onEditWeight,
+  onEditReps,
 }: SetRowProps) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
@@ -109,8 +113,17 @@ export function SetRow({
   }));
 
   const handleWeightTap = () => {
+    if (set.isCompleted && onEditWeight) {
+      // Si ya está completado, abrir keypad para editar (no calculadora)
+      onEditWeight();
+      return;
+    }
     const result = calculatePlates(set.weight);
     onShowPlates(result);
+  };
+
+  const handleRepsTap = () => {
+    if (onEditReps) onEditReps();
   };
 
   return (
@@ -194,12 +207,19 @@ export function SetRow({
 
           <View style={{ width: 1, height: 32, backgroundColor: colors.border }} />
 
-          <View style={{ flex: 1, alignItems: 'center' }}>
+          <Pressable
+            onPress={handleRepsTap}
+            style={{
+              flex: 1,
+              paddingVertical: spacing.sm,
+              alignItems: 'center',
+            }}
+          >
             <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: '700' }}>
               {set.reps || '—'}
             </Text>
             <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>reps</Text>
-          </View>
+          </Pressable>
 
           <Pressable
             onPress={() => (set.isCompleted ? onUncomplete() : onComplete())}

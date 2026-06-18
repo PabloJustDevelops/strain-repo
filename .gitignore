@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native
+ios/
+android/
+*.orig.*
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.tsbuildinfo
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Local env files
+.env*.local
+.env
+
+# Turbo / Vercel
+.turbo
+.vercel
+
+# IDE
+.vscode/
+.idea/
+
+# Skills / agentes del IDE (no parte del proyecto)
+.agents/
+.claude/
+skills-lock.json
+
+# Database local
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+
+# Logs
+logs/
+*.log

@@ -126,7 +126,10 @@ export default function RoutineDetailScreen() {
         {routine?.description && (
           <Text style={{ color: colors.textMuted }}>{routine.description}</Text>
         )}
-        <Button title="Añadir ejercicio" onPress={() => router.push(`/routines/${id}/add-exercise`)} />
+        <Button
+          title="Añadir ejercicio"
+          onPress={() => router.push({ pathname: '/routines/[id]/add-exercise', params: { id } })}
+        />
       </View>
 
       {exercises.length === 0 ? (

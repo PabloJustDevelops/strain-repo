@@ -73,13 +73,15 @@ describe('notifications · Expo Go', () => {
 
   it('deja un aviso en desarrollo una sola vez', async () => {
     (globalThis as { __DEV__?: boolean }).__DEV__ = true;
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // Es console.log a propósito: console.warn abre el overlay de LogBox, que
+    // en Expo Go se dibuja encima de la barra de pestañas y bloquea el toque.
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     const mod = await loadNotifications('storeClient');
 
     await mod.initNotifications();
     await mod.initNotifications();
 
-    expect(warn).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledTimes(1);
   });
 });
 

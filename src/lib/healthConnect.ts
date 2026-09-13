@@ -59,7 +59,8 @@ function warnUnavailableOnce(): void {
   if (warnedUnavailable) return;
   warnedUnavailable = true;
   if (typeof __DEV__ !== 'undefined' && __DEV__) {
-    console.warn(
+    // console.log (no warn) para no abrir el overlay de LogBox, que tapa la UI.
+    console.log(
       '[health] Health Connect no está disponible en Expo Go. Probá en un development build.'
     );
   }

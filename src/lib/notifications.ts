@@ -36,12 +36,17 @@ let warnedUnavailable = false;
 let initialized = false;
 let channelReady = false;
 
-/** Avisa una sola vez, y solo en desarrollo, de que no hay notificaciones. */
+/**
+ * Avisa una sola vez, y solo en desarrollo, de que no hay notificaciones.
+ *
+ * Usa `console.log` y no `console.warn`: el warning abre el overlay de LogBox en
+ * desarrollo, que se dibuja encima de la barra de pestañas y bloquea el toque.
+ */
 function warnUnavailableOnce(): void {
   if (warnedUnavailable) return;
   warnedUnavailable = true;
   if (typeof __DEV__ !== 'undefined' && __DEV__) {
-    console.warn(
+    console.log(
       '[notifications] No disponibles en Expo Go: expo-notifications se retiró del cliente en el SDK 53. Probá en un development build.'
     );
   }

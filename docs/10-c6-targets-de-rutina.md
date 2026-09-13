@@ -147,8 +147,9 @@ Decisiones que aparecieron al grillear, fuera de la frontera original:
 
 - **El default del descanso es una preferencia, no una constante.** `preferences.defaultRestSeconds`
   existía desde antes, con default 90, y no lo leía nadie. El store lo usa cuando no hay plan.
-- **El disparo del descanso no cambia**: cada set, como antes. La regla de supersets («descansa sólo
-  al cerrar el grupo») queda como candidato aparte, anotada en `06-known-issues.md` (G).
+- **El disparo del descanso no cambia para un ejercicio suelto**: cada set, como antes. La regla de
+  supersets («descansá al cerrar el grupo») se resolvió en su propio candidato: issue
+  [#2](https://github.com/PabloJustDevelops/strain-repo/issues/2).
 - **La duplicación de «el primer set es warmup» queda fuera de C6**, anotada en
   `06-known-issues.md` (H).
 

@@ -94,6 +94,19 @@ type HealthPermission =
 
 **Fix**: `import type { View } from 'react-native'` y `type CardRef = View | null`.
 
+### 9. El descanso de supersets arrancaba en cada set
+
+**Causa**: `completeSet` arrancaba el descanso en todo set completado, pero `CONTEXT.md` define el
+Superset como «se ejecutan en alternancia y se descansa al cerrar el grupo». En A/B alternado el timer
+arrancaba justo entre A1→B1, que es el momento en que no se descansa. Además, el armado de grupos en
+la sesión activa hardcodeaba la letra `A`, así que dos supersets del mismo entrenamiento se fusionaban
+en un grupo `A` no contiguo.
+
+**Fix**: `src/lib/supersets.ts` define la regla y la letra libre, con una sola definición compartida
+entre la sesión activa y el builder de rutinas. `supersetRestOwner` devuelve el ejercicio cuyo
+descanso corresponde arrancar, así el `restSeconds` que se usa es el del ejercicio que cierra la
+ronda. Issue #2.
+
 ---
 
 ## Problemas estructurales abiertos (no resueltos)
@@ -106,7 +119,6 @@ type HealthPermission =
 | D | **`expo-sqlite@15.0.6` vs `~15.1.4` esperado**. | Posibles bugs con la API async nueva. | Funciona en builds actuales; pendiente bumpear. |
 | E | **Web solo para dev**. No hay build de producción afinado para web. | La app no es usable públicamente desde URL pública. | Aceptado: producto es Android-first. |
 | F | **`session_exercises` divergente entre SQLite y Supabase**. D11 agregó `target_sets`, `target_reps` y `rest_seconds` sólo al esquema local: `supabase/migrations/initial_app_schema.sql` y `supabase/schema.sql` no las tienen. | Cuando se implemente el sync, los targets no viajan a la nube. Hoy no impacta: `pushPendingChanges` es un stub y ningún repo escribe `sync_queue`. | Al implementar el sync, agregar una migración idempotente en `supabase/migrations/`. Decisión D11. |
-| G | **El timer de descanso arranca en cada set, pero la UI de supersets promete lo contrario**. `active.tsx` dice "descansa solo cuando termines ambos" y `completeSet` arranca el descanso siempre. | La promesa de la UI no se cumple. | Candidato aparte: necesita saber si quedan sets sin completar en el grupo. Es lógica de supersets, no de targets. |
 | H | **La regla "el primer set es warmup" está duplicada**: `SessionsRepo.start` (`s === 1 ? ...`) y `exportImport` (`i === 0 ? ...`). | Puede divergir sin que nadie lo note. | Unificar en una sola definición cuando se toque alguno de los dos caminos. |
 | I | **`BetterSqliteStack.seam` se devuelve y ningún consumidor lo lee** (Speculative Generality del `/code-review`). | Superficie sin uso en el adapter de tests. | Borrarlo si sigue sin consumidor en el próximo review. |
 

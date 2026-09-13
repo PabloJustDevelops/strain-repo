@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, TextInput, Pressable, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
@@ -38,9 +38,12 @@ export default function ExercisesScreen() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<MuscleGroup | 'all'>('all');
 
-  useEffect(() => {
-    getRepos().exercises.list().then(setItems);
-  }, []);
+  // Recarga al recuperar el foco: navegar atrás no remonta la pantalla.
+  useFocusEffect(
+    useCallback(() => {
+      getRepos().exercises.list().then(setItems);
+    }, [])
+  );
 
   const filtered = useMemo(() => {
     return items.filter((ex) => {

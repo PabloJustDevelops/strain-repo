@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, FlatList, Pressable, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
@@ -35,10 +35,12 @@ export default function RoutinesScreen() {
   const [items, setItems] = useState<Routine[]>([]);
   const startFromRoutine = useActiveWorkout((s) => s.startFromRoutine);
 
-  const refresh = () => getRepos().routines.list().then(setItems);
-  useEffect(() => {
-    refresh();
-  }, []);
+  // Recarga al recuperar el foco: navegar atrás no remonta la pantalla.
+  useFocusEffect(
+    useCallback(() => {
+      getRepos().routines.list().then(setItems);
+    }, [])
+  );
 
   const handleStart = async (routine: Routine) => {
     await startFromRoutine(routine.id);

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, Pressable, useWindowDimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -39,9 +39,15 @@ export default function TodayScreen() {
 
   const [streak, setStreak] = useState(0);
 
-  useEffect(() => {
-    getRepos().analytics.currentStreak().then(setStreak).catch(() => setStreak(0));
-  }, []);
+  // Recarga al recuperar el foco: navegar atrás no remonta la pantalla.
+  useFocusEffect(
+    useCallback(() => {
+      getRepos()
+        .analytics.currentStreak()
+        .then(setStreak)
+        .catch(() => setStreak(0));
+    }, [])
+  );
 
   const handleStartEmpty = async () => {
     if (haptics) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

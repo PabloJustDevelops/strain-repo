@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, Dimensions, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 import { LineChart } from 'react-native-chart-kit';
 import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,23 +38,39 @@ export default function ProgressScreen() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapDay[]>([]);
 
-  useEffect(() => {
-    getRepos().analytics.volumePerWeek(12).then(setWeeklyVolume);
-    getRepos().analytics.currentStreak().then(setStreak);
-    getRepos().analytics.dailyVolume(365).then(setHeatmapData);
-    getRepos().exercises.list().then(setExercises);
-    getRepos().analytics.personalRecords().then((records) => {
-      const map = new Map(exercises.map((e) => [e.id, e.name]));
-      setPrs(
-        records
-          .filter((r) => r.recordType === 'one_rm')
-          .map((r) => ({
-            exerciseName: map.get(r.exerciseId) ?? 'Ejercicio',
-            oneRm: r.value,
-          }))
-      );
-    });
-  }, [exercises.length]);
+  // Recarga al recuperar el foco y arma los PRs con el catálogo del mismo fetch,
+  // en vez de depender de que `exercises` ya esté en el estado.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        const [volume, current, heatmap, catalog, records] = await Promise.all([
+          getRepos().analytics.volumePerWeek(12),
+          getRepos().analytics.currentStreak(),
+          getRepos().analytics.dailyVolume(365),
+          getRepos().exercises.list(),
+          getRepos().analytics.personalRecords(),
+        ]);
+        if (cancelled) return;
+        setWeeklyVolume(volume);
+        setStreak(current);
+        setHeatmapData(heatmap);
+        setExercises(catalog);
+        const names = new Map(catalog.map((e) => [e.id, e.name]));
+        setPrs(
+          records
+            .filter((r) => r.recordType === 'one_rm')
+            .map((r) => ({
+              exerciseName: names.get(r.exerciseId) ?? 'Ejercicio',
+              oneRm: r.value,
+            }))
+        );
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [])
+  );
 
   const chartData = {
     labels: weeklyVolume.slice(-6).map((w) => w.weekStart.split('-')[1]),

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import DraggableFlatList, {
@@ -39,17 +39,20 @@ export default function RoutineDetailScreen() {
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [exercises, setExercises] = useState<RoutineExerciseRow[]>([]);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     if (!id) return;
     const data = await getRepos().routines.getWithExercises(id);
     if (!data) return;
     setRoutine(data.routine);
     setExercises(data.exercises);
-  };
-
-  useEffect(() => {
-    refresh();
   }, [id]);
+
+  // Recarga al recuperar el foco: al volver del selector hay que ver lo nuevo.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const handleDragEnd = async ({ data }: { data: RoutineExerciseRow[] }) => {
     setExercises(data);

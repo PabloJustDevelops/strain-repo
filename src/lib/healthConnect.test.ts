@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('react-native', () => ({
   Platform: {
     OS: 'android',
-    select: (options: Record<string, unknown>) => options.default ?? options.android,
+    select: (options: { default?: unknown; android?: unknown }) => options.default ?? options.android,
   },
 }));
 

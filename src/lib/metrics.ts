@@ -50,8 +50,14 @@ export function setVolume(weight: number, reps: number): number {
   return weight * reps;
 }
 
+/** Totales de un conjunto de sets. */
+export interface SessionTotals {
+  volume: number;
+  completedSets: number;
+}
+
 /** Totales de un conjunto de sets. Una sola definición del agregado. */
-export function sessionTotals(sets: readonly SetLike[]): { volume: number; completedSets: number } {
+export function sessionTotals(sets: readonly SetLike[]): SessionTotals {
   let volume = 0;
   let completedSets = 0;
   for (const s of sets) {

@@ -16,10 +16,6 @@ import { initNotifications, scheduleReminders } from '@lib/notifications';
 // Mantén el splash hasta que la BD esté lista
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-function toError(err: unknown): Error {
-  return err instanceof Error ? err : new Error(String(err));
-}
-
 /**
  * Root layout de la app.
  *
@@ -68,7 +64,7 @@ export default function RootLayout() {
       } catch (err) {
         console.error('[strain] Error inicializando:', err);
         if (cancelled) return;
-        setBootError(toError(err));
+        setBootError(err instanceof Error ? err : new Error(String(err)));
         // No hay contenido que mostrar: sacamos el splash para que se vea el error.
         SplashScreen.hideAsync().catch(() => {});
       }

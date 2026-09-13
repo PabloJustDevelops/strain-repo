@@ -26,11 +26,10 @@ const SUPERSET_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
  * un entrenamiento), que es el comportamiento que ya tenía el builder de rutinas.
  */
 export function nextSupersetLetter(exercises: { supersetGroup: string | null }[]): string {
-  const taken = new Set(
-    exercises
-      .map((ex) => ex.supersetGroup)
-      .filter((letter): letter is string => letter !== null)
-  );
+  const taken = new Set<string>();
+  for (const ex of exercises) {
+    if (ex.supersetGroup !== null) taken.add(ex.supersetGroup);
+  }
   return SUPERSET_LETTERS.find((letter) => !taken.has(letter)) ?? 'A';
 }
 

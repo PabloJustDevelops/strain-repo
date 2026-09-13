@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "web": "expo start --web",
-    "lint": "expo lint",
+    "lint": "expo lint && pnpm lint:anti-slop",
+    "lint:anti-slop": "oxlint -c .oxlintrc.json .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
@@ -63,6 +64,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/runtime": "^7.29.7",
+    "@oxlint/plugins": "1.82.0",
     "@types/better-sqlite3": "^9.6.0",
     "@types/react": "~19.2.14",
     "better-sqlite3": "^11.10.0",
@@ -70,6 +72,7 @@
     "eas-cli": "^20.3.0",
     "eslint": "^9.26.0",
     "eslint-config-expo": "~56.0.4",
+    "oxlint": "1.82.0",
     "tsx": "^4.22.4",
     "typescript": "~6.0.3",
     "vitest": "^5.0.0"

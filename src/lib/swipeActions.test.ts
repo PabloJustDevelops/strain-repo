@@ -31,7 +31,6 @@ describe('swipeActionOpacity', () => {
   it('siempre devuelve un número dentro de [0, 1]', () => {
     for (let x = -400; x <= 400; x += 7) {
       const value = swipeActionOpacity(x);
-      expect(typeof value).toBe('number');
       expect(value).toBeGreaterThanOrEqual(0);
       expect(value).toBeLessThanOrEqual(1);
     }

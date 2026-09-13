@@ -5,7 +5,8 @@ module.exports = function (api) {
       ['babel-preset-expo', { jsxImportSource: 'react' }],
     ],
     plugins: [
-      'react-native-reanimated/plugin', // Debe ir el último
+      // El plugin se movió de react-native-reanimated a worklets en Reanimated 4.5.
+      'react-native-worklets/plugin', // Debe ir el último
     ],
   };
 };

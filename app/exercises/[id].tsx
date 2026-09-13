@@ -7,10 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { VictoryLine, VictoryChart, VictoryAxis, VictoryTheme, VictoryArea } from 'victory-native';
 import * as Haptics from 'expo-haptics';
 
-import { ExercisesRepo, AnalyticsRepo } from '@db/repositories';
+import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, type Exercise } from '@/types/domain';
+import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, type Exercise, type MuscleGroup, type Equipment, type Mechanic } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
 import { Sidebar } from '@components/Sidebar';
@@ -64,10 +64,10 @@ export default function ExerciseDetailScreen() {
   const load = async () => {
     if (!id) return;
     const [ex, tl, st, prHistory] = await Promise.all([
-      ExercisesRepo.byId(id),
-      AnalyticsRepo.exerciseTimeline(id, RANGE_DAYS[range]),
-      AnalyticsRepo.exerciseStats(id),
-      AnalyticsRepo.exercisePrHistory(id),
+      getRepos().exercises.byId(id),
+      getRepos().analytics.exerciseTimeline(id, RANGE_DAYS[range]),
+      getRepos().analytics.exerciseStats(id),
+      getRepos().analytics.exercisePrHistory(id),
     ]);
     setExercise(ex ?? null);
     setTimeline(tl);
@@ -119,9 +119,9 @@ export default function ExerciseDetailScreen() {
           {exercise.name}
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-          <Tag text={MUSCLE_GROUP_LABELS[exercise.muscleGroup]} />
-          <Tag text={EQUIPMENT_LABELS[exercise.equipment]} />
-          <Tag text={exercise.mechanic === 'compound' ? 'Compuesto' : 'Aislamiento'} />
+          <Tag text={MUSCLE_GROUP_LABELS[exercise.muscleGroup as MuscleGroup]} />
+          <Tag text={EQUIPMENT_LABELS[exercise.equipment as Equipment]} />
+          <Tag text={(exercise.mechanic as Mechanic) === 'compound' ? 'Compuesto' : 'Aislamiento'} />
         </View>
       </View>
 
@@ -163,7 +163,7 @@ export default function ExerciseDetailScreen() {
             domainPadding={{ y: 8 }}
           >
             <VictoryAxis
-              tickFormat={(t) => {
+              tickFormat={(t: number) => {
                 const d = chartData[t]?.date;
                 return d ? formatDateShort(new Date(d)) : '';
               }}
@@ -176,7 +176,7 @@ export default function ExerciseDetailScreen() {
             />
             <VictoryAxis
               dependentAxis
-              tickFormat={(t) => `${Math.round(t)}`}
+              tickFormat={(t: number) => `${Math.round(t)}`}
               style={{
                 axis: { stroke: colors.border },
                 tickLabels: { fill: colors.textMuted, fontSize: 10 },

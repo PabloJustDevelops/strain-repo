@@ -81,22 +81,27 @@ function getStyles(variant: ButtonProps['variant'], colors: typeof darkTheme, fu
     case 'primary':
       return {
         base: { ...base, backgroundColor: colors.primary },
-        text: { color: '#fff', fontWeight: '700', fontSize: fontSize.base },
+        text: { color: '#fff', fontWeight: '700' as const, fontSize: fontSize.base },
       };
     case 'secondary':
       return {
         base: { ...base, backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.border },
-        text: { color: colors.text, fontWeight: '600', fontSize: fontSize.base },
+        text: { color: colors.text, fontWeight: '600' as const, fontSize: fontSize.base },
       };
     case 'ghost':
       return {
         base: { ...base, backgroundColor: 'transparent' },
-        text: { color: colors.primary, fontWeight: '600', fontSize: fontSize.base },
+        text: { color: colors.primary, fontWeight: '600' as const, fontSize: fontSize.base },
       };
     case 'danger':
       return {
         base: { ...base, backgroundColor: colors.danger },
-        text: { color: '#fff', fontWeight: '700', fontSize: fontSize.base },
+        text: { color: '#fff', fontWeight: '700' as const, fontSize: fontSize.base },
+      };
+    default:
+      return {
+        base: { ...base, backgroundColor: colors.primary },
+        text: { color: '#fff', fontWeight: '700' as const, fontSize: fontSize.base },
       };
   }
 }

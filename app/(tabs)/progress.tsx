@@ -5,7 +5,7 @@ import { LineChart } from 'react-native-chart-kit';
 import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { AnalyticsRepo, ExercisesRepo } from '@db/repositories';
+import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import type { Exercise } from '@/types/domain';
@@ -38,11 +38,11 @@ export default function ProgressScreen() {
   const [heatmapData, setHeatmapData] = useState<HeatmapDay[]>([]);
 
   useEffect(() => {
-    AnalyticsRepo.volumePerWeek(12).then(setWeeklyVolume);
-    AnalyticsRepo.currentStreak().then(setStreak);
-    AnalyticsRepo.dailyVolume(365).then(setHeatmapData);
-    ExercisesRepo.list().then(setExercises);
-    AnalyticsRepo.personalRecords().then((records) => {
+    getRepos().analytics.volumePerWeek(12).then(setWeeklyVolume);
+    getRepos().analytics.currentStreak().then(setStreak);
+    getRepos().analytics.dailyVolume(365).then(setHeatmapData);
+    getRepos().exercises.list().then(setExercises);
+    getRepos().analytics.personalRecords().then((records) => {
       const map = new Map(exercises.map((e) => [e.id, e.name]));
       setPrs(
         records

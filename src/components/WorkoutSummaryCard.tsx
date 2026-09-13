@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { topByVolume } from '@lib/metrics';
+import type { SessionExerciseSummary } from '@db/shapes';
 import type { WorkoutSession } from '@/types/domain';
 
 /**
@@ -20,11 +22,7 @@ import type { WorkoutSession } from '@/types/domain';
  */
 interface WorkoutSummaryCardProps {
   session: WorkoutSession & {
-    exercises?: Array<{
-      id: string;
-      name: string;
-      sets: Array<{ weight: number; reps: number; isCompleted: boolean }>;
-    }>;
+    exercises?: SessionExerciseSummary[];
   };
   onReady?: () => void;
   width?: number;
@@ -50,13 +48,10 @@ export const WorkoutSummaryCard = forwardRef<View, WorkoutSummaryCardProps>(func
   const end = session.endedAt ?? new Date();
   const durationMin = Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000));
 
-  const top = (session.exercises ?? [])
-    .map((e) => ({
-      name: e.name,
-      volume: e.sets.filter((s) => s.isCompleted).reduce((a, s) => a + s.weight * s.reps, 0),
-    }))
-    .sort((a, b) => b.volume - a.volume)
-    .slice(0, 3);
+  const top = topByVolume(session.exercises ?? [], 3).map(({ exercise, volume }) => ({
+    name: exercise.name,
+    volume,
+  }));
 
   const totalSets = session.totalSets;
   const totalVol = session.totalVolume;

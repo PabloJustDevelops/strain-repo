@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
-import { AnalyticsRepo } from '@db/repositories';
+import { getRepos } from '@db';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration, formatDateLong } from '@lib/format';
 import { Sidebar } from '@components/Sidebar';
@@ -40,7 +40,7 @@ export default function TodayScreen() {
   const [streak, setStreak] = useState(0);
 
   useEffect(() => {
-    AnalyticsRepo.currentStreak().then(setStreak).catch(() => setStreak(0));
+    getRepos().analytics.currentStreak().then(setStreak).catch(() => setStreak(0));
   }, []);
 
   const handleStartEmpty = async () => {

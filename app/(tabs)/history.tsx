@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
-import { SessionsRepo } from '@db/repositories';
+import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration, formatDateTime } from '@lib/format';
@@ -31,7 +31,7 @@ export default function HistoryScreen() {
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
 
   useEffect(() => {
-    SessionsRepo.list(100).then(setSessions);
+    getRepos().sessions.list(100).then(setSessions);
   }, []);
 
   const content = (

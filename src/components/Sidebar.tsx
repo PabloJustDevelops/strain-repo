@@ -5,19 +5,13 @@ import { useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}
-
-const NAV_ITEMS: NavItem[] = [
+const NAV_ITEMS = [
   { href: '/', label: 'Hoy', icon: 'home-outline' },
   { href: '/routines', label: 'Rutinas', icon: 'list-outline' },
   { href: '/exercises', label: 'Ejercicios', icon: 'barbell-outline' },
   { href: '/history', label: 'Historial', icon: 'calendar-outline' },
   { href: '/progress', label: 'Progreso', icon: 'trending-up-outline' },
-];
+] as const;
 
 /**
  * Sidebar fijo para web/desktop.

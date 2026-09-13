@@ -1,7 +1,7 @@
 import { Platform, Share } from 'react-native';
 import type { View } from 'react-native';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { captureRef } from 'react-native-view-shot';
 import { nanoid } from 'nanoid';
 

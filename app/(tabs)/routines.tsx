@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
-import { RoutinesRepo } from '@db/repositories';
+import { getRepos } from '@db';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
@@ -35,7 +35,7 @@ export default function RoutinesScreen() {
   const [items, setItems] = useState<Routine[]>([]);
   const startFromRoutine = useActiveWorkout((s) => s.startFromRoutine);
 
-  const refresh = () => RoutinesRepo.list().then(setItems);
+  const refresh = () => getRepos().routines.list().then(setItems);
   useEffect(() => {
     refresh();
   }, []);

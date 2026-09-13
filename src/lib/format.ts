@@ -27,18 +27,6 @@ export function lbToKg(lb: number): number {
   return lb / 2.2046226218;
 }
 
-/** Estima 1RM con la fórmula de Epley. */
-export function estimateOneRm(weight: number, reps: number): number {
-  if (reps <= 0) return 0;
-  if (reps === 1) return weight;
-  return weight * (1 + reps / 30);
-}
-
-/** Calcula el volumen (weight × reps). */
-export function calcVolume(weight: number, reps: number): number {
-  return weight * reps;
-}
-
 /** Formatea fecha como "Lun 18 jun". */
 export function formatDateShort(date: Date): string {
   return new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).format(date);

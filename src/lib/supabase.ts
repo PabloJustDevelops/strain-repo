@@ -23,6 +23,19 @@ const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 let cachedClient: SupabaseClient | null = null;
 
+/**
+ * Adaptador de storage asíncrono (SecureStore en nativo, localStorage en web)
+ * para que Supabase pueda persistir la sesión.
+ *
+ * Se castea a `any` porque la interfaz `Storage` que Supabase espera (AsyncStorage-like)
+ * no es 100% compatible con `Storage` de DOM — Supabase v2 acepta promises en getItem.
+ */
+const secureStoreStorage = {
+  getItem: (k: string): Promise<string | null> => SecureStore.getItemAsync(k),
+  setItem: (k: string, v: string): Promise<void> => SecureStore.setItemAsync(k, v),
+  removeItem: (k: string): Promise<void> => SecureStore.deleteItemAsync(k),
+};
+
 /** Devuelve el cliente de Supabase (null si no está configurado). */
 export function getSupabase(): SupabaseClient | null {
   if (cachedClient) return cachedClient;
@@ -30,14 +43,7 @@ export function getSupabase(): SupabaseClient | null {
 
   cachedClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
-      storage: Platform.select({
-        native: {
-          getItem: (k) => SecureStore.getItemAsync(k),
-          setItem: (k, v) => SecureStore.setItemAsync(k, v),
-          removeItem: (k) => SecureStore.deleteItemAsync(k),
-        },
-        default: localStorage,
-      }) as any,
+      storage: Platform.OS === 'web' ? localStorage : (secureStoreStorage as any),
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,

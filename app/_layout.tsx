@@ -9,8 +9,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { usePreferences } from '@stores/preferencesStore';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { useAuth } from '@stores/authStore';
-import { runMigrations } from '@db/migrations';
-import { seedExercises } from '@db/seed';
+import { bootstrapProductionDatabase } from '@db/bootstrap';
 import { darkTheme, lightTheme } from '@lib/theme';
 import { initNotifications, scheduleReminders } from '@lib/notifications';
 
@@ -39,8 +38,7 @@ export default function RootLayout() {
     let cancelled = false;
     (async () => {
       try {
-        runMigrations();
-        await seedExercises();
+        await bootstrapProductionDatabase();
         await loadActive();
         await initAuth();
         await initNotifications();

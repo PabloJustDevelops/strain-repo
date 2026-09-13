@@ -1,13 +1,7 @@
 import { create } from 'zustand';
-import { SessionsRepo, RoutinesRepo } from '@db/repositories';
-import type {
-  ActiveSessionView,
-  SessionExerciseView,
-  SetView,
-  MuscleGroup,
-  Equipment,
-  SetType,
-} from '@/types/domain';
+import { getRepos } from '@db';
+import { toActiveSessionView, type ActiveSessionView, type SetView } from '@db/shapes';
+import { sessionTotals } from '@lib/metrics';
 
 /**
  * Estado del workout en curso.
@@ -42,45 +36,6 @@ interface ActiveWorkoutState {
   discardWorkout: () => Promise<void>;
 }
 
-function mapDbToView(db: Awaited<ReturnType<typeof SessionsRepo.getFullSession>>): ActiveSessionView | null {
-  if (!db) return null;
-  return {
-    id: db.session.id,
-    name: db.session.name,
-    startedAt: db.session.startedAt,
-    elapsedSeconds: db.session.startedAt
-      ? Math.floor((Date.now() - db.session.startedAt.getTime()) / 1000)
-      : 0,
-    exercises: db.exercises.map<SessionExerciseView>((ex) => ({
-      id: ex.id,
-      exerciseId: ex.exerciseId,
-      name: ex.exercise.name,
-      muscleGroup: ex.exercise.muscleGroup as MuscleGroup,
-      equipment: ex.exercise.equipment as Equipment,
-      orderIndex: ex.orderIndex,
-      notes: ex.notes,
-      targetSets: ex.sets.length,
-      targetReps: '-',
-      restSeconds: 90,
-      sets: ex.sets.map<SetView>((s) => ({
-        id: s.id,
-        setIndex: s.setIndex,
-        type: s.setType as SetType,
-        weight: s.weight,
-        reps: s.reps,
-        isCompleted: s.isCompleted,
-        rpe: s.rpe,
-      })),
-    })),
-    totalVolume: db.session.totalVolume,
-    totalSets: db.session.totalSets,
-    completedSets: db.exercises.reduce(
-      (acc, ex) => acc + ex.sets.filter((s) => s.isCompleted).length,
-      0
-    ),
-  };
-}
-
 export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   session: null,
   isLoading: false,
@@ -90,25 +45,25 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async loadActive() {
     set({ isLoading: true });
-    const active = await SessionsRepo.activeSession();
+    const active = await getRepos().sessions.activeSession();
     if (!active) {
       set({ session: null, isLoading: false });
       return;
     }
-    const full = await SessionsRepo.getFullSession(active.id);
-    set({ session: mapDbToView(full), isLoading: false });
+    const full = await getRepos().sessions.getFullSession(active.id);
+    set({ session: full ? toActiveSessionView(full) : null, isLoading: false });
   },
 
   async startEmpty(name) {
-    const session = await SessionsRepo.start({ name });
-    const full = await SessionsRepo.getFullSession(session.id);
-    set({ session: mapDbToView(full) });
+    const session = await getRepos().sessions.start({ name });
+    const full = await getRepos().sessions.getFullSession(session.id);
+    set({ session: full ? toActiveSessionView(full) : null });
   },
 
   async startFromRoutine(routineId) {
-    const full = await RoutinesRepo.getWithExercises(routineId);
+    const full = await getRepos().routines.getWithExercises(routineId);
     if (!full) return;
-    const session = await SessionsRepo.start({
+    const session = await getRepos().sessions.start({
       name: full.routine.name,
       routineId,
       fromRoutineExercises: full.exercises.map((re) => ({
@@ -119,8 +74,8 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         restSeconds: re.restSeconds,
       })),
     });
-    const detailed = await SessionsRepo.getFullSession(session.id);
-    set({ session: mapDbToView(detailed) });
+    const detailed = await getRepos().sessions.getFullSession(session.id);
+    set({ session: detailed ? toActiveSessionView(detailed) : null });
   },
 
   async completeSet(setId, weight, reps) {
@@ -136,13 +91,10 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         ),
       })),
     };
-    updated.completedSets = updated.exercises.reduce(
-      (acc, ex) => acc + ex.sets.filter((s) => s.isCompleted).length,
-      0
-    );
+    updated.completedSets = sessionTotals(updated.exercises.flatMap((ex) => ex.sets)).completedSets;
     set({ session: updated });
 
-    await SessionsRepo.completeSet(setId, weight, reps);
+    await getRepos().sessions.completeSet(setId, weight, reps);
 
     // Inicia el descanso automáticamente (usa el último rest configurado)
     const setDef = updated.exercises
@@ -166,7 +118,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         completedSets: session.completedSets - 1,
       },
     });
-    await SessionsRepo.uncompleteSet(setId);
+    await getRepos().sessions.uncompleteSet(setId);
   },
 
   async updateSet(setId, patch) {
@@ -181,18 +133,9 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         })),
       },
     });
-    // SetView usa 'type'/'isCompleted', la tabla usa 'setType'/'isCompleted'+completedAt.
-    const dbPatch: Record<string, unknown> = {};
-    if ('weight' in patch) dbPatch.weight = patch.weight;
-    if ('reps' in patch) dbPatch.reps = patch.reps;
-    if ('rpe' in patch) dbPatch.rpe = patch.rpe;
-    if ('notes' in patch) dbPatch.notes = patch.notes;
-    if ('isCompleted' in patch) {
-      dbPatch.isCompleted = patch.isCompleted;
-      if (patch.isCompleted) dbPatch.completedAt = new Date();
-      else dbPatch.completedAt = null;
-    }
-    await SessionsRepo.updateSet(setId, dbPatch);
+    // `SetView` es un subconjunto de la fila con los mismos nombres, así que el
+    // patch cruza la seam tal cual: no hay mapeo inverso que mantener.
+    await getRepos().sessions.updateSet(setId, patch);
   },
 
   async setSupersetGroup(sessionExerciseId, group) {
@@ -206,15 +149,15 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         ),
       },
     });
-    await SessionsRepo.setSessionExerciseSuperset(sessionExerciseId, group);
+    await getRepos().sessions.setSessionExerciseSuperset(sessionExerciseId, group);
   },
 
   async addSet(sessionExerciseId) {
-    await SessionsRepo.addSet(sessionExerciseId);
+    await getRepos().sessions.addSet(sessionExerciseId);
     const { session } = get();
     if (!session) return;
-    const full = await SessionsRepo.getFullSession(session.id);
-    set({ session: mapDbToView(full) });
+    const full = await getRepos().sessions.getFullSession(session.id);
+    set({ session: full ? toActiveSessionView(full) : null });
   },
 
   async deleteSet(setId) {
@@ -229,7 +172,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         })),
       },
     });
-    await SessionsRepo.deleteSet(setId);
+    await getRepos().sessions.deleteSet(setId);
   },
 
   startRest(seconds) {
@@ -258,7 +201,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   async finishWorkout() {
     const { session } = get();
     if (!session) return;
-    await SessionsRepo.finish(session.id);
+    await getRepos().sessions.finish(session.id);
 
     // Sincronizar con Health Connect (best effort, no bloquea la UX).
     try {
@@ -293,7 +236,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   async discardWorkout() {
     const { session } = get();
     if (!session) return;
-    await SessionsRepo.discard(session.id);
+    await getRepos().sessions.discard(session.id);
     set({
       session: null,
       isResting: false,

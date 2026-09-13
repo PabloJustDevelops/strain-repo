@@ -117,7 +117,7 @@ Solo si quieres sincronizar entre dispositivos:
 
 1. Crea un proyecto en [supabase.com](https://supabase.com)
 2. Ejecuta `supabase/schema.sql` en el SQL Editor
-3. Copia `.env.example` a `.env` y rellena:
+3. Usa `docs/.env.example` como plantilla y crea `.env` en la raiz:
    ```
    EXPO_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
    EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...

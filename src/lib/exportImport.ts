@@ -1,5 +1,4 @@
-import { Repos } from '@db/repositories';
-import { nanoid } from 'nanoid';
+import type { Repos } from '@db';
 
 /**
  * Export / Import de datos de Strain.
@@ -28,21 +27,21 @@ interface StrainExport {
 // EXPORT JSON / CSV
 // ============================================================
 
-export async function exportData(): Promise<string> {
+export async function exportData(repos: Repos): Promise<string> {
   const payload: StrainExport = {
     version: 1,
     exportedAt: new Date().toISOString(),
-    exercises: await Repos.exercises.list(),
-    routines: await Repos.routines.list(true),
-    sessions: await Repos.sessions.list(1000),
+    exercises: await repos.exercises.list(),
+    routines: await repos.routines.list(true),
+    sessions: await repos.sessions.list(1000),
     sets: [],
-    personalRecords: await Repos.analytics.personalRecords(),
+    personalRecords: await repos.analytics.personalRecords(),
   };
   return JSON.stringify(payload, null, 2);
 }
 
-export async function exportCsv(): Promise<string> {
-  const sessions = await Repos.sessions.list(1000);
+export async function exportCsv(repos: Repos): Promise<string> {
+  const sessions = await repos.sessions.list(1000);
   const rows: string[] = [
     'Fecha,Nombre,Duración (s),Volumen (kg),Series',
     ...sessions.map((s) =>
@@ -69,19 +68,19 @@ function csvEscape(value: string): string {
 // IMPORT JSON nativo
 // ============================================================
 
-export async function importData(json: string): Promise<{ exercises: number; routines: number; sessions: number }> {
+export async function importData(json: string, repos: Repos): Promise<{ exercises: number; routines: number; sessions: number }> {
   const data = JSON.parse(json) as StrainExport;
   if (data.version !== 1) throw new Error('Versión de export no soportada');
 
   const exMap = new Map<string, string>();
-  const exList = await Repos.exercises.list();
+  const exList = await repos.exercises.list();
   const exByName = new Map(exList.map((e) => [e.name.toLowerCase().trim(), e.id]));
 
   for (const ex of data.exercises ?? []) {
     const key = ex.name.toLowerCase().trim();
     let id = exByName.get(key);
     if (!id) {
-      const created = await Repos.exercises.create({
+      const created = await repos.exercises.create({
         name: ex.name,
         muscleGroup: ex.muscleGroup ?? 'other',
         equipment: ex.equipment ?? 'other',
@@ -99,7 +98,7 @@ export async function importData(json: string): Promise<{ exercises: number; rou
 
   let routinesImported = 0;
   for (const r of data.routines ?? []) {
-    const created = await Repos.routines.create({
+    const created = await repos.routines.create({
       name: r.name,
       description: r.description,
       tags: r.tags ?? [],
@@ -109,14 +108,14 @@ export async function importData(json: string): Promise<{ exercises: number; rou
     for (const re of r.routineExercises ?? []) {
       const newExId = exMap.get(re.exerciseId);
       if (!newExId) continue;
-      await Repos.routines.addExercise(created.id, newExId);
+      await repos.routines.addExercise(created.id, newExId);
     }
   }
 
   let sessionsImported = 0;
   for (const s of data.sessions ?? []) {
-    const session = await Repos.sessions.start({ name: s.name });
-    await Repos.sessions.finish(session.id);
+    const session = await repos.sessions.start({ name: s.name });
+    await repos.sessions.finish(session.id);
     sessionsImported++;
   }
 
@@ -138,32 +137,9 @@ export interface StrongImportResult {
 }
 
 /**
- * Importa un export de Strong Workout Tracker.
- * Acepta:
- * - Un archivo .zip exportado desde Strong (contiene workouts.csv + exercises.csv)
- * - Un .csv directo con los workouts
- *
- * Columnas esperadas del CSV de Strong:
- *   Date, Workout Name, Duration, Exercise Name, Set Order, Weight, Reps,
- *   Distance, Seconds, Notes, Workout Notes, RPE
- *
- * Si el archivo es .zip, se intenta extraer el CSV workouts.csv.
- */
-export async function importStrongZip(fileUri: string): Promise<StrongImportResult> {
-  let csvText: string;
-  const lower = fileUri.toLowerCase();
-  if (lower.endsWith('.zip')) {
-    csvText = await readCsvFromZip(fileUri);
-  } else {
-    csvText = await readFileAsText(fileUri);
-  }
-  return importStrongCsv(csvText);
-}
-
-/**
  * Importa directamente desde texto CSV de Strong.
  */
-export async function importStrongCsv(csvText: string): Promise<StrongImportResult> {
+export async function importStrongCsv(csvText: string, repos: Repos): Promise<StrongImportResult> {
   const rows = parseCsv(csvText);
   if (rows.length < 2) return { workouts: 0, sets: 0, exercises: 0, skipped: 0 };
 
@@ -227,7 +203,7 @@ export async function importStrongCsv(csvText: string): Promise<StrongImportResu
   }
 
   // Importar workouts
-  const exList = await Repos.exercises.list();
+  const exList = await repos.exercises.list();
   const exByName = new Map(exList.map((e) => [e.name.toLowerCase().trim(), e]));
 
   let totalSets = 0;
@@ -237,7 +213,7 @@ export async function importStrongCsv(csvText: string): Promise<StrongImportResu
 
   for (const wk of workouts) {
     try {
-      const session = await Repos.sessions.start({ name: wk.name });
+      const session = await repos.sessions.start({ name: wk.name, startedAt: wk.date });
 
       // Agrupar sets por ejercicio
       const byExercise = new Map<string, { name: string; sets: Row[] }>();
@@ -253,14 +229,11 @@ export async function importStrongCsv(csvText: string): Promise<StrongImportResu
       }
 
       // Para cada ejercicio: crear exercise si no existe, añadir sessionExercise, actualizar sets
-      const { db, schema } = await import('@db/client');
-      const { eq } = await import('drizzle-orm');
-
       let orderIndex = 1;
       for (const [, exData] of byExercise) {
         let exercise = exByName.get(exData.name.toLowerCase().trim());
         if (!exercise) {
-          exercise = await Repos.exercises.create({
+          exercise = await repos.exercises.create({
             name: exData.name,
             muscleGroup: guessMuscleGroup(exData.name),
             equipment: 'other',
@@ -271,21 +244,15 @@ export async function importStrongCsv(csvText: string): Promise<StrongImportResu
           newExercises++;
         }
 
-        // Insertar session_exercise manualmente para poder controlar el setIndex
-        const sessionExerciseId = nanoid();
-        db.insert(schema.sessionExercises).values({
-          id: sessionExerciseId,
-          sessionId: session.id,
-          exerciseId: exercise.id,
+        const sessionExercise = await repos.sessions.addSessionExercise(session.id, exercise.id, {
           orderIndex: orderIndex++,
-        }).run();
+        });
 
         // Crear un set por cada set del CSV
         for (let i = 0; i < exData.sets.length; i++) {
           const s = exData.sets[i];
-          await Repos.sessions.addSet(sessionExerciseId);
-          const setId = (await getLastSetId(sessionExerciseId))!;
-          await Repos.sessions.updateSet(setId, {
+          const created = await repos.sessions.addSet(sessionExercise.id);
+          await repos.sessions.updateSet(created.id, {
             setIndex: s.setOrder || i + 1,
             setType: i === 0 ? 'warmup' : 'working',
             weight: s.weight,
@@ -295,22 +262,19 @@ export async function importStrongCsv(csvText: string): Promise<StrongImportResu
             notes: s.notes,
             completedAt: wk.date,
           });
-          await Repos.sessions.completeSet(setId, s.weight, s.reps);
+          await repos.sessions.completeSet(created.id, s.weight, s.reps);
           totalSets++;
         }
       }
 
-      // Forzar duración si Strong la proveyó
-      if (wk.durationSeconds > 0) {
-        const { schema } = await import('@db/schema');
-        const endedAt = new Date(wk.date.getTime() + wk.durationSeconds * 1000);
-        db.update(schema.workoutSessions)
-          .set({ endedAt, durationSeconds: wk.durationSeconds })
-          .where(eq(schema.workoutSessions.id, session.id))
-          .run();
-      }
+      // Strong trae la duración real. Se la pasamos a finish en vez de escribirla
+      // aparte: la escritura separada la sobrescribía y la duración se perdía.
+      const endedAt =
+        wk.durationSeconds > 0
+          ? new Date(wk.date.getTime() + wk.durationSeconds * 1000)
+          : undefined;
 
-      await Repos.sessions.finish(session.id);
+      await repos.sessions.finish(session.id, { endedAt });
     } catch (err) {
       console.error('[strain] Error importando workout:', wk.name, err);
       skipped++;
@@ -328,19 +292,6 @@ export async function importStrongCsv(csvText: string): Promise<StrongImportResu
 // ============================================================
 // Helpers
 // ============================================================
-
-async function getLastSetId(sessionExerciseId: string): Promise<string | null> {
-  const { db, schema } = await import('@db/client');
-  const { eq, desc } = await import('drizzle-orm');
-  const row = db
-    .select({ id: schema.sets.id })
-    .from(schema.sets)
-    .where(eq(schema.sets.sessionExerciseId, sessionExerciseId))
-    .orderBy(desc(schema.sets.setIndex))
-    .limit(1)
-    .get();
-  return row?.id ?? null;
-}
 
 /** Parsea fecha de Strong. Formatos comunes: "2024-01-15 10:30:00", "2024-01-15T10:30:00", "15/01/2024". */
 function parseStrongDate(s: string): Date | null {
@@ -401,48 +352,6 @@ function parseCsv(text: string): string[][] {
   }
   return rows;
 }
-
-/** Lee un ZIP y devuelve el contenido de workouts.csv (o el primer CSV encontrado). */
-async function readCsvFromZip(zipUri: string): Promise<string> {
-  // Implementación manual: ZIP central directory + descompresión usando fetch + fflate si está instalado
-  // Como evitamos dependencias adicionales, usamos un fallback: el usuario puede extraer manualmente
-  // el CSV del ZIP y usar importStrongCsv directamente.
-  //
-  // Si tienes `fflate` instalado: descomprime aquí.
-  // Para simplificar, leemos el ZIP como texto y buscamos líneas que parezcan CSV:
-  const buf = await readFileAsBase64(zipUri);
-  // Decodifica base64 → bytes → intenta buscar el header PK\x03\x04 y descomprimir con fflate
-  // Como fflate no es dependencia, lanzamos error informativo.
-  throw new Error(
-    'Importación desde ZIP: descomprime el archivo manualmente y selecciona el workouts.csv extraído. ' +
-      'O instala `fflate` (npm i fflate) y ajusta readCsvFromZip() para descomprimir.'
-  );
-}
-
-async function readFileAsText(uri: string): Promise<string> {
-  if (Platform.OS === 'web') {
-    const resp = await fetch(uri);
-    return resp.text();
-  }
-  const FileSystem = await import('expo-file-system');
-  return FileSystem.readAsStringAsync(uri, { encoding: 'utf8' });
-}
-
-async function readFileAsBase64(uri: string): Promise<string> {
-  if (Platform.OS === 'web') {
-    const resp = await fetch(uri);
-    const blob = await resp.blob();
-    return await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve((reader.result as string).split(',')[1] ?? '');
-      reader.readAsDataURL(blob);
-    });
-  }
-  const FileSystem = await import('expo-file-system');
-  return FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
-}
-
-import { Platform } from 'react-native';
 
 /** Mapea un nombre de ejercicio a un MuscleGroup aproximado. */
 export function guessMuscleGroup(text: string): string {

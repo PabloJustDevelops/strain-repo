@@ -1,22 +1,20 @@
 /**
- * Script para poblar la BD con ejercicios predefinidos.
- * Uso: npx tsx scripts/seed.ts
+ * Migra y siembra el catálogo base en un SQLite de archivo. Uso CLI y CI.
+ *
+ * Uso: pnpm db:seed   (STRAIN_DB_PATH para cambiar el archivo)
  */
 
-import { runMigrations } from '../src/db/migrations';
 import { seedExercises } from '../src/db/seed';
-import { Repos } from '../src/db/repositories';
+import { openFileDatabase } from '../src/db/testing/better-sqlite';
+
+const DB_PATH = process.env.STRAIN_DB_PATH ?? 'strain.db';
 
 (async () => {
   try {
-    console.log('[strain] Aplicando migraciones...');
-    runMigrations();
-
-    console.log('[strain] Sembrando ejercicios...');
-    await seedExercises();
-
-    const list = await Repos.exercises.list();
-    console.log(`[strain] Total de ejercicios en BD: ${list.length}`);
+    const db = openFileDatabase(DB_PATH);
+    await seedExercises(db.repos.exercises);
+    console.log(`[strain] Ejercicios en ${DB_PATH}: ${await db.repos.exercises.count()}`);
+    db.close();
   } catch (err) {
     console.error('[strain] Error en seed:', err);
     process.exit(1);

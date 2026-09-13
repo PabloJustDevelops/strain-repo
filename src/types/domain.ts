@@ -1,7 +1,9 @@
 /**
- * Tipos compartidos del dominio Strain.
- * Estos tipos se usan en UI, stores, repos y serialización.
- * Los tipos de filas crudas de BD viven en `@db/schema`.
+ * Vocabulario del dominio Strain: los enums y sus etiquetas para el usuario.
+ *
+ * Las **formas** que ve la UI (rows y DTOs) viven en `@db/shapes`, junto al mapeo
+ * que las produce. Acá sólo queda el lenguaje: qué músculos, equipos y tipos de
+ * set existen, y cómo se llaman en español.
  */
 
 // Re-exports: las filas crudas de BD vienen de `@db/schema`, pero para que la UI
@@ -56,71 +58,3 @@ export const EQUIPMENT_LABELS: Record<Equipment, string> = {
   kettlebell: 'Kettlebell',
   other: 'Otro',
 };
-
-// ============================================================
-// Vistas (DTOs para UI)
-// ============================================================
-
-/** Ejercicio con metadatos para mostrar en listas y tarjetas. */
-export interface ExerciseView {
-  id: string;
-  name: string;
-  muscleGroup: MuscleGroup;
-  secondaryMuscles: string[];
-  equipment: Equipment;
-  mechanic: Mechanic;
-  isCustom: boolean;
-}
-
-/** Set que se muestra en el modo de workout activo. */
-export interface SetView {
-  id: string;
-  setIndex: number;
-  type: SetType;
-  weight: number;
-  reps: number;
-  isCompleted: boolean;
-  rpe?: number | null;
-  notes?: string | null;
-  previousWeight?: number | null;   // peso de la última vez que se hizo
-  previousReps?: number | null;
-}
-
-/** Ejercicio dentro de una sesión activa. */
-export interface SessionExerciseView {
-  id: string;                        // session_exercise.id
-  exerciseId: string;
-  name: string;
-  muscleGroup: MuscleGroup;
-  equipment: Equipment;
-  orderIndex: number;
-  supersetGroup?: string | null;     // "A", "B"... ejercicios con la misma letra forman grupo
-  sets: SetView[];
-  targetSets: number;
-  targetReps: string;
-  restSeconds: number;
-  notes?: string | null;
-}
-
-/** Sesión activa completa para la UI. */
-export interface ActiveSessionView {
-  id: string;
-  name: string;
-  startedAt: Date;
-  elapsedSeconds: number;
-  exercises: SessionExerciseView[];
-  totalVolume: number;
-  totalSets: number;
-  completedSets: number;
-}
-
-/** Historial — fila resumida para listas. */
-export interface SessionSummary {
-  id: string;
-  name: string;
-  startedAt: Date;
-  durationSeconds: number;
-  totalVolume: number;
-  totalSets: number;
-  exerciseCount: number;
-}

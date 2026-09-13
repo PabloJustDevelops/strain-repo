@@ -10,6 +10,7 @@ import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
+import { heaviestSet } from '@lib/metrics';
 import { Button } from '@components/Button';
 import { Card } from '@components/Card';
 
@@ -81,10 +82,7 @@ export default function WorkoutFinishScreen() {
           </Text>
           {session.exercises.map((ex) => {
             const completedSets = ex.sets.filter((s) => s.isCompleted);
-            const best = completedSets.reduce<typeof completedSets[number] | null>(
-              (best, s) => (best && best.weight >= s.weight ? best : s),
-              null
-            );
+            const best = heaviestSet(completedSets);
             return (
               <View key={ex.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
                 <View style={{ flex: 1 }}>

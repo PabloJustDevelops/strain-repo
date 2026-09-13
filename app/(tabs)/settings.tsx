@@ -12,7 +12,9 @@ import { useAuth } from '@stores/authStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
-import { exportData, importData, importStrongZip } from '@lib/exportImport';
+import { getRepos } from '@db';
+import { exportData, importData } from '@lib/exportImport';
+import { importStrongZip } from '@lib/strongFile';
 import {
   initNotifications,
   requestNotificationPermission,
@@ -57,7 +59,7 @@ export default function SettingsScreen() {
 
   const handleExport = async () => {
     try {
-      const json = await exportData();
+      const json = await exportData(getRepos());
       const result = await Sharing.shareAsync('data:application/json;base64,' + btoa(unescape(encodeURIComponent(json))));
       // expo-sharing devuelve { action: 'sharedAction' | 'dismissedAction' }
       // (TS marca `result` como void en algunas versiones; casteamos a any)
@@ -86,7 +88,7 @@ export default function SettingsScreen() {
     try {
       const doc = await DocumentPicker.getDocumentAsync({ type: 'application/zip' });
       if (doc.canceled) return;
-      const result = await importStrongZip(doc.assets[0].uri);
+      const result = await importStrongZip(doc.assets[0].uri, getRepos());
       Alert.alert('Listo', `Importadas ${result.workouts} sesiones con ${result.sets} sets.`);
     } catch (err) {
       Alert.alert('Error', String(err));

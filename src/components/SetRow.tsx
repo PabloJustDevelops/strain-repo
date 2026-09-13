@@ -17,7 +17,7 @@ import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
 import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
-import type { SetView } from '@/types/domain';
+import type { SetView } from '@db/shapes';
 
 interface SetRowProps {
   set: SetView;
@@ -25,7 +25,6 @@ interface SetRowProps {
   units: 'kg' | 'lb';
   onComplete: () => void;
   onUncomplete: () => void;
-  onUpdate: (patch: Partial<SetView>) => void;
   onDelete: () => void;
   onShowPlates: (result: PlateResult) => void;
   onEditWeight?: () => void;
@@ -48,7 +47,6 @@ export function SetRow({
   units,
   onComplete,
   onUncomplete,
-  onUpdate,
   onDelete,
   onShowPlates,
   onEditWeight,

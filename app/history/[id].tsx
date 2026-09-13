@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { SessionsRepo } from '@db/repositories';
+import { getRepos } from '@db';
+import { toExerciseSummaries, type SessionExerciseSummary } from '@db/shapes';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { Card } from '@components/Card';
@@ -35,24 +36,16 @@ export default function SessionDetailScreen() {
   const cardHeight = Math.round(cardWidth * 1.5);
 
   const [session, setSession] = useState<WorkoutSession | null>(null);
-  const [exercises, setExercises] = useState<Array<{
-    id: string;
-    name: string;
-    sets: Array<{ weight: number; reps: number; isCompleted: boolean }>;
-  }>>([]);
+  const [exercises, setExercises] = useState<SessionExerciseSummary[]>([]);
   const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     (async () => {
-      const full = await SessionsRepo.getFullSession(id);
+      const full = await getRepos().sessions.getFullSession(id);
       if (full) {
         setSession(full.session);
-        setExercises(full.exercises.map((e) => ({
-          id: e.id,
-          name: e.exercise.name,
-          sets: e.sets.map((s) => ({ weight: s.weight, reps: s.reps, isCompleted: s.isCompleted })),
-        })));
+        setExercises(toExerciseSummaries(full));
       }
     })();
   }, [id]);

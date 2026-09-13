@@ -3,10 +3,11 @@
  * Ejecutar solo la primera vez (o si la BD está vacía).
  */
 
-import { ExercisesRepo } from './repositories';
+import { nanoid } from 'nanoid';
+import type { ExercisesRepo } from './repos';
 import type { NewExercise } from './schema';
 
-const SEED: NewExercise[] = [
+const SEED: Omit<NewExercise, 'id'>[] = [
   // ============ PECHO ============
   { name: 'Press de banca', muscleGroup: 'chest', equipment: 'barbell', mechanic: 'compound', isCustom: false, instructions: 'Acostado en banco, agarra la barra con las manos a la anchura de los hombros. Baja hasta el pecho y empuja hacia arriba.' },
   { name: 'Press inclinado con mancuernas', muscleGroup: 'chest', equipment: 'dumbbell', mechanic: 'compound', isCustom: false, instructions: 'Banco a 30-45°. Empuja las mancuernas desde el pecho hasta la extensión completa.' },
@@ -68,8 +69,9 @@ const SEED: NewExercise[] = [
 ];
 
 /** Puebla la tabla exercises si está vacía. */
-export async function seedExercises(): Promise<void> {
-  const existing = await ExercisesRepo.list();
-  if (existing.length > 0) return;
-  await ExercisesRepo.bulkCreate(SEED);
+export async function seedExercises(exercises: ExercisesRepo): Promise<void> {
+  if ((await exercises.count()) > 0) return;
+  // Asignamos un id (nanoid) a cada ejercicio predefinido
+  const withIds: NewExercise[] = SEED.map((ex) => ({ ...ex, id: nanoid() }));
+  await exercises.bulkCreate(withIds);
 }

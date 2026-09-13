@@ -1,4 +1,4 @@
-import { getRawDb } from './client';
+import type { RawSqlite } from './seam';
 
 /**
  * Migraciones SQL idempotentes.
@@ -140,11 +140,9 @@ const MIGRATIONS: { id: number; name: string; sql: string }[] = [
  * Aplica todas las migraciones pendientes en orden.
  * Registra las versiones aplicadas en una tabla interna.
  */
-export function runMigrations(): void {
-  const db = getRawDb();
-
+export function runMigrations(raw: RawSqlite): void {
   // Tabla de control de migraciones
-  db.execSync(`
+  raw.exec(`
     CREATE TABLE IF NOT EXISTS _migrations (
       id INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
@@ -153,16 +151,19 @@ export function runMigrations(): void {
   `);
 
   const applied = new Set<number>(
-    db.getAllSync<{ id: number }>('SELECT id FROM _migrations').map((r) => r.id)
+    raw.all<{ id: number }>('SELECT id FROM _migrations').map((r) => r.id)
   );
 
   for (const m of MIGRATIONS) {
     if (applied.has(m.id)) continue;
     try {
-      db.execSync(`BEGIN; ${m.sql}; INSERT INTO _migrations (id, name) VALUES (${m.id}, '${m.name}'); COMMIT;`);
-      if (__DEV__) console.log(`[db] Migración ${m.id} (${m.name}) aplicada`);
+      raw.exec(`BEGIN; ${m.sql}; INSERT INTO _migrations (id, name) VALUES (${m.id}, '${m.name}'); COMMIT;`);
+      // `__DEV__` es un global de React Native: en Node (tests y scripts) no existe.
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.log(`[db] Migración ${m.id} (${m.name}) aplicada`);
+      }
     } catch (err) {
-      db.execSync('ROLLBACK;');
+      raw.exec('ROLLBACK;');
       console.error(`[db] Error en migración ${m.id}:`, err);
       throw err;
     }

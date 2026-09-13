@@ -9,7 +9,6 @@ import * as Haptics from 'expo-haptics';
 
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
-import { SessionsRepo } from '@db/repositories';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
 import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
@@ -20,7 +19,7 @@ import { PlateCalculatorSheet } from '@components/PlateCalculatorSheet';
 import { RestTimer } from '@components/RestTimer';
 import { NumericKeypad } from '@components/NumericKeypad';
 import { SetDetailsSheet } from '@components/SetDetailsSheet';
-import type { SetView } from '@/types/domain';
+import type { SetView } from '@db/shapes';
 
 /**
  * Pantalla del workout activo.
@@ -222,7 +221,6 @@ export default function ActiveWorkoutScreen() {
                           units={units}
                           onComplete={() => handleComplete(s.id)}
                           onUncomplete={() => uncompleteSet(s.id)}
-                          onUpdate={(patch) => updateSet(s.id, patch)}
                           onDelete={() => deleteSet(s.id)}
                           onShowPlates={(r) => setPlatesFor(r)}
                           onEditWeight={() => {

@@ -5,10 +5,10 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
-import { ExercisesRepo } from '@db/repositories';
+import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, type Exercise, type MuscleGroup } from '@/types/domain';
+import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, type Exercise, type MuscleGroup, type Equipment } from '@/types/domain';
 import { Card } from '@components/Card';
 import { MuscleChip } from '@components/MuscleChip';
 import { Sidebar } from '@components/Sidebar';
@@ -39,7 +39,7 @@ export default function ExercisesScreen() {
   const [filter, setFilter] = useState<MuscleGroup | 'all'>('all');
 
   useEffect(() => {
-    ExercisesRepo.list().then(setItems);
+    getRepos().exercises.list().then(setItems);
   }, []);
 
   const filtered = useMemo(() => {
@@ -99,7 +99,7 @@ export default function ExercisesScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: colors.text, fontWeight: '700' }}>{item.name}</Text>
                   <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
-                    {MUSCLE_GROUP_LABELS[item.muscleGroup]} · {item.equipment}
+                    {MUSCLE_GROUP_LABELS[item.muscleGroup as MuscleGroup]} · {EQUIPMENT_LABELS[item.equipment as Equipment]}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />

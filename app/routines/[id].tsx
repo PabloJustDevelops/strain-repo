@@ -10,7 +10,7 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import * as Haptics from 'expo-haptics';
 
-import { RoutinesRepo } from '@db/repositories';
+import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { MUSCLE_GROUP_LABELS, type Exercise, type Routine, type RoutineExercise } from '@/types/domain';
@@ -40,7 +40,7 @@ export default function RoutineDetailScreen() {
 
   const refresh = async () => {
     if (!id) return;
-    const data = await RoutinesRepo.getWithExercises(id);
+    const data = await getRepos().routines.getWithExercises(id);
     if (!data) return;
     setRoutine(data.routine);
     setExercises(data.exercises);
@@ -53,14 +53,14 @@ export default function RoutineDetailScreen() {
   const handleDragEnd = async ({ data }: { data: RoutineExerciseRow[] }) => {
     setExercises(data);
     if (!id) return;
-    await RoutinesRepo.reorderExercises(
+    await getRepos().routines.reorderExercises(
       id,
       data.map((d) => d.id)
     );
   };
 
   const handleRemove = async (reId: string) => {
-    await RoutinesRepo.removeExercise(reId);
+    await getRepos().routines.removeExercise(reId);
     await refresh();
   };
 
@@ -100,7 +100,7 @@ export default function RoutineDetailScreen() {
               onPress={async () => {
                 if (!id) return;
                 const next = item.supersetGroup ? null : promptSupersetLetter(item.supersetGroup);
-                await RoutinesRepo.setSupersetGroup(id, [item.id], next);
+                await getRepos().routines.setSupersetGroup(id, [item.id], next);
                 if (haptics) Haptics.selectionAsync();
                 await refresh();
               }}

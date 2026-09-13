@@ -7,7 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { Button } from '@components/Button';
-import type { SetView } from '@/types/domain';
+import type { SetView } from '@db/shapes';
 
 interface SetDetailsSheetProps {
   visible: boolean;

@@ -2,9 +2,9 @@
 
 > **Estado**: decisiones resueltas (grilling) e implementadas — `f339c5a` (schema + persistencia),
 > `f1e1d0b` (mapeo + descanso), `5595e9e` (tests). La §9 es el registro de las decisiones.
+> **Issue**: [#1 · C6 · Targets de rutina en la sesión](https://github.com/PabloJustDevelops/strain-repo/issues/1)
+> — publicado y cerrado; este doc queda como borrador y registro de los hechos verificados.
 > **Origen**: candidate C6 del review de arquitectura (`/improve-codebase-architecture`).
-> **Por qué está acá y no en un issue**: el tracker del repo es GitHub (`docs/agents/issue-tracker.md`);
-> esto es el borrador previo. Si se quiere, `/to-spec` lo publica como issue.
 
 ---
 

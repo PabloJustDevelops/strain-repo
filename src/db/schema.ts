@@ -13,7 +13,7 @@ import { sqliteTable, text, integer, real, primaryKey, index, uniqueIndex } from
 export const exercises = sqliteTable(
   'exercises',
   {
-    id: text('id').primaryKey(),                                   // nanoid
+    id: text('id').primaryKey(),                                   // uuid (expo-crypto)
     name: text('name').notNull(),
     // Grupo muscular principal: chest, back, legs, shoulders, arms, core, cardio, other
     muscleGroup: text('muscle_group').notNull(),

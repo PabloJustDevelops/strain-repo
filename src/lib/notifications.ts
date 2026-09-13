@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { nanoid } from 'nanoid';
+import { shortId } from './id';
 import type { WeeklyTriggerInput } from 'expo-notifications';
 
 import { usePreferences } from '@stores/preferencesStore';
@@ -169,7 +169,7 @@ export async function scheduleReminders(config: ReminderConfig): Promise<void> {
     };
 
     await N.scheduleNotificationAsync({
-      identifier: `reminder-${day}-${nanoid(6)}`,
+      identifier: `reminder-${day}-${shortId(6)}`,
       content: {
         title: 'Strain',
         body: config.message,

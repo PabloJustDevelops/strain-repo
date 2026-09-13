@@ -2,7 +2,7 @@ import { Platform, Share } from 'react-native';
 import type { View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
-import { nanoid } from 'nanoid';
+import { shortId } from './id';
 
 import type { WorkoutSession } from '@/types/domain';
 
@@ -91,7 +91,7 @@ export async function shareWorkout({ viewRef, session, caption, previewOnly = fa
   // Si estamos en Android, movemos el archivo a cacheDir con un nombre estable.
   if (Platform.OS === 'android') {
     try {
-      const dest = `${FileSystem.cacheDirectory}strain-share-${nanoid(6)}.png`;
+      const dest = `${FileSystem.cacheDirectory}strain-share-${shortId(6)}.png`;
       await FileSystem.copyAsync({ from: imageUri, to: dest });
       imageUri = dest;
     } catch (err) {

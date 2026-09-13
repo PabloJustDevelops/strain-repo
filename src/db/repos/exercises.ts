@@ -1,5 +1,5 @@
 import { eq, asc, sql } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { newId } from '@lib/id';
 
 import * as schema from '../schema';
 import type { SqliteDb } from '../seam';
@@ -55,7 +55,7 @@ export function createExercisesRepo(db: SqliteDb): ExercisesRepo {
     },
 
     async create(input: Omit<NewExercise, 'id' | 'createdAt' | 'updatedAt'>): Promise<Exercise> {
-      const id = nanoid();
+      const id = newId();
       const now = new Date();
       db.insert(schema.exercises).values({ ...input, id, createdAt: now, updatedAt: now }).run();
       return (await repo.byId(id))!;

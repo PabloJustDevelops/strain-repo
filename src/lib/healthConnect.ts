@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { nanoid } from 'nanoid';
+import { newId } from './id';
 import type {
   Permission,
   WriteExerciseRoutePermission,
@@ -255,7 +255,7 @@ export async function writeWorkoutSession(input: WorkoutSyncInput): Promise<stri
   const HC = await getHealthConnect();
   if (!HC) return null;
 
-  const id = nanoid();
+  const id = newId();
   const exerciseType = input.exerciseType ?? HC.ExerciseType.WEIGHTLIFTING;
 
   const records: any[] = [

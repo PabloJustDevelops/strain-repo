@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, FlatList, Pressable, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
@@ -35,10 +35,12 @@ export default function RoutinesScreen() {
   const [items, setItems] = useState<Routine[]>([]);
   const startFromRoutine = useActiveWorkout((s) => s.startFromRoutine);
 
-  const refresh = () => getRepos().routines.list().then(setItems);
-  useEffect(() => {
-    refresh();
-  }, []);
+  // Recarga al recuperar el foco: navegar atrás no remonta la pantalla.
+  useFocusEffect(
+    useCallback(() => {
+      getRepos().routines.list().then(setItems);
+    }, [])
+  );
 
   const handleStart = async (routine: Routine) => {
     await startFromRoutine(routine.id);
@@ -49,7 +51,7 @@ export default function RoutinesScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.lg }}>
         <Text style={{ color: colors.text, fontSize: fontSize.xxl, fontWeight: '800' }}>Rutinas</Text>
-        <Button title="Nueva" onPress={() => router.push('/routines/new')} />
+        <Button title="Nueva" onPress={() => router.push({ pathname: '/routines/new' })} />
       </View>
 
       <FlatList
@@ -62,11 +64,11 @@ export default function RoutinesScreen() {
             <Text style={{ color: colors.textMuted, textAlign: 'center' }}>
               No tienes rutinas todavía.{'\n'}Crea la primera para empezar.
             </Text>
-            <Button title="Crear rutina" onPress={() => router.push('/routines/new')} />
+            <Button title="Crear rutina" onPress={() => router.push({ pathname: '/routines/new' })} />
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable onPress={() => router.push(`/routines/${item.id}`)} onLongPress={() => {/* menú opciones */}}>
+          <Pressable onPress={() => router.push({ pathname: '/routines/[id]', params: { id: item.id } })} onLongPress={() => {/* menú opciones */}}>
             <Card padded={false}>
               <View style={{ padding: spacing.lg, gap: spacing.sm }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>

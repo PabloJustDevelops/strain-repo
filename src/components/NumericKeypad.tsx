@@ -13,6 +13,20 @@ import Animated, {
 import { useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { oneRmPreview } from '@lib/metrics';
+import { formatWeight } from '@lib/format';
+import {
+  backspace,
+  initialKeypadState,
+  keypadDisplay,
+  keypadValue,
+  pressDecimal,
+  pressDigit,
+  quickPickState,
+  stepKeypadValue,
+  type KeypadField,
+  type KeypadState,
+} from '@lib/keypad';
 
 /**
  * Teclado numérico táctil para introducir peso o repeticiones en el workout activo.
@@ -27,14 +41,14 @@ import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
  * - Cancelar manteniendo pulsado el botón rojo
  */
 
-type FieldType = 'weight' | 'reps';
-
 interface NumericKeypadProps {
   visible: boolean;
   initialValue: number;
-  field: FieldType;
+  field: KeypadField;
   units: 'kg' | 'lb';
   previousValue?: number | null;
+  /** Peso ya introducido del set; alimenta el 1RM en vivo en el paso de reps. */
+  previewWeight?: number | null;
   onConfirm: (value: number) => void;
   onCancel: () => void;
 }
@@ -50,6 +64,7 @@ export function NumericKeypad({
   field,
   units,
   previousValue,
+  previewWeight,
   onConfirm,
   onCancel,
 }: NumericKeypadProps) {
@@ -60,17 +75,15 @@ export function NumericKeypad({
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
   const colors = isDark ? darkTheme : lightTheme;
 
-  // Estado del valor en edición
-  const [value, setValue] = useState(initialValue);
-  const [decimals, setDecimals] = useState<string>('');
+  // Estado del valor en edición: un único buffer de texto.
+  const [state, setState] = useState<KeypadState>(() => initialKeypadState(initialValue, field));
 
-  // Resetear al abrir
+  // Resetear al abrir (o al cambiar de paso, p. ej. peso → reps).
   useEffect(() => {
     if (visible) {
-      setValue(initialValue);
-      setDecimals('');
+      setState(initialKeypadState(initialValue, field));
     }
-  }, [visible, initialValue]);
+  }, [visible, initialValue, field]);
 
   const hapticTap = useCallback(() => {
     if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -84,71 +97,47 @@ export function NumericKeypad({
   const scale = useSharedValue(1);
   useEffect(() => {
     scale.value = withSequence(withTiming(1.15, { duration: 80 }), withTiming(1, { duration: 100 }));
-  }, [value]);
+  }, [state.buffer]);
   const numberStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
-  // Construcción del número mostrado
-  const display = (() => {
-    if (field === 'reps') return value.toString();
-    const whole = Math.floor(value);
-    const dec = (value % 1).toFixed(2).slice(2).replace(/0+$/, '');
-    return decimals ? `${whole}.${decimals}` : whole.toString();
-  })();
+  // Lo mostrado y lo que se confirma salen del mismo buffer.
+  const display = keypadDisplay(state, field);
 
-  const isDecimalMode = field === 'weight' && decimals.length > 0;
+  // 1RM en vivo: sólo en el paso de reps, que es cuando ya se conoce el peso.
+  const oneRm =
+    field === 'reps' && previewWeight != null
+      ? oneRmPreview(previewWeight, keypadValue(state))
+      : null;
 
-  // Manejo de teclas
+  // Manejo de teclas: todo pasa por el reducer puro.
   const handleDigit = (d: string) => {
     hapticTap();
-    if (field === 'reps') {
-      const next = parseInt(`${value}${d}`, 10);
-      if (next <= 999) setValue(next);
-      return;
-    }
-    // Peso: parte entera (max 999)
-    if (!isDecimalMode) {
-      const next = parseInt(`${value}${d}`, 10);
-      if (next <= 999) setValue(next);
-    } else {
-      // decimales (max 2 dígitos)
-      if (decimals.length >= 2) return;
-      setDecimals(decimals + d);
-    }
+    setState((s) => pressDigit(s, d, field));
   };
 
   const handleDecimal = () => {
     hapticTap();
-    if (field !== 'weight') return;
-    if (!isDecimalMode) setDecimals('0');
+    setState((s) => pressDecimal(s, field));
   };
 
   const handleBackspace = () => {
     hapticTap();
-    if (field === 'reps') {
-      setValue(Math.floor(value / 10));
-      return;
-    }
-    if (isDecimalMode) {
-      setDecimals(decimals.slice(0, -1));
-    } else {
-      setValue(Math.floor(value / 10));
-    }
+    setState(backspace);
   };
 
   const step = (delta: number) => {
     hapticTap();
-    setValue(Math.max(0, +(value + delta).toFixed(2)));
+    setState((s) => stepKeypadValue(s, delta));
   };
 
   const handleConfirm = () => {
     hapticSuccess();
-    onConfirm(value);
+    onConfirm(keypadValue(state));
   };
 
   const handleQuickPick = (v: number) => {
     hapticTap();
-    setValue(v);
-    setDecimals('');
+    setState(quickPickState(v, field));
   };
 
   const label = field === 'weight' ? `Peso (${units})` : 'Repeticiones';
@@ -209,6 +198,27 @@ export function NumericKeypad({
             <Text style={{ color: colors.textMuted, fontSize: fontSize.lg, fontWeight: '600' }}>
               {units}
             </Text>
+          )}
+          {field === 'reps' && oneRm != null && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.sm,
+                backgroundColor: colors.surface,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.xs,
+                borderRadius: radius.full,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Ionicons name="trending-up" size={16} color={colors.primary} />
+              <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>1RM estimado</Text>
+              <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: '700' }}>
+                {formatWeight(oneRm, units)}
+              </Text>
+            </View>
           )}
         </View>
 

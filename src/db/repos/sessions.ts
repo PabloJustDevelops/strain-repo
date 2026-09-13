@@ -1,5 +1,5 @@
 import { eq, and, desc, sql, asc } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { newId } from '@lib/id';
 
 import * as schema from '../schema';
 import type { SqliteDb } from '../seam';
@@ -57,7 +57,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
       startedAt?: Date;
       fromRoutineExercises?: SessionTargetInput[];
     }): Promise<WorkoutSession> {
-      const id = nanoid();
+      const id = newId();
       // `startedAt` permite arrancar una sesión histórica (import de Strong); si no,
       // la duración calculada en `finish` clampearía a 0 porque el fin sería anterior
       // al inicio.
@@ -77,7 +77,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
           .run();
 
         (input.fromRoutineExercises ?? []).forEach((ex, idx) => {
-          const sessionExerciseId = nanoid();
+          const sessionExerciseId = newId();
           tx.insert(schema.sessionExercises)
             .values({
               id: sessionExerciseId,
@@ -96,7 +96,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
           for (let s = 1; s <= ex.targetSets; s++) {
             tx.insert(schema.sets)
               .values({
-                id: nanoid(),
+                id: newId(),
                 sessionExerciseId,
                 setIndex: s,
                 setType: s === 1 ? 'warmup' : 'working',
@@ -258,7 +258,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
       }
 
       const row: SessionExercise = {
-        id: nanoid(),
+        id: newId(),
         sessionId,
         exerciseId,
         orderIndex,
@@ -280,7 +280,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
         .where(eq(schema.sets.sessionExerciseId, sessionExerciseId))
         .get();
 
-      const id = nanoid();
+      const id = newId();
       const newSet: DbSet = {
         id,
         sessionExerciseId,
@@ -375,7 +375,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
             } else {
               tx.insert(schema.personalRecords)
                 .values({
-                  id: nanoid(),
+                  id: newId(),
                   exerciseId,
                   recordType: 'one_rm',
                   value: bestOneRm,

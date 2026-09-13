@@ -3,7 +3,7 @@
  * Ejecutar solo la primera vez (o si la BD está vacía).
  */
 
-import { nanoid } from 'nanoid';
+import { newId } from '@lib/id';
 import type { ExercisesRepo } from './repos';
 import type { NewExercise } from './schema';
 
@@ -71,7 +71,7 @@ const SEED: Omit<NewExercise, 'id'>[] = [
 /** Puebla la tabla exercises si está vacía. */
 export async function seedExercises(exercises: ExercisesRepo): Promise<void> {
   if ((await exercises.count()) > 0) return;
-  // Asignamos un id (nanoid) a cada ejercicio predefinido
-  const withIds: NewExercise[] = SEED.map((ex) => ({ ...ex, id: nanoid() }));
+  // Asignamos un id (uuid de expo-crypto) a cada ejercicio predefinido
+  const withIds: NewExercise[] = SEED.map((ex) => ({ ...ex, id: newId() }));
   await exercises.bulkCreate(withIds);
 }

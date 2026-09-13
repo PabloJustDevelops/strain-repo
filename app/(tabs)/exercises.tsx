@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, TextInput, Pressable, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
@@ -38,9 +38,12 @@ export default function ExercisesScreen() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<MuscleGroup | 'all'>('all');
 
-  useEffect(() => {
-    getRepos().exercises.list().then(setItems);
-  }, []);
+  // Recarga al recuperar el foco: navegar atrás no remonta la pantalla.
+  useFocusEffect(
+    useCallback(() => {
+      getRepos().exercises.list().then(setItems);
+    }, [])
+  );
 
   const filtered = useMemo(() => {
     return items.filter((ex) => {
@@ -90,7 +93,7 @@ export default function ExercisesScreen() {
         keyExtractor={(ex) => ex.id}
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 80, gap: spacing.sm }}
         renderItem={({ item }) => (
-          <Pressable onPress={() => router.push(`/exercises/${item.id}`)}>
+          <Pressable onPress={() => router.push({ pathname: '/exercises/[id]', params: { id: item.id } })}>
             <Card padded={false}>
               <View style={{ padding: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <View style={{ width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' }}>

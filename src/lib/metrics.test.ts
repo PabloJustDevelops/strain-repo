@@ -5,6 +5,7 @@ import {
   bestByOneRm,
   estimateOneRm,
   heaviestSet,
+  oneRmPreview,
   sessionTotals,
   setVolume,
   topByVolume,
@@ -35,6 +36,24 @@ describe('estimateOneRm', () => {
     expect(estimateOneRm(100, 5)).toBeCloseTo(116.6667, 3);
     expect(estimateOneRm(100, 30)).toBeCloseTo(200, 6);
     expect(estimateOneRm(0, 5)).toBe(0);
+  });
+});
+
+describe('oneRmPreview', () => {
+  it('devuelve null cuando no hay nada que estimar', () => {
+    expect(oneRmPreview(0, 5)).toBeNull();
+    expect(oneRmPreview(100, 0)).toBeNull();
+    expect(oneRmPreview(100, -3)).toBeNull();
+  });
+
+  it('con 1 rep devuelve el propio peso, no la sobreestimación de Epley', () => {
+    expect(oneRmPreview(120, 1)).toBe(120);
+  });
+
+  it('para el resto usa la misma definición que estimateOneRm', () => {
+    expect(oneRmPreview(100, 5)).toBeCloseTo(estimateOneRm(100, 5), 10);
+    expect(oneRmPreview(100, 5)).toBeCloseTo(116.6667, 3);
+    expect(oneRmPreview(90, 10)).toBeCloseTo(120, 6);
   });
 });
 

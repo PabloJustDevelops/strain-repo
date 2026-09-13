@@ -25,6 +25,7 @@ interface ActiveWorkoutState {
   loadActive: () => Promise<void>;
   startEmpty: (name: string) => Promise<void>;
   startFromRoutine: (routineId: string) => Promise<void>;
+  addExercise: (exerciseId: string) => Promise<void>;
   completeSet: (setId: string, weight?: number, reps?: number) => Promise<void>;
   uncompleteSet: (setId: string) => Promise<void>;
   updateSet: (setId: string, patch: Partial<SetView>) => Promise<void>;
@@ -78,6 +79,17 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     });
     const detailed = await getRepos().sessions.getFullSession(session.id);
     set({ session: detailed ? toActiveSessionView(detailed) : null });
+  },
+
+  async addExercise(exerciseId) {
+    const { session } = get();
+    if (!session) return;
+    // Un ejercicio recién agregado arranca con una serie para poder registrar
+    // enseguida; si no, quedaría visible pero sin forma de anotar nada.
+    const row = await getRepos().sessions.addSessionExercise(session.id, exerciseId);
+    await getRepos().sessions.addSet(row.id);
+    const full = await getRepos().sessions.getFullSession(session.id);
+    set({ session: full ? toActiveSessionView(full) : null });
   },
 
   async completeSet(setId, weight, reps) {

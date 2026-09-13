@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 /**
@@ -10,6 +11,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   resolve: {
     tsconfigPaths: true,
+    alias: {
+      // expo-crypto es un módulo nativo y lanza al importarse fuera de RN.
+      // Los tests corren con un stub determinista (ver src/lib/testing).
+      'expo-crypto': fileURLToPath(new URL('./src/lib/testing/expo-crypto.ts', import.meta.url)),
+    },
   },
   test: {
     environment: 'node',

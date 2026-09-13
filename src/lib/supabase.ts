@@ -4,6 +4,8 @@ import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import { makeRedirectUri } from 'expo-auth-session';
 
+import { createMemoryStorage, getBrowserLocalStorage } from './storage';
+
 /**
  * Cliente de Supabase opcional.
  *
@@ -43,7 +45,10 @@ export function getSupabase(): SupabaseClient | null {
 
   cachedClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
-      storage: Platform.OS === 'web' ? localStorage : (secureStoreStorage as any),
+      storage:
+        Platform.OS === 'web'
+          ? (getBrowserLocalStorage() ?? createMemoryStorage())
+          : secureStoreStorage,
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,

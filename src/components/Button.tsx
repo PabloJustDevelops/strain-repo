@@ -74,8 +74,8 @@ function getStyles(variant: ButtonProps['variant'], colors: typeof darkTheme, fu
     paddingVertical: spacing.md,
     borderRadius: radius.md,
     minHeight: 44,
-    ...(fullWidth ? { alignSelf: 'stretch' } : {}),
   };
+  if (fullWidth) base.alignSelf = 'stretch';
 
   switch (variant) {
     case 'primary':

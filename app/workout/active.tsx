@@ -20,6 +20,7 @@ import { PlateCalculatorSheet } from '@components/PlateCalculatorSheet';
 import { RestTimer } from '@components/RestTimer';
 import { NumericKeypad } from '@components/NumericKeypad';
 import { SetDetailsSheet } from '@components/SetDetailsSheet';
+import { ExercisePickerModal } from '@components/ExercisePickerModal';
 import type { SetView } from '@db/shapes';
 
 /**
@@ -52,6 +53,7 @@ export default function ActiveWorkoutScreen() {
   const updateSet = useActiveWorkout((s) => s.updateSet);
   const deleteSet = useActiveWorkout((s) => s.deleteSet);
   const addSet = useActiveWorkout((s) => s.addSet);
+  const addExercise = useActiveWorkout((s) => s.addExercise);
   const setSupersetGroup = useActiveWorkout((s) => s.setSupersetGroup);
   const finishWorkout = useActiveWorkout((s) => s.finishWorkout);
   const discardWorkout = useActiveWorkout((s) => s.discardWorkout);
@@ -60,6 +62,7 @@ export default function ActiveWorkoutScreen() {
   const [platesFor, setPlatesFor] = useState<PlateResult | null>(null);
   const [editingSet, setEditingSet] = useState<{ id: string; weight: number; reps: number; previousWeight: number | null; previousReps: number | null; field: 'weight' | 'reps' } | null>(null);
   const [detailsSet, setDetailsSet] = useState<SetView | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Re-render cada segundo para el cronómetro
@@ -154,6 +157,14 @@ export default function ActiveWorkoutScreen() {
 
       {/* Contenido */}
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: 200, gap: spacing.lg }}>
+        {session.exercises.length === 0 && (
+          <View style={{ alignItems: 'center', padding: spacing.xxl, gap: spacing.md }}>
+            <Ionicons name="barbell-outline" size={56} color={colors.textMuted} />
+            <Text style={{ color: colors.textMuted, textAlign: 'center' }}>
+              Este workout no tiene ejercicios todavía.{'\n'}Añadí el primero con el botón +.
+            </Text>
+          </View>
+        )}
         {session.exercises.map((ex, exIdx) => {
           const prevEx = exIdx > 0 ? session.exercises[exIdx - 1] : null;
           const showSupersetHeader =
@@ -302,6 +313,7 @@ export default function ActiveWorkoutScreen() {
         initialValue={editingSet ? (editingSet.field === 'weight' ? editingSet.weight : editingSet.reps) : 0}
         field={editingSet?.field ?? 'weight'}
         units={units}
+        previewWeight={editingSet?.weight ?? null}
         previousValue={
           editingSet
             ? editingSet.field === 'weight'
@@ -313,8 +325,11 @@ export default function ActiveWorkoutScreen() {
         onCancel={handleKeypadCancel}
       />
 
-      {/* Sheet: detalles opcionales del set (RPE + notas) */}
+      {/* Sheet: detalles opcionales del set (RPE + notas).
+          `key` por set: remonta el sheet en cada apertura, así el estado del
+          formulario y el arrastre arrancan limpios sin efectos de reseteo. */}
       <SetDetailsSheet
+        key={detailsSet?.id ?? 'none'}
         visible={!!detailsSet}
         set={detailsSet}
         units={units}
@@ -322,6 +337,34 @@ export default function ActiveWorkoutScreen() {
           if (detailsSet) updateSet(detailsSet.id, patch);
         }}
         onClose={() => setDetailsSet(null)}
+      />
+
+      {/* FAB: añadir ejercicio a la sesión */}
+      <Pressable
+        onPress={() => setPickerOpen(true)}
+        style={{
+          position: 'absolute',
+          right: spacing.lg,
+          bottom: 96,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: colors.primary,
+          alignItems: 'center',
+          justifyContent: 'center',
+          elevation: 4,
+        }}
+      >
+        <Ionicons name="add" size={30} color="#fff" />
+      </Pressable>
+
+      <ExercisePickerModal
+        visible={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={async (exerciseId) => {
+          setPickerOpen(false);
+          await addExercise(exerciseId);
+        }}
       />
     </SafeAreaView>
   );

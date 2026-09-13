@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Linking, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
@@ -38,17 +38,20 @@ export default function HealthScreen() {
   const refreshToday = useHealthConnect((s) => s.refreshToday);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const s = await probe();
-      if (s === 'needsInstall') {
-        await connect();
-      }
-      if (useHealthConnect.getState().status === 'ready') {
-        await refreshToday();
-      }
-    })();
-  }, [probe, connect, refreshToday]);
+  // Revalida al recuperar el foco: los permisos pueden haber cambiado.
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const s = await probe();
+        if (s === 'needsInstall') {
+          await connect();
+        }
+        if (useHealthConnect.getState().status === 'ready') {
+          await refreshToday();
+        }
+      })();
+    }, [probe, connect, refreshToday])
+  );
 
   const handleConnect = async () => {
     await connect();
@@ -62,7 +65,7 @@ export default function HealthScreen() {
   };
 
   const handleOpenSettings = () => {
-    openHealthConnectSettings();
+    void openHealthConnectSettings();
   };
 
   const lastSyncLabel = lastSyncedAt
@@ -140,7 +143,7 @@ function StatusCard() {
         )}
         {status === 'ready' && (
           <View style={{ flex: 1 }}>
-            <Button title="Gestionar permisos" variant="secondary" onPress={openHealthConnectSettings} />
+            <Button title="Gestionar permisos" variant="secondary" onPress={() => void openHealthConnectSettings()} />
           </View>
         )}
         {status === 'unavailable' && (

@@ -32,13 +32,32 @@ export function estimateOneRm(weight: number, reps: number): number {
   return weight * (1 + reps / 30);
 }
 
+/**
+ * El 1RM a mostrar mientras se edita un set: `null` cuando todavía no hay set
+ * que estimar (`weight <= 0` o `reps <= 0`). El consumidor usa ese `null` para no
+ * mostrar nada; no se sintetiza un 0.
+ *
+ * Reusa `estimateOneRm`, así el número en vivo no puede divergir del que deciden
+ * los PRs y el histórico.
+ */
+export function oneRmPreview(weight: number, reps: number): number | null {
+  if (weight <= 0 || reps <= 0) return null;
+  return estimateOneRm(weight, reps);
+}
+
 /** Volumen de un set. */
 export function setVolume(weight: number, reps: number): number {
   return weight * reps;
 }
 
+/** Totales de un conjunto de sets. */
+export interface SessionTotals {
+  volume: number;
+  completedSets: number;
+}
+
 /** Totales de un conjunto de sets. Una sola definición del agregado. */
-export function sessionTotals(sets: readonly SetLike[]): { volume: number; completedSets: number } {
+export function sessionTotals(sets: readonly SetLike[]): SessionTotals {
   let volume = 0;
   let completedSets = 0;
   for (const s of sets) {

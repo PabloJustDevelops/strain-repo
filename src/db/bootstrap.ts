@@ -54,7 +54,12 @@ export async function bootstrapProductionDatabase(): Promise<Repos> {
       publishRepos(repos);
 
       return repos;
-    })();
+    })().catch((err) => {
+      // Un fallo de arranque no se traga: se propaga con su causa real. Además
+      // se limpia el cache para poder reintentar desde la pantalla de error.
+      bootstrapping = null;
+      throw err;
+    });
   }
 
   return bootstrapping;

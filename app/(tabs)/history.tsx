@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, FlatList, Pressable, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
@@ -30,9 +30,12 @@ export default function HistoryScreen() {
 
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
 
-  useEffect(() => {
-    getRepos().sessions.list(100).then(setSessions);
-  }, []);
+  // Recarga al recuperar el foco: navegar atrás no remonta la pantalla.
+  useFocusEffect(
+    useCallback(() => {
+      getRepos().sessions.list(100).then(setSessions);
+    }, [])
+  );
 
   const content = (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -55,7 +58,7 @@ export default function HistoryScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable onPress={() => router.push(`/history/${item.id}`)}>
+          <Pressable onPress={() => router.push({ pathname: '/history/[id]', params: { id: item.id } })}>
             <Card padded={false}>
               <View style={{ padding: spacing.lg, gap: spacing.xs }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

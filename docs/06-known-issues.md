@@ -107,6 +107,33 @@ entre la sesión activa y el builder de rutinas. `supersetRestOwner` devuelve el
 descanso corresponde arrancar, así el `restSeconds` que se usa es el del ejercicio que cierra la
 ronda. Issue #2.
 
+### 10. El keypad confirmaba el peso truncado (known-issue K)
+
+**Causa**: `NumericKeypad` guardaba la parte entera en `value` y los decimales aparte en `decimals`.
+El display combinaba ambos, pero `onConfirm(value)` enviaba sólo la parte entera: la secuencia
+`1 0 2 . 5` mostraba `102.05` y confirmaba `102`. Como el 1RM en vivo se calcula con peso × reps,
+también se estimaba sobre el peso truncado.
+
+**Fix**: la edición vive en un reducer puro (`src/lib/keypad.ts`) cuyo estado es un único buffer de
+texto: lo mostrado y el valor que se confirma salen del mismo origen, así no pueden divergir.
+El keypad confirma `keypadValue(state)` (parte entera + decimales) y el 1RM en vivo usa ese mismo
+valor. Tests en `src/lib/keypad.test.ts`: secuencias multi-tecla, borrado del decimal dígito a dígito
+y preview de 1RM con peso decimal.
+
+### 11. El render estático de la web moría por `localStorage` (known-issue J)
+
+**Causa**: `expo export -p web` renderiza en node, donde no existe `localStorage`. `src/lib/supabase.ts`
+lo evaluaba directo al construir el cliente (`Platform.OS === 'web' ? localStorage : …`), así que el
+module eval lanzaba `ReferenceError: localStorage is not defined` al cargar `app/_layout.tsx`. Los
+stores de Zustand tenían el mismo problema latente: `createJSONStorage(() => AsyncStorage)` toca
+`window.localStorage` al hidratar.
+
+**Fix**: `src/lib/storage.ts` centraliza el acceso. `getBrowserLocalStorage()` devuelve el
+`localStorage` del navegador o `null` sin lanzar, y `createSafeAsyncStorage()` devuelve `AsyncStorage`
+cuando hay entorno de ejecución real (nativo o navegador) y un almacén en memoria en SSR. Supabase y
+los stores lo consumen. No se cambió el modo de render (sigue el output estático). `pnpm build:web`
+termina en `Exported: dist`. Tests en `src/lib/storage.test.ts`.
+
 ---
 
 ## Problemas estructurales abiertos (no resueltos)

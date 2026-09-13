@@ -1,5 +1,5 @@
 import { eq, and, desc, sql, asc, inArray } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { newId } from '@lib/id';
 
 import * as schema from '../schema';
 import type { SqliteDb } from '../seam';
@@ -54,7 +54,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
     },
 
     async create(input: { name: string; description?: string; tags?: string[]; color?: string }): Promise<Routine> {
-      const id = nanoid();
+      const id = newId();
       const now = new Date();
       db.insert(schema.routines)
         .values({
@@ -96,7 +96,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
       for (const ex of original.exercises) {
         db.insert(schema.routineExercises)
           .values({
-            id: nanoid(),
+            id: newId(),
             routineId: clone.id,
             exerciseId: ex.exerciseId,
             orderIndex: ex.orderIndex,
@@ -124,7 +124,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
         .get();
       db.insert(schema.routineExercises)
         .values({
-          id: nanoid(),
+          id: newId(),
           routineId,
           exerciseId,
           orderIndex: (last?.maxOrder ?? 0) + 1,

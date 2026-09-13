@@ -13,7 +13,7 @@ import { sqliteTable, text, integer, real, primaryKey, index, uniqueIndex } from
 export const exercises = sqliteTable(
   'exercises',
   {
-    id: text('id').primaryKey(),                                   // nanoid
+    id: text('id').primaryKey(),                                   // uuid (expo-crypto)
     name: text('name').notNull(),
     // Grupo muscular principal: chest, back, legs, shoulders, arms, core, cardio, other
     muscleGroup: text('muscle_group').notNull(),
@@ -216,13 +216,16 @@ export const personalRecords = sqliteTable(
 // ============================================================
 // HISTORIAL DE SINCRONIZACIÓN (para cola de sync con Supabase)
 // ============================================================
+/** Snapshot serializable de una fila encolada para sync. */
+export type SyncPayload = Record<string, string | number | boolean | null>;
+
 export const syncQueue = sqliteTable('sync_queue', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   tableName: text('table_name').notNull(),
   rowId: text('row_id').notNull(),
   // create | update | delete
   operation: text('operation').notNull(),
-  payload: text('payload', { mode: 'json' }).$type<Record<string, unknown>>(),
+  payload: text('payload', { mode: 'json' }).$type<SyncPayload>(),
   attempts: integer('attempts').notNull().default(0),
   lastError: text('last_error'),
   createdAt: integer('created_at', { mode: 'timestamp' })

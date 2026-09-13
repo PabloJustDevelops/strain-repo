@@ -20,8 +20,9 @@ export function publishRepos(repos: Repos): void {
 export function getRepos(): Repos {
   if (!current) {
     throw new Error(
-      'Data layer no inicializado. Llamá a bootstrapProductionDatabase() desde el layout raíz ' +
-        'antes de cualquier operación de datos.'
+      'Data layer no inicializado. Suele ser que el árbol de pantallas se montó ' +
+        'antes que el bootstrap, o que algo llama a getRepos() durante el render: ' +
+        'usalo en un efecto o en un handler, nunca en render.'
     );
   }
   return current;

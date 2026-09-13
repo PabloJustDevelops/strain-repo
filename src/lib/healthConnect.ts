@@ -1,6 +1,13 @@
 import { Platform } from 'react-native';
-import * as HealthConnect from 'react-native-health-connect';
-import { nanoid } from 'nanoid';
+import { newId } from './id';
+import type {
+  Permission,
+  WriteExerciseRoutePermission,
+  BackgroundAccessPermission,
+  ReadHealthDataHistoryPermission,
+} from 'react-native-health-connect';
+
+import { isExpoGo } from './environment';
 
 /**
  * Wrapper sobre `react-native-health-connect` con la API que Strain necesita.
@@ -14,12 +21,21 @@ import { nanoid } from 'nanoid';
  * - readTodayHealth():             Resumen diario (pasos, FC, calorías).
  * - writeWorkoutSession():         Escribe un ExerciseSessionRecord al terminar.
  *
- * Solo Android. En iOS devuelve siempre null o false con un aviso en consola.
+ * Solo Android. El paquete nativo **lanza al importarse** cuando no está el
+ * módulo (Expo Go, o un build sin linkear), así que se carga de forma perezosa
+ * dentro de la guarda: fuera de un build real la feature queda en no-op y no
+ * puede tumbar la pantalla ni el arranque.
  */
 
-const PROVIDER_PACKAGE = 'com.google.android.apps.healthdata';
+type HealthConnectModule = typeof import('react-native-health-connect');
 
-type HealthPermission = HealthConnect.Permission | HealthConnect.WriteExerciseRoutePermission | HealthConnect.BackgroundAccessPermission | HealthConnect.ReadHealthDataHistoryPermission;
+type HealthPermission =
+  | Permission
+  | WriteExerciseRoutePermission
+  | BackgroundAccessPermission
+  | ReadHealthDataHistoryPermission;
+
+const PROVIDER_PACKAGE = 'com.google.android.apps.healthdata';
 
 const PERMISSIONS: HealthPermission[] = [
   { accessType: 'read', recordType: 'Steps' },
@@ -35,34 +51,75 @@ const PERMISSIONS: HealthPermission[] = [
   { accessType: 'write', recordType: 'TotalCaloriesBurned' },
 ];
 
+let healthConnect: HealthConnectModule | null = null;
+let loadFailed = false;
+let warnedUnavailable = false;
+
+function warnUnavailableOnce(): void {
+  if (warnedUnavailable) return;
+  warnedUnavailable = true;
+  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+    // console.log (no warn) para no abrir el overlay de LogBox, que tapa la UI.
+    console.log(
+      '[health] Health Connect no está disponible en Expo Go. Probá en un development build.'
+    );
+  }
+}
+
+/** Carga el paquete nativo solo si hay un entorno real donde exista. */
+async function getHealthConnect(): Promise<HealthConnectModule | null> {
+  if (Platform.OS !== 'android') return null;
+  if (healthConnect) return healthConnect;
+  if (loadFailed) return null;
+
+  if (isExpoGo()) {
+    warnUnavailableOnce();
+    return null;
+  }
+
+  try {
+    healthConnect = await import('react-native-health-connect');
+  } catch (err) {
+    loadFailed = true;
+    console.warn('[health] No se pudo cargar react-native-health-connect', err);
+    return null;
+  }
+  return healthConnect;
+}
+
 /** ¿Está disponible Health Connect en este dispositivo? */
 export async function checkAvailability(): Promise<number> {
-  if (Platform.OS !== 'android') return 0;
-  return HealthConnect.getSdkStatus(PROVIDER_PACKAGE);
+  const HC = await getHealthConnect();
+  if (!HC) return 0;
+  return HC.getSdkStatus(PROVIDER_PACKAGE);
 }
 
 /** Inicializa el SDK. Devuelve true si OK. */
 export async function initializeClient(): Promise<boolean> {
-  if (Platform.OS !== 'android') return false;
-  return HealthConnect.initialize(PROVIDER_PACKAGE);
+  const HC = await getHealthConnect();
+  if (!HC) return false;
+  return HC.initialize(PROVIDER_PACKAGE);
 }
 
 /** Pide permisos al usuario. Devuelve los que concedió. */
 export async function requestPermissions(): Promise<readonly HealthPermission[]> {
-  if (Platform.OS !== 'android') return [];
-  return HealthConnect.requestPermission([...PERMISSIONS]);
+  const HC = await getHealthConnect();
+  if (!HC) return [];
+  return HC.requestPermission([...PERMISSIONS]);
 }
 
 /** Devuelve los permisos ya concedidos. */
 export async function getGrantedPermissions(): Promise<readonly HealthPermission[]> {
-  if (Platform.OS !== 'android') return [];
-  return HealthConnect.getGrantedPermissions();
+  const HC = await getHealthConnect();
+  if (!HC) return [];
+  return HC.getGrantedPermissions();
 }
 
 /** Abre la app de Health Connect para que el usuario gestione los permisos. */
-export function openHealthConnectSettings(): void {
-  if (Platform.OS !== 'android') return;
-  HealthConnect.openHealthConnectSettings();
+export async function openHealthConnectSettings(): Promise<void> {
+  const HC = await getHealthConnect();
+  if (!HC) return;
+  HC.openHealthConnectSettings();
 }
 
 // ============== LECTURA ==============
@@ -106,7 +163,8 @@ export async function readTodayHealth(date: Date = new Date()): Promise<DailyHea
     date,
   };
 
-  if (Platform.OS !== 'android') return empty;
+  const HC = await getHealthConnect();
+  if (!HC) return empty;
 
   const timeFilter = {
     operator: 'between' as const,
@@ -124,12 +182,12 @@ export async function readTodayHealth(date: Date = new Date()): Promise<DailyHea
   };
 
   const [steps, activeCal, totalCal, distance, hr, sleep] = await Promise.all([
-    safe(() => HealthConnect.readRecords('Steps', { timeRangeFilter: timeFilter })),
-    safe(() => HealthConnect.readRecords('ActiveCaloriesBurned', { timeRangeFilter: timeFilter })),
-    safe(() => HealthConnect.readRecords('TotalCaloriesBurned', { timeRangeFilter: timeFilter })),
-    safe(() => HealthConnect.readRecords('Distance', { timeRangeFilter: timeFilter })),
-    safe(() => HealthConnect.readRecords('HeartRate', { timeRangeFilter: timeFilter })),
-    safe(() => HealthConnect.readRecords('SleepSession', { timeRangeFilter: timeFilter })),
+    safe(() => HC.readRecords('Steps', { timeRangeFilter: timeFilter })),
+    safe(() => HC.readRecords('ActiveCaloriesBurned', { timeRangeFilter: timeFilter })),
+    safe(() => HC.readRecords('TotalCaloriesBurned', { timeRangeFilter: timeFilter })),
+    safe(() => HC.readRecords('Distance', { timeRangeFilter: timeFilter })),
+    safe(() => HC.readRecords('HeartRate', { timeRangeFilter: timeFilter })),
+    safe(() => HC.readRecords('SleepSession', { timeRangeFilter: timeFilter })),
   ]);
 
   let sumHr = 0;
@@ -144,8 +202,8 @@ export async function readTodayHealth(date: Date = new Date()): Promise<DailyHea
 
   let restHr: number | null = null;
   try {
-    const rest = await HealthConnect.readRecords('RestingHeartRate', { timeRangeFilter: timeFilter });
-    const records = (rest as any).records ?? [];
+    const rest = await HC.readRecords('RestingHeartRate', { timeRangeFilter: timeFilter });
+    const records = rest.records ?? [];
     if (records.length > 0) {
       restHr = records[records.length - 1].beatsPerMinute;
     }
@@ -195,10 +253,11 @@ export interface WorkoutSyncInput {
  * Devuelve el id del ExerciseSessionRecord creado, o null si falló.
  */
 export async function writeWorkoutSession(input: WorkoutSyncInput): Promise<string | null> {
-  if (Platform.OS !== 'android') return null;
+  const HC = await getHealthConnect();
+  if (!HC) return null;
 
-  const id = nanoid();
-  const exerciseType = input.exerciseType ?? HealthConnect.ExerciseType.WEIGHTLIFTING;
+  const id = newId();
+  const exerciseType = input.exerciseType ?? HC.ExerciseType.WEIGHTLIFTING;
 
   const records: any[] = [
     {
@@ -233,7 +292,7 @@ export async function writeWorkoutSession(input: WorkoutSyncInput): Promise<stri
   }
 
   try {
-    const ids = await HealthConnect.insertRecords(records);
+    const ids = await HC.insertRecords(records);
     return ids[0] ?? id;
   } catch (err) {
     console.warn('[health] writeWorkoutSession failed', err);

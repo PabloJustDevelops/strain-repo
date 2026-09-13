@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session, User } from '@supabase/supabase-js';
 
 import { getSupabase, signOut as supabaseSignOut, getSession } from '@lib/supabase';
+import { createSafeAsyncStorage } from '@lib/storage';
 
 /**
  * Estado de autenticación global.
@@ -68,7 +68,7 @@ export const useAuthFlags = create<{ hasLoggedIn: boolean; setLoggedIn: (v: bool
     }),
     {
       name: 'strain-auth-flags',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => createSafeAsyncStorage()),
     }
   )
 );

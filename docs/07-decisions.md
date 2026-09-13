@@ -181,3 +181,40 @@ siembra y publica el resultado vía un locator `getRepos()`. Se eliminan `export
 
 **Consecuencia**: el comentario de cabecera de `repositories.ts` («Testear la lógica de dominio con
 mocks del repositorio») describía una seam que hasta ahora no existía.
+
+---
+
+## D11 · Los targets de rutina son un snapshot en la sesión
+
+**Decisión**: `session_exercises` copia `rest_seconds`, `target_sets` y `target_reps` de la rutina al
+iniciar la sesión. Las tres columnas son **nullable**: `null` = la sesión no vino de una rutina, no un
+plan por defecto.
+
+**Por qué**:
+
+- La sesión es la **historia**: editar o borrar la rutina después no debe cambiar lo que se ejecutó.
+  Sin el snapshot, `start` recibía los targets y los tiraba, y como `loadActive()` rehidrata desde
+  SQLite, un arreglo que sólo pasara los valores por memoria se perdía al reiniciar la app.
+- `targetSets` es la **intención** del plan, no `sets.length`: divergen apenas el usuario agrega un
+  set a mitad de sesión. El conteo real sigue disponible en `sets`, sin un campo derivado que pueda
+  contradecirlo.
+- Nullable y no `NOT NULL DEFAULT`: una sesión sin rutina (o un ejercicio agregado a mano) no tiene
+  plan. Decir que sí lo tenía es la misma clase de mentira que el `'-'` y el `90` fijos que el mapeo
+  sintetizaba antes — el mapeo proyecta, no inventa.
+
+**Descartado**:
+
+- **Leer los targets por join a `routine_exercises` vía `workout_sessions.routine_id`**: no requiere
+  migración, pero la rutina es mutable y una sesión ya terminada mostraría targets que nunca se
+  ejecutaron. En una app de tracking, escribir historia incorrecta es peor que dejarla vacía.
+- **Persistir sólo `rest_seconds`** (el único target con consumidor real hoy): deja `targetSets` y
+  `targetReps` fabricados en el mapeo, que es el agujero que C6 vino a cerrar.
+- **`target_weight`**: el DTO no lo declara y no tiene consumidor; agregarlo sería superficie
+  especulativa.
+- **Backfill de las filas existentes**: el valor real no es recuperable con fidelidad, por la misma
+  razón que el join.
+
+**Consecuencia**: el descanso de una sesión sin plan cae a `preferences.defaultRestSeconds` (una
+preferencia del usuario, no una constante de dominio), y el timer tiene un solo dueño —
+`activeWorkoutStore.completeSet`, no la pantalla. El espejo de Supabase no se replica: la divergencia
+queda anotada en [06-known-issues](./06-known-issues.md).

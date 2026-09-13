@@ -1,6 +1,7 @@
-# 10 · C6 — Targets de rutina en la sesión (spec pendiente)
+# 10 · C6 — Targets de rutina en la sesión
 
-> **Estado**: spec sin grilling. Los hechos están verificados; **las decisiones abiertas no**.
+> **Estado**: decisiones resueltas (grilling) e implementadas — `f339c5a` (schema + persistencia),
+> `f1e1d0b` (mapeo + descanso), `5595e9e` (tests). La §9 es el registro de las decisiones.
 > **Origen**: candidate C6 del review de arquitectura (`/improve-codebase-architecture`).
 > **Por qué está acá y no en un issue**: el tracker del repo es GitHub (`docs/agents/issue-tracker.md`);
 > esto es el borrador previo. Si se quiere, `/to-spec` lo publica como issue.
@@ -84,6 +85,9 @@ puede tomar sólo en el mapeo.
    sesión mapeada; se borra el `startRest` duplicado de la pantalla.
 6. **Espejo de Supabase**: decidir si las columnas nuevas también van a `supabase/migrations/`.
 
+> Resuelto en la §9: el punto 3 se descartó (D7) y el 6 también (D5). Los otros cuatro se
+> implementaron tal como estaban planteados.
+
 ## 5. Frontera a grillear (decisiones abiertas)
 
 - **D1 — ¿Qué se persiste?** Sólo `rest_seconds` (único con consumidor) o también `target_sets` /
@@ -122,4 +126,41 @@ Del `/code-review` de la fase anterior, sin resolver y relacionados:
 - Los targets viajan rutina → `start` → (hoy se pierden). El nombre del input,
   `fromRoutineExercises`, es el punto exacto donde hay que escribirlos.
 - `CONTEXT.md` documenta que este hueco existe a propósito («es C6, no un olvido»); al cerrarlo, hay
-  que actualizar esa línea.
+  que actualizar esa línea (hecho: ver §9).
+
+## 9. Decisiones resueltas (grilling)
+
+D2, D3 y D6 dependían de D1, por eso fueron una segunda ronda. D7 no estaba en el doc: salió al
+grillear el punto 3 de la §4.
+
+| # | Decisión | Resultado |
+|---|----------|-----------|
+| D1 | ¿Qué se persiste? | Los 3 targets que ya declara `SessionExerciseView`: `rest_seconds`, `target_sets`, `target_reps`. `target_weight` afuera (el DTO no lo declara). |
+| D2 | Semántica de `targetSets` | La intención del plan, no `sets.length`. El conteo real sigue disponible en `sets`. |
+| D3 | Nulos y fallback | Columnas y campos del DTO nullable. `null` = sin plan. El mapeo no sintetiza el default. |
+| D4 | Quién arranca el descanso | El store (`completeSet`), dueño único. Se borraron los dos `startRest` de `active.tsx`. |
+| D5 | Supabase | No se replica; la divergencia queda anotada en `06-known-issues.md` (F). |
+| D6 | Backfill | Ninguno: el target real no es recuperable con fidelidad. |
+| D7 | `addSessionExercise` y los targets | No crece la firma: su único caller es el import, que no tiene targets. La fila queda con `null`. |
+
+Decisiones que aparecieron al grillear, fuera de la frontera original:
+
+- **El default del descanso es una preferencia, no una constante.** `preferences.defaultRestSeconds`
+  existía desde antes, con default 90, y no lo leía nadie. El store lo usa cuando no hay plan.
+- **El disparo del descanso no cambia**: cada set, como antes. La regla de supersets («descansa sólo
+  al cerrar el grupo») queda como candidato aparte, anotada en `06-known-issues.md` (G).
+- **La duplicación de «el primer set es warmup» queda fuera de C6**, anotada en
+  `06-known-issues.md` (H).
+
+Fuera de alcance, ya anotado por el review: `BetterSqliteStack.seam` sin consumidor
+(`06-known-issues.md`, I).
+
+### Verificación
+
+- El test que fijaba `[90, 90]` y `['-', '-']` se reescribió: ahora verifica los valores reales.
+- `start()` desde rutina con `restSeconds: 120` → `getFullSession()` devuelve 120. Es la prueba de que
+  la persistencia funciona, no sólo el paso por memoria.
+- `addSessionExercise` (camino del import) deja los targets en `NULL`.
+- `activeWorkoutStore.test.ts` (primer test de store del repo): el descanso arranca con el
+  `restSeconds` real y cae a la preferencia (75, no el 90 hardcodeado) cuando no hay plan.
+- `pnpm test` (37/37), `pnpm typecheck` y `pnpm lint` (0 errores) en verde.

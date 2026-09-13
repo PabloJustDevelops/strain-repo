@@ -19,8 +19,11 @@ inventando lenguaje que el proyecto no usa, o hay un hueco real que conviene res
 `active → completed` (al finalizar) o `active → discarded`. Guarda agregados propios:
 `totalVolume`, `totalSets`, `durationSeconds`.
 
-**Session Exercise** — un Exercise dentro de una Session, con `orderIndex` y `supersetGroup`.
-Es una fila distinta de Routine Exercise: una es el plan, la otra lo que pasó.
+**Session Exercise** — un Exercise dentro de una Session, con `orderIndex`, `supersetGroup` y un
+**snapshot de los targets** de la rutina: `targetSets`, `targetReps`, `restSeconds`. Es una fila
+distinta de Routine Exercise: una es el plan, la otra lo que pasó. El snapshot es lo que hace
+inmutable la sesión: editar o borrar la rutina después no cambia lo ya ejecutado. `null` en los
+targets significa que la sesión no vino de una rutina — no un plan por defecto.
 
 **Set** — una serie concreta. `setType` ∈ `warmup | working | failure | dropset`, más `weight`,
 `reps`, `isCompleted`, `completedAt`, `rpe`, `notes`.
@@ -78,8 +81,8 @@ Reglas que sostienen esto:
 - El mapeo **no descarta campos declarados**. `supersetGroup` se declaraba y no se mapeaba: la UI
   de supersets del workout activo no se mostró nunca hasta que C2 lo arregló.
 - `toActiveSessionView` recibe `now` como parámetro, así que es **puro** y testeable con reloj fijo.
-- Los targets de rutina (`targetSets`, `targetReps`, `restSeconds`) se siguen perdiendo en el
-  mapeo: es C6, no un olvido.
+- Los targets de rutina se copian a la sesión al iniciarla y el mapeo los lee de la fila. El mapeo no
+  los fabrica: si no hay plan, son `null`. Ver D11.
 
 ## Unidades y enums
 

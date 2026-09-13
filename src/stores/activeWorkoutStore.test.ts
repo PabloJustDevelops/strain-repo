@@ -42,9 +42,9 @@ describe('activeWorkoutStore · descanso', () => {
     db.close();
   });
 
-  async function makeExercise() {
+  async function makeExercise(name = 'Press de banca') {
     return db.repos.exercises.create({
-      name: 'Press de banca',
+      name,
       muscleGroup: 'chest',
       equipment: 'barbell',
       mechanic: 'compound',
@@ -82,5 +82,31 @@ describe('activeWorkoutStore · descanso', () => {
     // 75 y no 90: lee la preferencia, no una constante.
     expect(useActiveWorkout.getState().isResting).toBe(true);
     expect(useActiveWorkout.getState().restRemaining).toBe(75);
+  });
+
+  it('en un superset, descansa al cerrar la ronda y no en el primer ejercicio', async () => {
+    const press = await makeExercise();
+    const remo = await makeExercise('Remo');
+    const session = await db.repos.sessions.start({
+      name: 'Empuje',
+      fromRoutineExercises: [
+        { exerciseId: press.id, targetSets: 2, targetReps: '5', restSeconds: 90, supersetGroup: 'A' },
+        { exerciseId: remo.id, targetSets: 2, targetReps: '8', restSeconds: 120, supersetGroup: 'A' },
+      ],
+    });
+    const { exercises } = (await db.repos.sessions.getFullSession(session.id))!;
+    const [pressSet] = exercises[0].sets;
+    const [remoSet] = exercises[1].sets;
+
+    await useActiveWorkout.getState().loadActive();
+
+    // A1 no cierra la ronda: B todavía tiene sets pendientes.
+    await useActiveWorkout.getState().completeSet(pressSet.id, 100, 5);
+    expect(useActiveWorkout.getState().isResting).toBe(false);
+
+    // B1 sí la cierra, y el descanso es el de B (120), no el de A (90).
+    await useActiveWorkout.getState().completeSet(remoSet.id, 60, 8);
+    expect(useActiveWorkout.getState().isResting).toBe(true);
+    expect(useActiveWorkout.getState().restRemaining).toBe(120);
   });
 });

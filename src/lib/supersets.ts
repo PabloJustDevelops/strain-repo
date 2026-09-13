@@ -45,12 +45,14 @@ export function nextSupersetLetter(used: Iterable<string>): string {
  * `getFullSession`).
  *
  * Devuelve el ejercicio y no un booleano porque el consumidor necesita su
- * `restSeconds`: el descanso que arranca es el del ejercicio que cierra.
+ * `restSeconds`: el descanso que arranca es el del ejercicio que cierra. Es
+ * genérica para devolver el mismo tipo que recibe, con los campos que el
+ * consumidor ya conoce.
  */
-export function supersetRestOwner(
-  exercises: SupersetCandidate[],
+export function supersetRestOwner<T extends SupersetCandidate>(
+  exercises: T[],
   setId: string
-): SupersetCandidate | null {
+): T | null {
   const index = exercises.findIndex((ex) => ex.sets.some((set) => set.id === setId));
   if (index === -1) return null;
 

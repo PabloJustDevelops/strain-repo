@@ -134,6 +134,18 @@ const MIGRATIONS: { id: number; name: string; sql: string }[] = [
       CREATE INDEX IF NOT EXISTS session_exercises_superset_idx ON session_exercises(superset_group);
     `,
   },
+  {
+    id: 3,
+    name: 'add_session_exercise_targets',
+    sql: `
+      -- Snapshot de la intención de la rutina al iniciar la sesión (ver D11).
+      -- Nullable a propósito: una sesión sin rutina (o un ejercicio agregado
+      -- después) no tiene plan, y eso no es lo mismo que "plan por defecto".
+      ALTER TABLE session_exercises ADD COLUMN target_sets INTEGER;
+      ALTER TABLE session_exercises ADD COLUMN target_reps TEXT;
+      ALTER TABLE session_exercises ADD COLUMN rest_seconds INTEGER;
+    `,
+  },
 ];
 
 /**

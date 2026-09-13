@@ -85,6 +85,11 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
               exerciseId: ex.exerciseId,
               orderIndex: idx + 1,
               supersetGroup: ex.supersetGroup ?? null,
+              // Snapshot de la intención de la rutina (ver D11). Se escribe tal
+              // cual: si no se persiste acá, se pierde al recargar la sesión.
+              targetSets: ex.targetSets,
+              targetReps: ex.targetReps,
+              restSeconds: ex.restSeconds,
             })
             .run();
 
@@ -258,6 +263,10 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
         exerciseId,
         orderIndex,
         supersetGroup: opts.supersetGroup ?? null,
+        // Sin rutina de origen no hay targets que copiar (ver D11).
+        targetSets: null,
+        targetReps: null,
+        restSeconds: null,
         notes: null,
       };
       db.insert(schema.sessionExercises).values(row).run();

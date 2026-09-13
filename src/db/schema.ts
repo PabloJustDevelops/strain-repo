@@ -143,6 +143,11 @@ export const sessionExercises = sqliteTable(
     orderIndex: integer('order_index').notNull(),
     // Etiqueta de superset (copiada de la rutina al iniciar la sesión)
     supersetGroup: text('superset_group'),
+    // Snapshot de los targets de la rutina al iniciar la sesión (ver D11).
+    // Null = la sesión no vino de una rutina; no hay plan, no un plan por defecto.
+    targetSets: integer('target_sets'),
+    targetReps: text('target_reps'),
+    restSeconds: integer('rest_seconds'),
     notes: text('notes'),
   },
   (table) => ({

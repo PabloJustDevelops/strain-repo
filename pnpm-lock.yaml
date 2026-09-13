@@ -38,6 +38,9 @@ importers:
       expo-constants:
         specifier: ~56.0.25
         version: 56.0.25(expo@56.0.21)(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(supports-color@8.1.1)
+      expo-crypto:
+        specifier: ~56.0.5
+        version: 56.0.5(expo@56.0.21)
       expo-document-picker:
         specifier: ~56.0.4
         version: 56.0.4(expo@56.0.21)
@@ -80,9 +83,6 @@ importers:
       expo-web-browser:
         specifier: ~56.0.6
         version: 56.0.6(expo@56.0.21)(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))
-      nanoid:
-        specifier: ^5.1.12
-        version: 5.1.12
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -4979,11 +4979,6 @@ packages:
   nanoid@3.3.8:
     resolution: {integrity: sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
-  nanoid@5.1.12:
-    resolution: {integrity: sha512-qnKlkaoiOqC//7LzQEgBJzzX7f+4Sqz/oCAesl0TOxogBkitVlIp5Ozq9sTE6tWWpIA58qreYF7GoPjuDjoXdw==}
-    engines: {node: ^18 || >=20}
     hasBin: true
 
   napi-build-utils@2.0.0:
@@ -12297,8 +12292,6 @@ snapshots:
   nanoid@3.3.19: {}
 
   nanoid@3.3.8: {}
-
-  nanoid@5.1.12: {}
 
   napi-build-utils@2.0.0: {}
 

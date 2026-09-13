@@ -2,57 +2,40 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * Mismo bug de clase que expo-notifications: `react-native-health-connect` lanza
- * al importarse cuando el módulo nativo no está (Expo Go). El test simula Expo Go
- * y exige que el wrapper no lo cargue y degrade a no-op.
+ * al importarse cuando el módulo nativo no está (Expo Go). Los fakes se inyectan
+ * por alias en vitest.config, sin mockear módulos con `vi.mock`.
  */
 
-vi.mock('react-native', () => ({
-  Platform: {
-    OS: 'android',
-    select: (options: { default?: unknown; android?: unknown }) => options.default ?? options.android,
-  },
-}));
+// SAFETY: `__DEV__` es un global de React Native que los tipos de Node no declaran.
+const nodeGlobal = globalThis as { __DEV__?: boolean };
 
-const originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
+// SAFETY: flags que leen los fakes de test inyectados por alias.
+const stubGlobal = globalThis as {
+  __EXPO_ENV__?: 'storeClient' | 'bare';
+  __NATIVE_THROWS__?: boolean;
+};
+
+const originalDev = nodeGlobal.__DEV__;
 
 afterEach(() => {
-  (globalThis as { __DEV__?: boolean }).__DEV__ = originalDev;
+  nodeGlobal.__DEV__ = originalDev;
+  stubGlobal.__EXPO_ENV__ = undefined;
+  stubGlobal.__NATIVE_THROWS__ = undefined;
   vi.resetModules();
   vi.restoreAllMocks();
 });
 
 async function loadHealthConnect(environment: 'storeClient' | 'bare') {
   vi.resetModules();
-  vi.doMock('expo-constants', () => ({
-    default: {
-      executionEnvironment: environment,
-      appOwnership: environment === 'storeClient' ? 'expo' : 'standalone',
-    },
-  }));
-
-  if (environment === 'storeClient') {
-    vi.doMock('react-native-health-connect', () => {
-      throw new Error('react-native-health-connect no debe cargarse en Expo Go');
-    });
-  } else {
-    vi.doMock('react-native-health-connect', () => ({
-      getSdkStatus: vi.fn(async () => 3),
-      initialize: vi.fn(async () => true),
-      requestPermission: vi.fn(async () => []),
-      getGrantedPermissions: vi.fn(async () => []),
-      openHealthConnectSettings: vi.fn(),
-      readRecords: vi.fn(async () => ({ records: [] })),
-      insertRecords: vi.fn(async () => ['id']),
-      ExerciseType: { WEIGHTLIFTING: 81 },
-    }));
-  }
+  stubGlobal.__EXPO_ENV__ = environment;
+  stubGlobal.__NATIVE_THROWS__ = environment === 'storeClient';
 
   return import('./healthConnect');
 }
 
 describe('healthConnect · Expo Go', () => {
   it('no carga el paquete nativo y degrada a no-op sin lanzar', async () => {
-    (globalThis as { __DEV__?: boolean }).__DEV__ = false;
+    nodeGlobal.__DEV__ = false;
     const hc = await loadHealthConnect('storeClient');
 
     await expect(hc.checkAvailability()).resolves.toBe(0);
@@ -72,7 +55,7 @@ describe('healthConnect · Expo Go', () => {
 
 describe('healthConnect · development build', () => {
   it('usa el paquete real cuando está disponible', async () => {
-    (globalThis as { __DEV__?: boolean }).__DEV__ = false;
+    nodeGlobal.__DEV__ = false;
     const hc = await loadHealthConnect('bare');
 
     await expect(hc.checkAvailability()).resolves.toBe(3);

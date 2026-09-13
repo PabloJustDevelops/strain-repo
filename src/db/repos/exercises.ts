@@ -20,7 +20,7 @@ export interface ExercisesRepo {
 export function createExercisesRepo(db: SqliteDb): ExercisesRepo {
   const repo: ExercisesRepo = {
     async list(): Promise<Exercise[]> {
-      return db.select().from(schema.exercises).orderBy(asc(schema.exercises.name)).all() as Exercise[];
+      return db.select().from(schema.exercises).orderBy(asc(schema.exercises.name)).all();
     },
 
     async byId(id: string): Promise<Exercise | undefined> {
@@ -33,17 +33,18 @@ export function createExercisesRepo(db: SqliteDb): ExercisesRepo {
         .from(schema.exercises)
         .where(eq(schema.exercises.muscleGroup, group))
         .orderBy(asc(schema.exercises.name))
-        .all() as Exercise[];
+        .all();
     },
 
     async search(query: string): Promise<Exercise[]> {
       const q = `%${query.toLowerCase()}%`;
+
       return db
         .select()
         .from(schema.exercises)
         .where(sql`lower(${schema.exercises.name}) LIKE ${q}`)
         .orderBy(asc(schema.exercises.name))
-        .all() as Exercise[];
+        .all();
     },
 
     async count(): Promise<number> {
@@ -51,6 +52,7 @@ export function createExercisesRepo(db: SqliteDb): ExercisesRepo {
         .select({ cnt: sql<number>`COUNT(*)` })
         .from(schema.exercises)
         .get();
+
       return row?.cnt ?? 0;
     },
 
@@ -58,6 +60,7 @@ export function createExercisesRepo(db: SqliteDb): ExercisesRepo {
       const id = newId();
       const now = new Date();
       db.insert(schema.exercises).values({ ...input, id, createdAt: now, updatedAt: now }).run();
+
       return (await repo.byId(id))!;
     },
 

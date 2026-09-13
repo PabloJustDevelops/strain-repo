@@ -31,10 +31,13 @@ export const useAuth = create<AuthState>((set) => ({
 
   async init() {
     const sb = getSupabase();
+
     if (!sb) {
       set({ isLoading: false, isConfigured: false });
+
       return;
     }
+
     const session = await getSession();
     set({
       session,

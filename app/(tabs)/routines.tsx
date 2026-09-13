@@ -1,14 +1,13 @@
 import { useCallback, useState } from 'react';
-import { View, Text, FlatList, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, FlatList, Pressable, useWindowDimensions , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 
 import { getRepos } from '@db';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { darkTheme, lightTheme, spacing, fontSize } from '@lib/theme';
 import { formatDateTime } from '@lib/format';
 import type { Routine } from '@/types/domain';
 import { Card } from '@components/Card';
@@ -28,8 +27,10 @@ export default function RoutinesScreen() {
 
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [items, setItems] = useState<Routine[]>([]);
@@ -111,5 +112,6 @@ export default function RoutinesScreen() {
       </SafeAreaView>
     );
   }
+
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>{content}</SafeAreaView>;
 }

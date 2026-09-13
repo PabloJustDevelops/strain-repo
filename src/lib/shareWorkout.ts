@@ -12,6 +12,7 @@ type CardRef = View | null;
 type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
 
 let captureRef: CaptureRef | null = null;
+
 let captureLoadFailed = false;
 
 /**
@@ -21,6 +22,7 @@ let captureLoadFailed = false;
  */
 async function getCaptureRef(): Promise<CaptureRef | null> {
   if (captureRef) return captureRef;
+
   if (captureLoadFailed) return null;
 
   try {
@@ -29,8 +31,10 @@ async function getCaptureRef(): Promise<CaptureRef | null> {
   } catch (err) {
     captureLoadFailed = true;
     console.warn('[share] react-native-view-shot no disponible; se comparte solo texto', err);
+
     return null;
   }
+
   return captureRef;
 }
 
@@ -61,6 +65,7 @@ export interface ShareOptions {
 export async function shareWorkout({ viewRef, session, caption, previewOnly = false }: ShareOptions): Promise<boolean> {
   if (!viewRef.current) {
     console.warn('[share] viewRef no está listo');
+
     return false;
   }
 
@@ -72,11 +77,13 @@ export async function shareWorkout({ viewRef, session, caption, previewOnly = fa
       `Entrenado con Strain.`;
 
   const capture = await getCaptureRef();
+
   if (!capture) {
     return shareText(session, text);
   }
 
   let imageUri: string;
+
   try {
     imageUri = await capture(viewRef, {
       format: 'png',
@@ -85,6 +92,7 @@ export async function shareWorkout({ viewRef, session, caption, previewOnly = fa
     });
   } catch (err) {
     console.error('[share] capture failed', err);
+
     return false;
   }
 
@@ -105,8 +113,10 @@ export async function shareWorkout({ viewRef, session, caption, previewOnly = fa
         mimeType: 'image/png',
         dialogTitle: session.name,
       });
+
       return true;
     }
+
     return false;
   }
 
@@ -117,6 +127,7 @@ export async function shareWorkout({ viewRef, session, caption, previewOnly = fa
         dialogTitle: 'Compartir workout',
         UTI: 'public.png',
       });
+
       return true;
     } catch (err) {
       console.warn('[share] expo-sharing falló, fallback a Share.share', err);
@@ -130,9 +141,11 @@ export async function shareWorkout({ viewRef, session, caption, previewOnly = fa
 async function shareText(session: WorkoutSession, text: string): Promise<boolean> {
   try {
     await Share.share({ message: text, title: session.name });
+
     return true;
   } catch (err) {
     console.error('[share] fallback failed', err);
+
     return false;
   }
 }

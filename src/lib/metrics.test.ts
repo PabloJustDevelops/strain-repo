@@ -136,15 +136,18 @@ describe('equivalencia TS ↔ SQL', () => {
 
   it('el 1RM que escribe finish (TS) coincide con el que calcula analytics (SQL)', async () => {
     const db = openInMemoryDatabase();
+
     try {
       for (const [weight, reps] of CASES) {
         const exercise = await makeExercise(db.repos, `oneRm-${weight}-${reps}`);
+
         const session = await db.repos.sessions.start({
           name: `caso-${weight}-${reps}`,
           fromRoutineExercises: [
             { exerciseId: exercise.id, targetSets: 1, targetReps: '1', restSeconds: 60 },
           ],
         });
+
         const [target] = (await db.repos.sessions.getFullSession(session.id))!.exercises[0].sets;
         await db.repos.sessions.completeSet(target.id, weight, reps);
         await db.repos.sessions.finish(session.id);
@@ -163,14 +166,17 @@ describe('equivalencia TS ↔ SQL', () => {
 
   it('el volumen que arma el store (TS) coincide con el total que escribe el repo (SQL)', async () => {
     const db = openInMemoryDatabase();
+
     try {
       const exercise = await makeExercise(db.repos, 'volumen');
+
       const session = await db.repos.sessions.start({
         name: 'volumen',
         fromRoutineExercises: [
           { exerciseId: exercise.id, targetSets: 3, targetReps: '5', restSeconds: 60 },
         ],
       });
+
       const [first, second] = (await db.repos.sessions.getFullSession(session.id))!.exercises[0].sets;
 
       await db.repos.sessions.completeSet(first.id, 100, 5);

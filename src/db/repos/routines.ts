@@ -25,7 +25,8 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
     async list(includeArchived = false): Promise<Routine[]> {
       const where = includeArchived ? undefined : eq(schema.routines.isArchived, false);
       const query = db.select().from(schema.routines);
-      return (where ? query.where(where) : query).orderBy(desc(schema.routines.updatedAt)).all() as Routine[];
+
+      return (where ? query.where(where) : query).orderBy(desc(schema.routines.updatedAt)).all();
     },
 
     async byId(id: string): Promise<Routine | undefined> {
@@ -34,6 +35,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
 
     async getWithExercises(id: string): Promise<{ routine: Routine; exercises: (RoutineExercise & { exercise: Exercise })[] } | null> {
       const routine = await repo.byId(id);
+
       if (!routine) return null;
 
       const rows = db
@@ -68,6 +70,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
           updatedAt: now,
         })
         .run();
+
       return (await repo.byId(id))!;
     },
 
@@ -84,6 +87,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
 
     async clone(id: string, newName?: string): Promise<Routine> {
       const original = await repo.getWithExercises(id);
+
       if (!original) throw new Error('Routine not found');
 
       const clone = await repo.create({
@@ -122,6 +126,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
         .from(schema.routineExercises)
         .where(eq(schema.routineExercises.routineId, routineId))
         .get();
+
       db.insert(schema.routineExercises)
         .values({
           id: newId(),
@@ -155,6 +160,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
               eq(schema.routineExercises.supersetGroup, group)
             ))
             .run();
+
           for (const id of routineExerciseIds) {
             tx.update(schema.routineExercises)
               .set({ supersetGroup: group })
@@ -174,6 +180,7 @@ export function createRoutinesRepo(db: SqliteDb): RoutinesRepo {
           ))
           .run();
       }
+
       await repo.touch(routineId);
     },
 

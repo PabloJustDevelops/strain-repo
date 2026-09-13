@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, FlatList, TextInput, Pressable } from 'react-native';
+import { View, Text, FlatList, TextInput, Pressable , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, type Exercise, type MuscleGroup, type Equipment } from '@/types/domain';
+import { type Exercise } from '@/types/domain';
+import { muscleGroupLabel, equipmentLabel } from '@lib/labels';
 import { Card } from '@components/Card';
 
 /**
@@ -22,8 +22,10 @@ export default function AddExerciseToRoutineScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [items, setItems] = useState<Exercise[]>([]);
@@ -37,10 +39,12 @@ export default function AddExerciseToRoutineScreen() {
         getRepos().exercises.list(),
         id ? getRepos().routines.getWithExercises(id) : Promise.resolve(null),
       ]);
+
       if (cancelled) return;
       const already = new Set((routine?.exercises ?? []).map((re) => re.exerciseId));
       setItems(catalog.filter((ex) => !already.has(ex.id)));
     })();
+
     return () => {
       cancelled = true;
     };
@@ -57,6 +61,7 @@ export default function AddExerciseToRoutineScreen() {
   const handlePick = async (exercise: Exercise) => {
     if (!id || pending) return;
     setPending(exercise.id);
+
     try {
       await getRepos().routines.addExercise(id, exercise.id);
       router.back();
@@ -129,7 +134,7 @@ export default function AddExerciseToRoutineScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: colors.text, fontWeight: '700' }}>{item.name}</Text>
                   <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
-                    {MUSCLE_GROUP_LABELS[item.muscleGroup as MuscleGroup]} · {EQUIPMENT_LABELS[item.equipment as Equipment]}
+                    {muscleGroupLabel(item.muscleGroup)} · {equipmentLabel(item.equipment)}
                   </Text>
                 </View>
               </View>

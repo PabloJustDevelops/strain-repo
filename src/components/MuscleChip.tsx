@@ -1,5 +1,4 @@
-import { View, Text, Pressable } from 'react-native';
-import { useColorScheme } from 'react-native';
+import { Text, Pressable , useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { MUSCLE_GROUP_LABELS, type MuscleGroup } from '@/types/domain';
@@ -14,8 +13,10 @@ interface MuscleChipProps {
 export function MuscleChip({ group, active, onPress }: MuscleChipProps) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   return (

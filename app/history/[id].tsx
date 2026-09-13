@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Pressable, Alert, useWindowDimensions, useColorScheme } from 'react-native';
+import { View, Text, ScrollView, Alert, useWindowDimensions, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Stack, useLocalSearchParams } from 'expo-router';
 
 import { getRepos } from '@db';
 import { toExerciseSummaries, type SessionExerciseSummary } from '@db/shapes';
@@ -23,7 +22,6 @@ import { formatDateTime, formatDuration } from '@lib/format';
  */
 export default function SessionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
   const cardRef = useRef<View | null>(null);
 
   const colorScheme = useColorScheme();
@@ -43,6 +41,7 @@ export default function SessionDetailScreen() {
     if (!id) return;
     (async () => {
       const full = await getRepos().sessions.getFullSession(id);
+
       if (full) {
         setSession(full.session);
         setExercises(toExerciseSummaries(full));
@@ -53,10 +52,12 @@ export default function SessionDetailScreen() {
   const handleShare = async () => {
     if (!session) return;
     setSharing(true);
+
     try {
       // pequeña espera para asegurar que la card está renderizada
       await new Promise((r) => setTimeout(r, 120));
       const ok = await shareWorkout({ viewRef: cardRef, session, previewOnly: false });
+
       if (!ok) {
         Alert.alert('No se pudo compartir', 'Inténtalo de nuevo.');
       }
@@ -125,7 +126,9 @@ export default function SessionDetailScreen() {
 
         {exercises.map((ex) => {
           const completed = ex.sets.filter((s) => s.isCompleted);
+
           if (completed.length === 0) return null;
+
           return (
             <Card key={ex.id}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>{ex.name}</Text>

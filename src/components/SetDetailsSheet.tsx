@@ -41,8 +41,10 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
   const themeMode = usePreferences((s) => s.themeMode);
   const haptics = usePreferences((s) => s.hapticsEnabled);
   const insets = useSafeAreaInsets();
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   // El sheet se monta por set (ver `key` en la pantalla de workout), así que el
@@ -79,6 +81,7 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
         velocityY: e.velocityY,
         height: sheetHeight.value,
       });
+
       if (dismiss) {
         translateY.value = withTiming(sheetHeight.value || 400, { duration: 180 }, (finished) => {
           if (finished) runOnJS(handleClose)();
@@ -168,11 +171,13 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.lg }}>
                 {rpeOptions.map((val) => {
                   const selected = rpe === val;
+
                   return (
                     <Pressable
                       key={val}
                       onPress={() => {
                         setRpe(selected ? null : val);
+
                         if (haptics) Haptics.selectionAsync();
                       }}
                       style={{

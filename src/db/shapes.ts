@@ -89,7 +89,9 @@ export function toActiveSessionView(
       id: ex.id,
       exerciseId: ex.exerciseId,
       name: ex.exercise.name,
+      // SAFETY: la columna muscle_group solo contiene valores de MuscleGroup.
       muscleGroup: ex.exercise.muscleGroup as MuscleGroup,
+      // SAFETY: la columna equipment solo contiene valores de Equipment.
       equipment: ex.exercise.equipment as Equipment,
       orderIndex: ex.orderIndex,
       supersetGroup: ex.supersetGroup,

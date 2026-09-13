@@ -21,6 +21,7 @@ const SHEET_DISMISS_VELOCITY = 900;
  */
 export function clampSheetDrag(translationY: number): number {
   'worklet';
+
   return Math.max(0, translationY);
 }
 
@@ -47,8 +48,12 @@ export function shouldDismissSheet({
   height,
 }: SheetDismissInput): boolean {
   'worklet';
+
   if (velocityY <= -SHEET_DISMISS_VELOCITY) return false;
+
   if (velocityY >= SHEET_DISMISS_VELOCITY) return true;
+
   if (height <= 0) return false;
+
   return translationY >= height * SHEET_DISMISS_RATIO;
 }

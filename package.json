@@ -6,7 +6,7 @@
     "start": "expo start",
     "android": "expo start --android",
     "web": "expo start --web",
-    "lint": "expo lint && pnpm lint:anti-slop",
+    "lint": "eslint . --max-warnings 0 && pnpm lint:anti-slop",
     "lint:anti-slop": "oxlint -c .oxlintrc.json .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

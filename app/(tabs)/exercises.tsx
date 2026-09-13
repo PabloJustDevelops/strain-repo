@@ -1,14 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { View, Text, FlatList, TextInput, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, FlatList, TextInput, Pressable, useWindowDimensions , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, type Exercise, type MuscleGroup, type Equipment } from '@/types/domain';
+import { type Exercise, type MuscleGroup } from '@/types/domain';
+import { muscleGroupLabel, equipmentLabel } from '@lib/labels';
 import { Card } from '@components/Card';
 import { MuscleChip } from '@components/MuscleChip';
 import { Sidebar } from '@components/Sidebar';
@@ -30,8 +30,10 @@ export default function ExercisesScreen() {
 
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [items, setItems] = useState<Exercise[]>([]);
@@ -48,8 +50,10 @@ export default function ExercisesScreen() {
   const filtered = useMemo(() => {
     return items.filter((ex) => {
       const matchesFilter = filter === 'all' || ex.muscleGroup === filter;
+
       const matchesQuery = query.length === 0 ||
         ex.name.toLowerCase().includes(query.toLowerCase());
+
       return matchesFilter && matchesQuery;
     });
   }, [items, filter, query]);
@@ -102,7 +106,7 @@ export default function ExercisesScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: colors.text, fontWeight: '700' }}>{item.name}</Text>
                   <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
-                    {MUSCLE_GROUP_LABELS[item.muscleGroup as MuscleGroup]} · {EQUIPMENT_LABELS[item.equipment as Equipment]}
+                    {muscleGroupLabel(item.muscleGroup)} · {equipmentLabel(item.equipment)}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
@@ -122,5 +126,6 @@ export default function ExercisesScreen() {
       </SafeAreaView>
     );
   }
+
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>{content}</SafeAreaView>;
 }

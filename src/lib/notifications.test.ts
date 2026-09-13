@@ -2,21 +2,25 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * Expo Go no incluye expo-notifications desde el SDK 53: importarlo lanza. Este
- * test simula ese entorno y exige que el módulo de notificaciones no lo cargue,
- * no lance y exponga no-ops. Antes fallaba porque el import era estático.
+ * test simula ese entorno con los fakes inyectados por alias en vitest.config
+ * (no se mockean módulos con `vi.mock`).
  */
 
-vi.mock('react-native', () => ({
-  Platform: {
-    OS: 'android',
-    select: (options: { default?: unknown; android?: unknown }) => options.default ?? options.android,
-  },
-}));
+// SAFETY: `__DEV__` es un global de React Native que los tipos de Node no declaran.
+const nodeGlobal = globalThis as { __DEV__?: boolean };
 
-const originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
+// SAFETY: flags que leen los fakes de test inyectados por alias.
+const stubGlobal = globalThis as {
+  __EXPO_ENV__?: 'storeClient' | 'bare';
+  __NATIVE_THROWS__?: boolean;
+};
+
+const originalDev = nodeGlobal.__DEV__;
 
 afterEach(() => {
-  (globalThis as { __DEV__?: boolean }).__DEV__ = originalDev;
+  nodeGlobal.__DEV__ = originalDev;
+  stubGlobal.__EXPO_ENV__ = undefined;
+  stubGlobal.__NATIVE_THROWS__ = undefined;
   vi.resetModules();
   vi.restoreAllMocks();
 });
@@ -24,30 +28,8 @@ afterEach(() => {
 /** Carga `notifications` con el entorno simulado. */
 async function loadNotifications(environment: 'storeClient' | 'bare') {
   vi.resetModules();
-  vi.doMock('expo-constants', () => ({
-    default: {
-      executionEnvironment: environment,
-      appOwnership: environment === 'storeClient' ? 'expo' : 'standalone',
-    },
-  }));
-
-  if (environment === 'storeClient') {
-    // Si el código intenta cargarlo, revienta: es el bug que estamos cubriendo.
-    vi.doMock('expo-notifications', () => {
-      throw new Error('expo-notifications no debe cargarse en Expo Go');
-    });
-  } else {
-    vi.doMock('expo-notifications', () => ({
-      setNotificationHandler: vi.fn(),
-      setNotificationChannelAsync: vi.fn(async () => null),
-      getPermissionsAsync: vi.fn(async () => ({ status: 'granted' })),
-      requestPermissionsAsync: vi.fn(async () => ({ status: 'granted' })),
-      cancelAllScheduledNotificationsAsync: vi.fn(async () => {}),
-      scheduleNotificationAsync: vi.fn(async () => 'id'),
-      AndroidImportance: { HIGH: 4 },
-      SchedulableTriggerInputTypes: { WEEKLY: 'weekly' },
-    }));
-  }
+  stubGlobal.__EXPO_ENV__ = environment;
+  stubGlobal.__NATIVE_THROWS__ = environment === 'storeClient';
 
   return import('./notifications');
 }
@@ -62,7 +44,7 @@ const reminder = {
 
 describe('notifications · Expo Go', () => {
   it('no carga expo-notifications y expone no-ops que no lanzan', async () => {
-    (globalThis as { __DEV__?: boolean }).__DEV__ = false;
+    nodeGlobal.__DEV__ = false;
     const mod = await loadNotifications('storeClient');
 
     await expect(mod.initNotifications()).resolves.toBe(false);
@@ -72,7 +54,7 @@ describe('notifications · Expo Go', () => {
   });
 
   it('deja un aviso en desarrollo una sola vez', async () => {
-    (globalThis as { __DEV__?: boolean }).__DEV__ = true;
+    nodeGlobal.__DEV__ = true;
     // Es console.log a propósito: console.warn abre el overlay de LogBox, que
     // en Expo Go se dibuja encima de la barra de pestañas y bloquea el toque.
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -87,7 +69,7 @@ describe('notifications · Expo Go', () => {
 
 describe('notifications · development build', () => {
   it('carga el módulo y sigue inicializando de verdad', async () => {
-    (globalThis as { __DEV__?: boolean }).__DEV__ = false;
+    nodeGlobal.__DEV__ = false;
     const mod = await loadNotifications('bare');
 
     await expect(mod.initNotifications()).resolves.toBe(true);

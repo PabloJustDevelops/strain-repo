@@ -12,6 +12,7 @@ export default defineConfig({
   out: './src/db/migrations',
   dialect: 'sqlite',
   driver: 'expo',
+  // SAFETY: drizzle-kit no tipa dbCredentials para el driver expo, pero lo acepta en runtime.
   ...({
     dbCredentials: { url: 'strain.db' },
   } as any),

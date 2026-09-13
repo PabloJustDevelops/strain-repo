@@ -24,16 +24,23 @@ type NotificationsModule = typeof import('expo-notifications');
 
 // Días de la semana para recordatorios (1=Domingo, 7=Sábado según expo-notifications)
 type WeekdayNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
 function clampWeekday(day: number): WeekdayNumber {
   // Acepta 0-6 (estilo JS) o 1-7 (estilo expo) y normaliza a 1-7
   if (day === 0) return 7;
+
+  // SAFETY: Math.min/max acotan el resultado al rango 1..7 de WeekdayNumber.
   return Math.max(1, Math.min(7, day)) as WeekdayNumber;
 }
 
 let notifications: NotificationsModule | null = null;
+
 let loadFailed = false;
+
 let warnedUnavailable = false;
+
 let initialized = false;
+
 let channelReady = false;
 
 /**
@@ -45,6 +52,7 @@ let channelReady = false;
 function warnUnavailableOnce(): void {
   if (warnedUnavailable) return;
   warnedUnavailable = true;
+
   if (typeof __DEV__ !== 'undefined' && __DEV__) {
     console.log(
       '[notifications] No disponibles en Expo Go: expo-notifications se retiró del cliente en el SDK 53. Probá en un development build.'
@@ -59,9 +67,12 @@ function warnUnavailableOnce(): void {
 async function getNotifications(): Promise<NotificationsModule | null> {
   if (isExpoGo()) {
     warnUnavailableOnce();
+
     return null;
   }
+
   if (notifications) return notifications;
+
   if (loadFailed) return null;
 
   try {
@@ -69,8 +80,10 @@ async function getNotifications(): Promise<NotificationsModule | null> {
   } catch (err) {
     loadFailed = true;
     console.warn('[notifications] No se pudo cargar expo-notifications', err);
+
     return null;
   }
+
   return notifications;
 }
 
@@ -98,6 +111,7 @@ export async function initNotifications(): Promise<boolean> {
   if (initialized) return true;
 
   const N = await getNotifications();
+
   if (!N) return false;
 
   N.setNotificationHandler({
@@ -122,6 +136,7 @@ export async function initNotifications(): Promise<boolean> {
   }
 
   initialized = true;
+
   return true;
 }
 
@@ -130,13 +145,17 @@ export async function initNotifications(): Promise<boolean> {
  */
 export async function requestNotificationPermission(): Promise<boolean> {
   const N = await getNotifications();
+
   if (!N) return false;
 
   const { status } = await N.getPermissionsAsync();
+
   if (status === 'granted') return true;
+
   const { status: newStatus } = await N.requestPermissionsAsync({
     ios: {},
   });
+
   return newStatus === 'granted';
 }
 
@@ -145,6 +164,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
  */
 export async function cancelAllReminders(): Promise<void> {
   const N = await getNotifications();
+
   if (!N) return;
   await N.cancelAllScheduledNotificationsAsync();
 }
@@ -155,12 +175,15 @@ export async function cancelAllReminders(): Promise<void> {
  */
 export async function scheduleReminders(config: ReminderConfig): Promise<void> {
   await cancelAllReminders();
+
   if (!config.enabled) return;
 
   const N = await getNotifications();
+
   if (!N) return;
 
   const hasPermission = await requestNotificationPermission();
+
   if (!hasPermission) return;
 
   const days = config.daysOfWeek.length === 0 ? [0, 1, 2, 3, 4, 5, 6] : config.daysOfWeek;
@@ -190,6 +213,7 @@ export const DEFAULT_REMINDER_CONFIG = DEFAULT_REMINDER;
 
 export function getReminderConfig(): ReminderConfig {
   const prefs = usePreferences.getState();
+
   return prefs.reminder ?? DEFAULT_REMINDER;
 }
 

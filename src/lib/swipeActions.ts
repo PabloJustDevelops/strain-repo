@@ -11,6 +11,7 @@
 
 /** Desplazamientos (px) del gesto que definen la curva. */
 const STOPS = [-200, -50, 0] as const;
+
 /** Opacidades correspondientes, de 0 (reposo) a 1 (acción desplegada). */
 const OPACITIES = [1, 0.4, 0] as const;
 
@@ -25,9 +26,12 @@ export function swipeActionOpacity(translationX: number): number {
   const [y0, y1, y2] = OPACITIES;
 
   if (translationX <= x0) return y0;
+
   if (translationX >= x2) return y2;
+
   if (translationX <= x1) {
     return y0 + ((y1 - y0) * (translationX - x0)) / (x1 - x0);
   }
+
   return y1 + ((y2 - y1) * (translationX - x1)) / (x2 - x1);
 }

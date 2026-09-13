@@ -139,6 +139,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
 
     async getFullSession(id: string): Promise<FullSession | null> {
       const session = await repo.byId(id);
+
       if (!session) return null;
 
       const exercises = db
@@ -159,6 +160,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
 
       // Indexar sets por sessionExerciseId
       const setsByExercise = new Map<string, typeof sets>();
+
       for (const row of sets) {
         const arr = setsByExercise.get(row.session_exercises.id) ?? [];
         arr.push(row);
@@ -182,13 +184,14 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
         .where(eq(schema.workoutSessions.status, 'completed'))
         .orderBy(desc(schema.workoutSessions.startedAt))
         .limit(limit)
-        .all() as WorkoutSession[];
+        .all();
     },
 
     /** Marca un set como completado y actualiza los aggregates de la sesión. */
     async completeSet(setId: string, weight?: number, reps?: number): Promise<void> {
       db.transaction((tx) => {
         const set = tx.select().from(schema.sets).where(eq(schema.sets.id, setId)).get();
+
         if (!set) return;
 
         tx.update(schema.sets)
@@ -248,12 +251,14 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
       opts: { orderIndex?: number; supersetGroup?: string | null } = {}
     ): Promise<SessionExercise> {
       let orderIndex = opts.orderIndex;
+
       if (orderIndex === undefined) {
         const last = db
           .select({ maxOrder: sql<number>`MAX(${schema.sessionExercises.orderIndex})` })
           .from(schema.sessionExercises)
           .where(eq(schema.sessionExercises.sessionId, sessionId))
           .get();
+
         orderIndex = (last?.maxOrder ?? 0) + 1;
       }
 
@@ -269,7 +274,9 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
         restSeconds: null,
         notes: null,
       };
+
       db.insert(schema.sessionExercises).values(row).run();
+
       return row;
     },
 
@@ -281,6 +288,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
         .get();
 
       const id = newId();
+
       const newSet: DbSet = {
         id,
         sessionExerciseId,
@@ -294,7 +302,9 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
         notes: null,
         completedAt: null,
       };
+
       db.insert(schema.sets).values(newSet).run();
+
       return newSet;
     },
 
@@ -310,8 +320,10 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
      */
     async finish(id: string, opts: { endedAt?: Date } = {}): Promise<void> {
       const session = await repo.byId(id);
+
       if (!session) return;
       const endedAt = opts.endedAt ?? new Date();
+
       const duration = Math.max(
         0,
         Math.floor((endedAt.getTime() - session.startedAt.getTime()) / 1000)
@@ -339,6 +351,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
           .all();
 
         const byExercise = new Map<string, typeof completedSets>();
+
         for (const s of completedSets) {
           const arr = byExercise.get(s.exerciseId) ?? [];
           arr.push(s);
@@ -348,6 +361,7 @@ export function createSessionsRepo(db: SqliteDb): SessionsRepo {
         byExercise.forEach((setsList, exerciseId) => {
           // El set con mayor 1RM estimado (Epley). En empate gana el primero.
           const prSet = bestByOneRm(setsList);
+
           if (!prSet) return;
           const bestOneRm = estimateOneRm(prSet.weight, prSet.reps);
 

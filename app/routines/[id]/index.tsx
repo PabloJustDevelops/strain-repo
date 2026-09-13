@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, useWindowDimensions , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 import DraggableFlatList, {
   RenderItemParams,
   ScaleDecorator,
@@ -12,9 +11,9 @@ import * as Haptics from 'expo-haptics';
 
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { darkTheme, lightTheme, spacing, fontSize } from '@lib/theme';
 import { nextSupersetLetter } from '@lib/supersets';
-import { MUSCLE_GROUP_LABELS, type Exercise, type Routine, type RoutineExercise } from '@/types/domain';
+import { type Exercise, type Routine, type RoutineExercise } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
 import { Sidebar } from '@components/Sidebar';
@@ -32,8 +31,10 @@ export default function RoutineDetailScreen() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [routine, setRoutine] = useState<Routine | null>(null);
@@ -42,6 +43,7 @@ export default function RoutineDetailScreen() {
   const refresh = useCallback(async () => {
     if (!id) return;
     const data = await getRepos().routines.getWithExercises(id);
+
     if (!data) return;
     setRoutine(data.routine);
     setExercises(data.exercises);
@@ -56,6 +58,7 @@ export default function RoutineDetailScreen() {
 
   const handleDragEnd = async ({ data }: { data: RoutineExerciseRow[] }) => {
     setExercises(data);
+
     if (!id) return;
     await getRepos().routines.reorderExercises(
       id,
@@ -91,6 +94,7 @@ export default function RoutineDetailScreen() {
                 if (!id) return;
                 const next = item.supersetGroup ? null : nextSupersetLetter(exercises);
                 await getRepos().routines.setSupersetGroup(id, [item.id], next);
+
                 if (haptics) Haptics.selectionAsync();
                 await refresh();
               }}
@@ -165,5 +169,6 @@ export default function RoutineDetailScreen() {
       </SafeAreaView>
     );
   }
+
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>{content}</SafeAreaView>;
 }

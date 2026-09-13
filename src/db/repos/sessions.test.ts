@@ -50,6 +50,26 @@ describe('SessionsRepo', () => {
     expect(full!.session.status).toBe('active');
   });
 
+  it('start() persiste el snapshot de targets y sobrevive a recargar la sesión', async () => {
+    const exercise = await makeExercise();
+
+    const session = await repos.sessions.start({
+      name: 'Empuje',
+      fromRoutineExercises: [
+        { exerciseId: exercise.id, targetSets: 2, targetReps: '5', restSeconds: 120 },
+      ],
+    });
+
+    // `getFullSession` vuelve a leer de la base: si los targets sólo viajaran por
+    // memoria, acá no estarían.
+    const full = await repos.sessions.getFullSession(session.id);
+    expect(full!.exercises[0]).toMatchObject({
+      targetSets: 2,
+      targetReps: '5',
+      restSeconds: 120,
+    });
+  });
+
   it('completeSet() recalcula totalVolume y totalSets de la sesión', async () => {
     const exercise = await makeExercise();
     const session = await repos.sessions.start({
@@ -144,6 +164,17 @@ describe('SessionsRepo', () => {
         orderIndex: 7,
       });
       expect(row.orderIndex).toBe(7);
+    });
+
+    it('deja los targets en NULL: el ejercicio no vino de una rutina', async () => {
+      const exercise = await makeExercise();
+      const session = await repos.sessions.start({ name: 'Libre' });
+
+      const row = await repos.sessions.addSessionExercise(session.id, exercise.id);
+
+      expect(row.targetSets).toBeNull();
+      expect(row.targetReps).toBeNull();
+      expect(row.restSeconds).toBeNull();
     });
   });
 

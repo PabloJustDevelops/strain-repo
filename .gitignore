@@ -44,10 +44,23 @@ Thumbs.db
 .idea/
 
 # Skills / agentes del IDE (no parte del proyecto)
-.agents/
 .claude/
 .commandcode/
-skills-lock.json
+
+# Skills de ingeniería compartidas: viven en el repo para que cualquier agente las lea
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/setup-matt-pocock-skills/
+!.agents/skills/diagnosing-bugs/
+!.agents/skills/tdd/
+!.agents/skills/code-review/
+!.agents/skills/codebase-design/
+!.agents/skills/implement/
+!.agents/skills/resolving-merge-conflicts/
+!.agents/skills/triage/
+!.agents/skills/to-tickets/
+!.agents/skills/writing-for-agents/
 
 # Salidas de herramientas locales
 .playwright-mcp/

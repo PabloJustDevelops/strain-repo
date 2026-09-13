@@ -15,6 +15,7 @@ Bienvenido a la documentación del proyecto **Strain**. Aquí se recoge todo lo 
 | 07 | [Decisiones técnicas](./07-decisions.md) | Android-only, pnpm, Health Connect, SQLite local, etc. |
 | 08 | [Setup local](./08-setup.md) | Cómo arrancar el proyecto en dev (web y Android) |
 | 09 | [Remodelación Web Dashboard](./09-remodelacion-web-dashboard.md) | Propuesta de arquitectura web + refinamiento mobile + sync |
+| 10 | [C6: targets de rutina en la sesión](./10-c6-targets-de-rutina.md) | Spec pendiente de grilling: persistir los targets que hoy se descartan |
 
 ## Estado del proyecto (resumen rápido)
 

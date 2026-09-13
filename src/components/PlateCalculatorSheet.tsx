@@ -1,9 +1,8 @@
-import { Modal, View, Text, Pressable } from 'react-native';
-import { useColorScheme } from 'react-native';
+import { Modal, View, Text, Pressable , useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatWeight } from '@lib/format';
-import type { PlateResult } from '@lib/plateCalculator';
+import { plateShortfallMessage, type PlateResult } from '@lib/plateCalculator';
 
 interface PlateCalculatorSheetProps {
   result: PlateResult | null;
@@ -19,9 +18,12 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const units = usePreferences((s) => s.units);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+  const shortfall = result ? plateShortfallMessage(result) : null;
 
   return (
     <Modal visible={!!result} transparent animationType="slide" onRequestClose={onClose}>
@@ -103,9 +105,9 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
               )}
             </View>
 
-            {!result.achievable && (
+            {shortfall && (
               <Text style={{ color: colors.warning, fontSize: fontSize.sm }}>
-                Faltan {result.remainder.toFixed(2)} kg para el objetivo (usa discos más pequeños).
+                {shortfall}
               </Text>
             )}
           </>
@@ -119,6 +121,7 @@ function PlateDisk({ kg }: { kg: number }) {
   // Altura proporcional al peso del disco (cap a 60px)
   const height = Math.min(60, 12 + kg * 1.8);
   const width = 10;
+
   return (
     <View
       style={{

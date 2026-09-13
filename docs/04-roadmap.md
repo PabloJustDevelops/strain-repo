@@ -20,7 +20,7 @@ Estado actual: **MVP funcional con features avanzadas**. Pendiente: pulir UX, te
 
 ## 🚧 En curso / próximo bloque
 
-- [ ] Pulir UX del sheet de detalles por set (drag handles, mejor teclado)
+- [x] Pulir UX del sheet de detalles por set (drag handle + teclado) — issue #3
 - [ ] Calcular 1RM estimado (Epley) en tiempo real al introducir peso/reps
 - [ ] PRs automáticos: detectar nuevo PR al finalizar set
 - [ ] Heatmap con más granularidad (filtrar por rango temporal)

@@ -9,13 +9,13 @@ import Animated, {
   withTiming,
   withSequence,
   runOnJS,
-  interpolateColor,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
+import { swipeActionOpacity } from '@lib/swipeActions';
 import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
 import type { SetView } from '@db/shapes';
 
@@ -92,10 +92,9 @@ export function SetRow({
   }));
 
   const rightBgStyle = useAnimatedStyle(() => ({
-    opacity: interpolateColor(translateX.value, [-200, -50, 0], [1, 0.4, 0]) as unknown as number,
+    opacity: swipeActionOpacity(translateX.value),
   }));
 
-  // Forzar opacidad manualmente (interpolateColor devuelve string)
   const rightActionStyle = useAnimatedStyle(() => ({
     opacity: Math.min(1, Math.max(0, translateX.value / 80)),
   }));
@@ -131,7 +130,6 @@ export function SetRow({
         style={[
           {
             position: 'absolute',
-            inset: 0 as unknown as number,
             left: 0,
             right: 0,
             top: 0,
@@ -155,7 +153,6 @@ export function SetRow({
         style={[
           {
             position: 'absolute',
-            inset: 0 as unknown as number,
             left: 0,
             right: 0,
             top: 0,

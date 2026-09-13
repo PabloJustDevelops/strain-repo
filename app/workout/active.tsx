@@ -313,8 +313,11 @@ export default function ActiveWorkoutScreen() {
         onCancel={handleKeypadCancel}
       />
 
-      {/* Sheet: detalles opcionales del set (RPE + notas) */}
+      {/* Sheet: detalles opcionales del set (RPE + notas).
+          `key` por set: remonta el sheet en cada apertura, así el estado del
+          formulario y el arrastre arrancan limpios sin efectos de reseteo. */}
       <SetDetailsSheet
+        key={detailsSet?.id ?? 'none'}
         visible={!!detailsSet}
         set={detailsSet}
         units={units}

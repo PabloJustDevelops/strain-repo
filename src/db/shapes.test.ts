@@ -110,12 +110,14 @@ describe('shapes', () => {
     expect(view.exercises[0].sets).toHaveLength(2);
   });
 
-  it('deja el target de descanso como default fijo (es C6, no un olvido)', async () => {
+  it('mapea los targets de la rutina en vez de fabricarlos', async () => {
     const view = toActiveSessionView(await seed());
 
-    // La rutina pedía 120 y 90; el mapeo los descarta y pone 90 siempre.
-    expect(view.exercises.map((e) => e.restSeconds)).toEqual([90, 90]);
-    expect(view.exercises.map((e) => e.targetReps)).toEqual(['-', '-']);
+    // Antes el mapeo los descartaba: `restSeconds` era un 90 fijo, `targetReps`
+    // un '-', y `targetSets` el conteo de sets. Ahora salen de la fila.
+    expect(view.exercises.map((e) => e.restSeconds)).toEqual([120, 90]);
+    expect(view.exercises.map((e) => e.targetReps)).toEqual(['5', '8']);
+    expect(view.exercises.map((e) => e.targetSets)).toEqual([2, 1]);
   });
 
   it('toExerciseSummaries devuelve los mismos sets que la vista activa', async () => {

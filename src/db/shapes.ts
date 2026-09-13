@@ -34,14 +34,14 @@ export interface SessionExerciseView {
   notes: string | null;
   sets: SetView[];
   /**
-   * Targets de la rutina.
+   * Targets de la rutina, copiados al iniciar la sesión (ver D11).
    *
-   * Hoy `targetSets` significa "cuántos sets hay" y `restSeconds` es un 90 fijo:
-   * los targets reales se leen y se tiran al mapear (ver C6).
+   * `null` = la sesión no vino de una rutina. `targetSets` es la intención del
+   * plan, no `sets.length`: el conteo real de sets está en `sets`.
    */
-  targetSets: number;
-  targetReps: string;
-  restSeconds: number;
+  targetSets: number | null;
+  targetReps: string | null;
+  restSeconds: number | null;
 }
 
 /** Sesión activa completa para la UI. */
@@ -94,9 +94,9 @@ export function toActiveSessionView(
       orderIndex: ex.orderIndex,
       supersetGroup: ex.supersetGroup,
       notes: ex.notes,
-      targetSets: ex.sets.length,
-      targetReps: '-',
-      restSeconds: 90,
+      targetSets: ex.targetSets,
+      targetReps: ex.targetReps,
+      restSeconds: ex.restSeconds,
       // Sin mapeo: la fila ya satisface `SetView`.
       sets: ex.sets,
     })),

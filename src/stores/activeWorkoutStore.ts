@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { getRepos } from '@db';
 import { toActiveSessionView, type ActiveSessionView, type SetView } from '@db/shapes';
 import { sessionTotals } from '@lib/metrics';
+import { usePreferences } from '@stores/preferencesStore';
 
 /**
  * Estado del workout en curso.
@@ -96,12 +97,13 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
     await getRepos().sessions.completeSet(setId, weight, reps);
 
-    // Inicia el descanso automáticamente (usa el último rest configurado)
-    const setDef = updated.exercises
-      .flatMap((ex) => ex.sets)
-      .find((s) => s.id === setId);
-    if (setDef) {
-      get().startRest(90); // TODO: obtener rest del ejercicio
+    // El descanso arranca acá y no en la pantalla: este es el único punto que
+    // sabe a qué ejercicio pertenece el set, así que cualquier caller de
+    // `completeSet` obtiene el descanso correcto sin tener que acordarse.
+    const exercise = updated.exercises.find((ex) => ex.sets.some((s) => s.id === setId));
+    if (exercise) {
+      // Sin plan de rutina no hay descanso objetivo: cae al default del usuario.
+      get().startRest(exercise.restSeconds ?? usePreferences.getState().defaultRestSeconds);
     }
   },
 

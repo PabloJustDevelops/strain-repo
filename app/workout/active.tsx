@@ -51,7 +51,6 @@ export default function ActiveWorkoutScreen() {
   const updateSet = useActiveWorkout((s) => s.updateSet);
   const deleteSet = useActiveWorkout((s) => s.deleteSet);
   const addSet = useActiveWorkout((s) => s.addSet);
-  const startRest = useActiveWorkout((s) => s.startRest);
   const setSupersetGroup = useActiveWorkout((s) => s.setSupersetGroup);
   const finishWorkout = useActiveWorkout((s) => s.finishWorkout);
   const discardWorkout = useActiveWorkout((s) => s.discardWorkout);
@@ -100,9 +99,8 @@ export default function ActiveWorkoutScreen() {
       });
       return;
     }
+    // El descanso lo arranca el store junto con el completado del set.
     await completeSet(setId);
-    const exercise = session.exercises.find((e) => e.sets.some((s) => s.id === setId));
-    if (exercise) startRest(exercise.restSeconds);
   };
 
   const handleKeypadConfirm = async (value: number) => {
@@ -116,8 +114,6 @@ export default function ActiveWorkoutScreen() {
       await updateSet(editingSet.id, { reps: value });
       await completeSet(editingSet.id, editingSet.weight, value);
       setEditingSet(null);
-      const exercise = session.exercises.find((e) => e.sets.some((s) => s.id === editingSet.id));
-      if (exercise) startRest(exercise.restSeconds);
     }
   };
 

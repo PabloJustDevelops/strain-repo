@@ -13,6 +13,7 @@ import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
 import type { PlateResult } from '@lib/plateCalculator';
 import { nextSupersetLetter } from '@lib/supersets';
+import { remountKey } from '@lib/reactKeys';
 import { SetRow } from '@components/SetRow';
 import { Button } from '@components/Button';
 import { Card } from '@components/Card';
@@ -320,7 +321,7 @@ export default function ActiveWorkoutScreen() {
 
       {/* Sheet: edición rápida de peso/reps con teclado numérico custom */}
       <NumericKeypad
-        key={editingSet ? `${editingSet.id}-${editingSet.field}` : 'none'}
+        key={remountKey('keypad', editingSet ? `${editingSet.id}-${editingSet.field}` : null)}
         visible={!!editingSet}
         initialValue={editingSet ? (editingSet.field === 'weight' ? editingSet.weight : editingSet.reps) : 0}
         field={editingSet?.field ?? 'weight'}
@@ -341,7 +342,7 @@ export default function ActiveWorkoutScreen() {
           `key` por set: remonta el sheet en cada apertura, así el estado del
           formulario y el arrastre arrancan limpios sin efectos de reseteo. */}
       <SetDetailsSheet
-        key={detailsSet?.id ?? 'none'}
+        key={remountKey('sheet', detailsSet?.id)}
         visible={!!detailsSet}
         set={detailsSet}
         units={units}

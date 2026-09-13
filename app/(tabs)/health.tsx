@@ -62,7 +62,7 @@ export default function HealthScreen() {
   };
 
   const handleOpenSettings = () => {
-    openHealthConnectSettings();
+    void openHealthConnectSettings();
   };
 
   const lastSyncLabel = lastSyncedAt
@@ -140,7 +140,7 @@ function StatusCard() {
         )}
         {status === 'ready' && (
           <View style={{ flex: 1 }}>
-            <Button title="Gestionar permisos" variant="secondary" onPress={openHealthConnectSettings} />
+            <Button title="Gestionar permisos" variant="secondary" onPress={() => void openHealthConnectSettings()} />
           </View>
         )}
         {status === 'unavailable' && (

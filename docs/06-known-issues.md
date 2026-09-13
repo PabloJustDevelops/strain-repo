@@ -120,6 +120,20 @@ El keypad confirma `keypadValue(state)` (parte entera + decimales) y el 1RM en v
 valor. Tests en `src/lib/keypad.test.ts`: secuencias multi-tecla, borrado del decimal dígito a dígito
 y preview de 1RM con peso decimal.
 
+### 11. El render estático de la web moría por `localStorage` (known-issue J)
+
+**Causa**: `expo export -p web` renderiza en node, donde no existe `localStorage`. `src/lib/supabase.ts`
+lo evaluaba directo al construir el cliente (`Platform.OS === 'web' ? localStorage : …`), así que el
+module eval lanzaba `ReferenceError: localStorage is not defined` al cargar `app/_layout.tsx`. Los
+stores de Zustand tenían el mismo problema latente: `createJSONStorage(() => AsyncStorage)` toca
+`window.localStorage` al hidratar.
+
+**Fix**: `src/lib/storage.ts` centraliza el acceso. `getBrowserLocalStorage()` devuelve el
+`localStorage` del navegador o `null` sin lanzar, y `createSafeAsyncStorage()` devuelve `AsyncStorage`
+cuando hay entorno de ejecución real (nativo o navegador) y un almacén en memoria en SSR. Supabase y
+los stores lo consumen. No se cambió el modo de render (sigue el output estático). `pnpm build:web`
+termina en `Exported: dist`. Tests en `src/lib/storage.test.ts`.
+
 ---
 
 ## Problemas estructurales abiertos (no resueltos)
@@ -134,7 +148,6 @@ y preview de 1RM con peso decimal.
 | F | **`session_exercises` divergente entre SQLite y Supabase**. D11 agregó `target_sets`, `target_reps` y `rest_seconds` sólo al esquema local: `supabase/migrations/initial_app_schema.sql` y `supabase/schema.sql` no las tienen. | Cuando se implemente el sync, los targets no viajan a la nube. Hoy no impacta: `pushPendingChanges` es un stub y ningún repo escribe `sync_queue`. | Al implementar el sync, agregar una migración idempotente en `supabase/migrations/`. Decisión D11. |
 | H | **La regla "el primer set es warmup" está duplicada**: `SessionsRepo.start` (`s === 1 ? ...`) y `exportImport` (`i === 0 ? ...`). | Puede divergir sin que nadie lo note. | Unificar en una sola definición cuando se toque alguno de los dos caminos. |
 | I | **`BetterSqliteStack.seam` se devuelve y ningún consumidor lo lee** (Speculative Generality del `/code-review`). | Superficie sin uso en el adapter de tests. | Borrarlo si sigue sin consumidor en el próximo review. |
-| J | **`pnpm build:web` falla en el render estático**: `ReferenceError: localStorage is not defined` al renderizar `app/_layout.tsx`. Los stores usan `createJSONStorage(() => AsyncStorage)`, que en web resuelve a `localStorage`, inexistente en el render de node. Reproducido también en `HEAD` limpio. | El gate de build web no pasa hoy por una causa ajena a los cambios de features. | Envolver el acceso al storage o desactivar el static rendering para web. No bloqueante por E (web solo dev). |
 
 ---
 

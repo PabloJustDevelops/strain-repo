@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable , useColorScheme } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,7 +10,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
@@ -29,8 +28,10 @@ export function RestTimer() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const isResting = useActiveWorkout((s) => s.isResting);
@@ -46,6 +47,7 @@ export function RestTimer() {
   useEffect(() => {
     if (!isResting) return;
     const id = setInterval(tickRest, 1000);
+
     return () => clearInterval(id);
   }, [isResting, tickRest]);
 

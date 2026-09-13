@@ -2,6 +2,23 @@
 
 Formato: cronológico inverso (más reciente arriba).
 
+## Expo SDK 57 · chore(deps): subir expo a sdk 57
+
+Subida de **Expo SDK 56 → 57** (React Native **0.85.3 → 0.86.3**) con el walkthrough oficial:
+`pnpm add expo@~57.0.22` + `npx expo install --fix`. `npx expo-doctor` queda **21/21 limpio** y se
+cierra el known-issue B.
+
+- Alineadas todas las `expo-*`, `react-native`, `react-native-gesture-handler` (2.32.0),
+  `react-native-reanimated` (4.5.1) y `react-native-worklets` (0.10.1).
+- **Breaking change**: el plugin de Babel pasó a `react-native-worklets/plugin` (el de reanimated ya
+  no existe en 4.5).
+- **Breaking change**: `android.queries` dejó de ser válido en `app.json`; se quita.
+- `eas-cli` sale del proyecto (expo-doctor lo pide) y los scripts `build:*` usan `npx eas-cli@latest`.
+- Guardas de Expo Go intactas (`expo-constants` conserva `executionEnvironment`); los IDs siguen por
+  `expo-crypto`, sin `nanoid`.
+- Verificado: export web `Exported` (Metro/Babel OK), lint 0 errores + anti-slop 0, typecheck limpio,
+  114/114 tests.
+
 ## `76f003c` · feat: Health Connect + compartir workout + migración a pnpm
 
 **Health Connect (Android)**

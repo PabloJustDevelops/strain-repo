@@ -72,12 +72,14 @@ describe('SessionsRepo', () => {
 
   it('completeSet() recalcula totalVolume y totalSets de la sesión', async () => {
     const exercise = await makeExercise();
+
     const session = await repos.sessions.start({
       name: 'Empuje',
       fromRoutineExercises: [
         { exerciseId: exercise.id, targetSets: 2, targetReps: '5', restSeconds: 120 },
       ],
     });
+
     const [first, second] = (await repos.sessions.getFullSession(session.id))!.exercises[0].sets;
 
     await repos.sessions.completeSet(first.id, 100, 5);
@@ -91,12 +93,14 @@ describe('SessionsRepo', () => {
 
   it('finish() escribe un PR de one_rm con la fórmula de Epley', async () => {
     const exercise = await makeExercise();
+
     const session = await repos.sessions.start({
       name: 'Empuje',
       fromRoutineExercises: [
         { exerciseId: exercise.id, targetSets: 1, targetReps: '5', restSeconds: 120 },
       ],
     });
+
     const [set] = (await repos.sessions.getFullSession(session.id))!.exercises[0].sets;
     await repos.sessions.completeSet(set.id, 100, 5);
 
@@ -110,12 +114,14 @@ describe('SessionsRepo', () => {
 
   it('uncompleteSet() y deleteSet() mueven la fila como corresponde', async () => {
     const exercise = await makeExercise();
+
     const session = await repos.sessions.start({
       name: 'Empuje',
       fromRoutineExercises: [
         { exerciseId: exercise.id, targetSets: 2, targetReps: '5', restSeconds: 120 },
       ],
     });
+
     const [first, second] = (await repos.sessions.getFullSession(session.id))!.exercises[0].sets;
 
     await repos.sessions.completeSet(first.id, 100, 5);
@@ -163,6 +169,7 @@ describe('SessionsRepo', () => {
       const row = await repos.sessions.addSessionExercise(session.id, exercise.id, {
         orderIndex: 7,
       });
+
       expect(row.orderIndex).toBe(7);
     });
 

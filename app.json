@@ -28,11 +28,6 @@
         "android.permission.health.WRITE_EXERCISE_ROUTE",
         "android.permission.health.WRITE_ActiveCaloriesBurned",
         "android.permission.health.WRITE_TOTAL_CALORIES_BURNED"
-      ],
-      "queries": [
-        {
-          "package": "com.google.android.apps.healthdata"
-        }
       ]
     },
     "web": {

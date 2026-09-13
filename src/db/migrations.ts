@@ -168,8 +168,10 @@ export function runMigrations(raw: RawSqlite): void {
 
   for (const m of MIGRATIONS) {
     if (applied.has(m.id)) continue;
+
     try {
       raw.exec(`BEGIN; ${m.sql}; INSERT INTO _migrations (id, name) VALUES (${m.id}, '${m.name}'); COMMIT;`);
+
       // `__DEV__` es un global de React Native: en Node (tests y scripts) no existe.
       if (typeof __DEV__ !== 'undefined' && __DEV__) {
         console.log(`[db] Migración ${m.id} (${m.name}) aplicada`);

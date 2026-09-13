@@ -1,8 +1,7 @@
 import { Tabs } from 'expo-router';
-import { useWindowDimensions } from 'react-native';
+import { useWindowDimensions , useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme } from '@lib/theme';
 
@@ -21,8 +20,10 @@ import { darkTheme, lightTheme } from '@lib/theme';
 export default function TabsLayout() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const { width } = useWindowDimensions();

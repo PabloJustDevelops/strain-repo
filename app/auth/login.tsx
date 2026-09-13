@@ -1,8 +1,7 @@
-import { View, Text, TextInput, Pressable, useWindowDimensions, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 import { useState } from 'react';
 import * as Haptics from 'expo-haptics';
 
@@ -21,14 +20,14 @@ import { Card } from '@components/Card';
  */
 export default function LoginScreen() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const isWide = width >= 768;
 
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
   const setSession = useAuth((s) => s.setSession);
 
@@ -40,13 +39,17 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Faltan datos', 'Introduce email y contraseña');
+
       return;
     }
+
     if (haptics) Haptics.selectionAsync();
     setLoading(true);
+
     try {
       const data = await signInWithEmail(email.trim(), password);
       setSession(data.session);
+
       if (haptics) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace('/');
     } catch (err: any) {
@@ -59,8 +62,10 @@ export default function LoginScreen() {
   const handleOAuth = async (provider: 'google') => {
     if (haptics) Haptics.selectionAsync();
     setLoading(true);
+
     try {
       const data = await signInWithOAuth(provider);
+
       if (data?.session) {
         setSession(data.session);
         router.replace('/');

@@ -27,6 +27,7 @@ export interface SimpleStorage {
  */
 export function createMemoryStorage(): SimpleStorage {
   const data = new Map<string, string>();
+
   return {
     getItem: (key) => data.get(key) ?? null,
     setItem: (key, value) => {
@@ -47,6 +48,7 @@ export function getBrowserLocalStorage(): SimpleStorage | null {
   try {
     if (typeof window === 'undefined') return null;
     const storage = window.localStorage;
+
     return storage ?? null;
   } catch {
     return null;

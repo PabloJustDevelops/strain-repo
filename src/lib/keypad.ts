@@ -19,6 +19,7 @@ export interface KeypadState {
 }
 
 export const KEYPAD_MAX_INT = 999;
+
 export const KEYPAD_MAX_DECIMALS = 2;
 
 /** Redondeo a 2 decimales para evitar ruido de coma flotante en los steppers. */
@@ -33,12 +34,14 @@ function formatValue(value: number): string {
 
 export function initialKeypadState(initialValue: number, field: KeypadField): KeypadState {
   const safe = Math.max(0, initialValue);
+
   return { buffer: field === 'reps' ? String(Math.floor(safe)) : formatValue(safe) };
 }
 
 /** El valor que el teclado va a confirmar. Es el mismo número que se muestra. */
 export function keypadValue({ buffer }: KeypadState): number {
   const value = Number.parseFloat(buffer);
+
   return Number.isFinite(value) ? value : 0;
 }
 
@@ -58,24 +61,32 @@ export function pressDigit(state: KeypadState, digit: string, field: KeypadField
   // Con punto decimal: se escribe la fracción, hasta 2 dígitos.
   if (field === 'weight' && dot !== -1) {
     const decimals = buffer.length - dot - 1;
+
     if (decimals >= KEYPAD_MAX_DECIMALS) return state;
+
     return { buffer: buffer + digit };
   }
 
   const next = (Number.parseInt(buffer, 10) || 0) * 10 + Number(digit);
+
   if (next > KEYPAD_MAX_INT) return state;
+
   return { buffer: String(next) };
 }
 
 export function pressDecimal(state: KeypadState, field: KeypadField): KeypadState {
   if (field !== 'weight') return state;
+
   if (state.buffer.includes('.')) return state;
+
   return { buffer: state.buffer + '.' };
 }
 
 export function backspace(state: KeypadState): KeypadState {
   const { buffer } = state;
+
   if (buffer.length <= 1) return { buffer: '0' };
+
   return { buffer: buffer.slice(0, -1) };
 }
 

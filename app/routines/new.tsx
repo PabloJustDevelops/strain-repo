@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Platform } from 'react-native';
+import { View, Text, TextInput , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { useColorScheme } from 'react-native';
 
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
@@ -19,8 +18,10 @@ export default function NewRoutineScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [name, setName] = useState('');
@@ -34,11 +35,13 @@ export default function NewRoutineScreen() {
     if (!canSave) return;
     setSaving(true);
     setError(null);
+
     try {
       const routine = await getRepos().routines.create({
         name: name.trim(),
         description: description.trim() || undefined,
       });
+
       router.replace({ pathname: '/routines/[id]', params: { id: routine.id } });
     } catch (err) {
       setError(String(err));

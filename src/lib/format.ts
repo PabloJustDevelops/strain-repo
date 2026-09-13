@@ -9,6 +9,7 @@ export function formatDuration(totalSeconds: number): string {
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
   const pad = (n: number) => String(n).padStart(2, '0');
+
   return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
 }
 
@@ -51,6 +52,7 @@ export function formatDateTime(date: Date): string {
 /** Diferencia en días entre dos fechas (date1 - date2). */
 export function diffDays(date1: Date, date2: Date): number {
   const ms = date1.getTime() - date2.getTime();
+
   return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
@@ -58,5 +60,6 @@ export function diffDays(date1: Date, date2: Date): number {
 export function startOfDay(date: Date): Date {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
+
   return d;
 }

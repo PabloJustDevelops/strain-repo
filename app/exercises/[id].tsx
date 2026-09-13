@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, useWindowDimensions, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Pressable, useWindowDimensions , useColorScheme } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { VictoryLine, VictoryChart, VictoryAxis, VictoryTheme, VictoryArea } from 'victory-native';
+import { VictoryLine, VictoryChart, VictoryAxis, VictoryArea } from 'victory-native';
 import * as Haptics from 'expo-haptics';
 
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, type Exercise, type MuscleGroup, type Equipment, type Mechanic } from '@/types/domain';
+import { type Exercise } from '@/types/domain';
+import { muscleGroupLabel, equipmentLabel } from '@lib/labels';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
 import { Sidebar } from '@components/Sidebar';
@@ -30,6 +30,7 @@ import { formatDateShort, formatWeight } from '@lib/format';
  */
 
 type Range = '1M' | '3M' | '6M' | '1A' | 'ALL';
+
 type Metric = 'oneRm' | 'maxWeight' | 'volume';
 
 const RANGE_DAYS: Record<Range, number> = {
@@ -39,6 +40,8 @@ const RANGE_DAYS: Record<Range, number> = {
   '1A': 365,
   ALL: 365 * 5,
 };
+
+const RANGES: Range[] = ['1M', '3M', '6M', '1A', 'ALL'];
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -50,8 +53,10 @@ export default function ExerciseDetailScreen() {
   const themeMode = usePreferences((s) => s.themeMode);
   const units = usePreferences((s) => s.units);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [exercise, setExercise] = useState<Exercise | null>(null);
@@ -61,22 +66,27 @@ export default function ExerciseDetailScreen() {
   const [range, setRange] = useState<Range>('3M');
   const [metric, setMetric] = useState<Metric>('oneRm');
 
-  const load = async () => {
-    if (!id) return;
-    const [ex, tl, st, prHistory] = await Promise.all([
-      getRepos().exercises.byId(id),
-      getRepos().analytics.exerciseTimeline(id, RANGE_DAYS[range]),
-      getRepos().analytics.exerciseStats(id),
-      getRepos().analytics.exercisePrHistory(id),
-    ]);
-    setExercise(ex ?? null);
-    setTimeline(tl);
-    setStats(st);
-    setPrs(prHistory);
-  };
-
   useEffect(() => {
-    load();
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      const [ex, tl, st, prHistory] = await Promise.all([
+        getRepos().exercises.byId(id),
+        getRepos().analytics.exerciseTimeline(id, RANGE_DAYS[range]),
+        getRepos().analytics.exerciseStats(id),
+        getRepos().analytics.exercisePrHistory(id),
+      ]);
+
+      if (cancelled) return;
+      setExercise(ex ?? null);
+      setTimeline(tl);
+      setStats(st);
+      setPrs(prHistory);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id, range]);
 
   const handleRangeChange = (r: Range) => {
@@ -119,9 +129,9 @@ export default function ExerciseDetailScreen() {
           {exercise.name}
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-          <Tag text={MUSCLE_GROUP_LABELS[exercise.muscleGroup as MuscleGroup]} />
-          <Tag text={EQUIPMENT_LABELS[exercise.equipment as Equipment]} />
-          <Tag text={(exercise.mechanic as Mechanic) === 'compound' ? 'Compuesto' : 'Aislamiento'} />
+          <Tag text={muscleGroupLabel(exercise.muscleGroup)} />
+          <Tag text={equipmentLabel(exercise.equipment)} />
+          <Tag text={exercise.mechanic === 'compound' ? 'Compuesto' : 'Aislamiento'} />
         </View>
       </View>
 
@@ -165,6 +175,7 @@ export default function ExerciseDetailScreen() {
             <VictoryAxis
               tickFormat={(t: number) => {
                 const d = chartData[t]?.date;
+
                 return d ? formatDateShort(new Date(d)) : '';
               }}
               tickCount={Math.min(6, chartData.length)}
@@ -206,7 +217,7 @@ export default function ExerciseDetailScreen() {
 
         {/* Selector de rango */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.md }}>
-          {(['1M', '3M', '6M', '1A', 'ALL'] as Range[]).map((r) => (
+          {RANGES.map((r) => (
             <Pressable
               key={r}
               onPress={() => handleRangeChange(r)}
@@ -290,15 +301,19 @@ export default function ExerciseDetailScreen() {
       </SafeAreaView>
     );
   }
+
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>{content}</SafeAreaView>;
 }
 
 function Tag({ text }: { text: string }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+
   return (
     <View style={{ backgroundColor: colors.primaryMuted, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.full }}>
       <Text style={{ color: colors.primary, fontSize: fontSize.xs, fontWeight: '700' }}>{text}</Text>
@@ -309,9 +324,12 @@ function Tag({ text }: { text: string }) {
 function StatBlock({ label, value }: { label: string; value: string }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+
   return (
     <View style={{ flex: 1 }}>
       <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textTransform: 'uppercase', fontWeight: '700' }}>
@@ -335,10 +353,13 @@ function MetricToggle({
 }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
   const active = current === value;
+
   return (
     <Pressable
       onPress={() => onPress(value)}

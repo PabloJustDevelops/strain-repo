@@ -13,8 +13,10 @@ interface CardProps extends ViewProps {
 export function Card({ children, style, padded = true, ...rest }: CardProps) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   return (

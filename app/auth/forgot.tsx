@@ -1,8 +1,7 @@
-import { View, Text, TextInput, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter, Stack } from 'expo-router';
 import { useState } from 'react';
-import { useColorScheme } from 'react-native';
 
 import { resetPassword, isSupabaseConfigured } from '@lib/supabase';
 import { usePreferences } from '@stores/preferencesStore';
@@ -19,8 +18,10 @@ export default function ForgotPasswordScreen() {
 
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [email, setEmail] = useState('');
@@ -30,9 +31,12 @@ export default function ForgotPasswordScreen() {
   const handleReset = async () => {
     if (!email) {
       Alert.alert('Email requerido', 'Introduce tu email para enviarte el enlace de recuperación');
+
       return;
     }
+
     setLoading(true);
+
     try {
       await resetPassword(email.trim());
       setSent(true);

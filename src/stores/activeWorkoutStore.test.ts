@@ -1,6 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { openInMemoryDatabase, type BetterSqliteStack } from '@db/testing/better-sqlite';
+import { publishRepos } from '@db/registry';
 import { useActiveWorkout } from './activeWorkoutStore';
 import { usePreferences } from './preferencesStore';
 
@@ -8,27 +9,15 @@ import { usePreferences } from './preferencesStore';
  * El descanso tiene un dueño único (el store) y su valor sale del target real de
  * la rutina. Es el camino que C6 movió desde la pantalla, así que se testea.
  *
- * No hay harness de stores en el repo (ver D8); este es el primero. Mockea
- * AsyncStorage (preferencesStore lo usa para persistir) y el locator `getRepos()`.
- * Los `vi.mock` se elevan solos, así que el orden en el archivo no importa.
+ * No se mockea ningún módulo: se publica el data layer real (better-sqlite en
+ * memoria) en el registry —la seam de D10— y en Node el storage cae a memoria.
  */
-vi.mock('@react-native-async-storage/async-storage', () => ({
-  default: {
-    getItem: async () => null,
-    setItem: async () => {},
-    removeItem: async () => {},
-  },
-}));
-
 let db: BetterSqliteStack;
-
-vi.mock('@db', () => ({
-  getRepos: () => db.repos,
-}));
 
 describe('activeWorkoutStore · descanso', () => {
   beforeEach(() => {
     db = openInMemoryDatabase();
+    publishRepos(db.repos);
     useActiveWorkout.setState({
       session: null,
       isLoading: false,
@@ -54,12 +43,14 @@ describe('activeWorkoutStore · descanso', () => {
 
   it('arranca el descanso con el restSeconds de la rutina', async () => {
     const exercise = await makeExercise();
+
     const session = await db.repos.sessions.start({
       name: 'Empuje',
       fromRoutineExercises: [
         { exerciseId: exercise.id, targetSets: 2, targetReps: '5', restSeconds: 120 },
       ],
     });
+
     const [firstSet] = (await db.repos.sessions.getFullSession(session.id))!.exercises[0].sets;
 
     await useActiveWorkout.getState().loadActive();
@@ -87,6 +78,7 @@ describe('activeWorkoutStore · descanso', () => {
   it('en un superset, descansa al cerrar la ronda y no en el primer ejercicio', async () => {
     const press = await makeExercise();
     const remo = await makeExercise('Remo');
+
     const session = await db.repos.sessions.start({
       name: 'Empuje',
       fromRoutineExercises: [
@@ -94,6 +86,7 @@ describe('activeWorkoutStore · descanso', () => {
         { exerciseId: remo.id, targetSets: 2, targetReps: '8', restSeconds: 120, supersetGroup: 'A' },
       ],
     });
+
     const { exercises } = (await db.repos.sessions.getFullSession(session.id))!;
     const [pressSet] = exercises[0].sets;
     const [remoSet] = exercises[1].sets;

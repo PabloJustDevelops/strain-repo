@@ -6,6 +6,7 @@
  */
 
 const DEFAULT_BAR_WEIGHT_KG = 20;
+
 const DEFAULT_PLATES_KG = [25, 20, 15, 10, 5, 2.5, 1.25, 0.5];
 
 export interface PlateCount {
@@ -43,6 +44,7 @@ export function calculatePlates(
 
   for (const plate of sorted) {
     const count = Math.floor(remaining / plate);
+
     if (count > 0) {
       used.push({ plateKg: plate, perSide: count });
       remaining -= count * plate;
@@ -50,6 +52,7 @@ export function calculatePlates(
   }
 
   const achieved = barWeight + 2 * (perSideTarget - remaining);
+
   return {
     barWeight,
     platesPerSide: used,
@@ -57,4 +60,16 @@ export function calculatePlates(
     remainder: targetWeight - achieved,
     achievable: remaining === 0,
   };
+}
+
+/**
+ * Aviso de discos insuficientes, o `null` si no hay objetivo que cumplir.
+ *
+ * No avisa cuando el objetivo es 0 o está por debajo de la barra: ahí no "faltan"
+ * kilos (el remanente saldría negativo), simplemente no se pone peso.
+ */
+export function plateShortfallMessage(result: PlateResult): string | null {
+  if (result.remainder <= 0) return null;
+
+  return `Faltan ${result.remainder.toFixed(2)} kg para el objetivo (usa discos más pequeños).`;
 }

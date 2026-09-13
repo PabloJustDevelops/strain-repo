@@ -4,7 +4,6 @@ import {
   checkAvailability,
   initializeClient,
   requestPermissions,
-  getGrantedPermissions,
   type DailyHealthSummary,
 } from '@/lib/healthConnect';
 
@@ -63,9 +62,11 @@ export const useHealthConnect = create<HealthConnectState>((set, get) => ({
   async probe() {
     if (get().isLoading) return get().status;
     set({ isLoading: true, lastError: null });
+
     try {
       const status = await checkAvailability();
       let next: HealthConnectStatus;
+
       switch (status) {
         case SdkAvailability.SDK_AVAILABLE:
           next = 'needsInstall'; // SDK listo, aún no inicializado
@@ -77,10 +78,13 @@ export const useHealthConnect = create<HealthConnectState>((set, get) => ({
         default:
           next = 'unavailable';
       }
+
       set({ status: next });
+
       return next;
     } catch (err: any) {
       set({ status: 'unavailable', lastError: String(err) });
+
       return 'unavailable';
     } finally {
       set({ isLoading: false });
@@ -90,21 +94,27 @@ export const useHealthConnect = create<HealthConnectState>((set, get) => ({
   async connect() {
     if (get().isLoading) return get().status;
     set({ isLoading: true, lastError: null });
+
     try {
       const ok = await initializeClient();
+
       if (!ok) {
         set({ status: 'unavailable' });
+
         return 'unavailable';
       }
+
       set({ isInitialized: true });
 
       const granted = await requestPermissions();
       // Si el usuario ha concedido al menos un permiso, podemos leer algo.
       const hasAny = Array.isArray(granted) && granted.length > 0;
       set({ status: hasAny ? 'ready' : 'notAuthorized' });
+
       return hasAny ? 'ready' : 'notAuthorized';
     } catch (err: any) {
       set({ status: 'unavailable', lastError: String(err) });
+
       return 'unavailable';
     } finally {
       set({ isLoading: false });
@@ -118,17 +128,22 @@ export const useHealthConnect = create<HealthConnectState>((set, get) => ({
 
   async refreshToday(force = false) {
     const { lastSyncedAt, status } = get();
+
     if (!force && lastSyncedAt && Date.now() - lastSyncedAt < 5 * 60 * 1000) {
       return get().today;
     }
+
     if (status !== 'ready') return null;
+
     try {
       const { readTodayHealth } = await import('@/lib/healthConnect');
       const summary = await readTodayHealth(new Date());
       set({ today: summary, lastSyncedAt: Date.now() });
+
       return summary;
     } catch (err: any) {
       set({ lastError: String(err) });
+
       return null;
     }
   },

@@ -28,7 +28,9 @@ export interface SetLike {
  */
 export function estimateOneRm(weight: number, reps: number): number {
   if (reps <= 0) return 0;
+
   if (reps === 1) return weight;
+
   return weight * (1 + reps / 30);
 }
 
@@ -42,6 +44,7 @@ export function estimateOneRm(weight: number, reps: number): number {
  */
 export function oneRmPreview(weight: number, reps: number): number | null {
   if (weight <= 0 || reps <= 0) return null;
+
   return estimateOneRm(weight, reps);
 }
 
@@ -60,11 +63,13 @@ export interface SessionTotals {
 export function sessionTotals(sets: readonly SetLike[]): SessionTotals {
   let volume = 0;
   let completedSets = 0;
+
   for (const s of sets) {
     if (!s.isCompleted) continue;
     volume += s.weight * s.reps;
     completedSets++;
   }
+
   return { volume, completedSets };
 }
 
@@ -72,24 +77,30 @@ export function sessionTotals(sets: readonly SetLike[]): SessionTotals {
 export function bestByOneRm<T extends SetLike>(sets: readonly T[]): T | null {
   let best: T | null = null;
   let bestOneRm = -1;
+
   for (const s of sets) {
     if (!s.isCompleted) continue;
     const oneRm = estimateOneRm(s.weight, s.reps);
+
     if (oneRm > bestOneRm) {
       bestOneRm = oneRm;
       best = s;
     }
   }
+
   return best;
 }
 
 /** El set completado más pesado. En empate gana el primero. */
 export function heaviestSet<T extends SetLike>(sets: readonly T[]): T | null {
   let best: T | null = null;
+
   for (const s of sets) {
     if (!s.isCompleted) continue;
+
     if (best === null || s.weight > best.weight) best = s;
   }
+
   return best;
 }
 

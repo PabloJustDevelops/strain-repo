@@ -22,8 +22,6 @@ export async function readCsvFromZip(zipUri: string): Promise<string> {
   // el CSV del ZIP y usar importStrongCsv directamente.
   //
   // Si tienes `fflate` instalado: descomprime aquí.
-  // Para simplificar, leemos el ZIP como texto y buscamos líneas que parezcan CSV:
-  const buf = await readFileAsBase64(zipUri);
   // Decodifica base64 → bytes → intenta buscar el header PK\x03\x04 y descomprimir con fflate
   // Como fflate no es dependencia, lanzamos error informativo.
   throw new Error(
@@ -35,24 +33,13 @@ export async function readCsvFromZip(zipUri: string): Promise<string> {
 export async function readFileAsText(uri: string): Promise<string> {
   if (Platform.OS === 'web') {
     const resp = await fetch(uri);
+
     return resp.text();
   }
-  const FileSystem = await import('expo-file-system');
-  return FileSystem.readAsStringAsync(uri, { encoding: 'utf8' });
-}
 
-async function readFileAsBase64(uri: string): Promise<string> {
-  if (Platform.OS === 'web') {
-    const resp = await fetch(uri);
-    const blob = await resp.blob();
-    return await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve((reader.result as string).split(',')[1] ?? '');
-      reader.readAsDataURL(blob);
-    });
-  }
   const FileSystem = await import('expo-file-system');
-  return FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
+
+  return FileSystem.readAsStringAsync(uri, { encoding: 'utf8' });
 }
 
 /**
@@ -66,5 +53,6 @@ export async function importStrongZip(
   const csvText = fileUri.toLowerCase().endsWith('.zip')
     ? await readCsvFromZip(fileUri)
     : await readFileAsText(fileUri);
+
   return importStrongCsv(csvText, repos);
 }

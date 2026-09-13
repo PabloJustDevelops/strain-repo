@@ -1,16 +1,14 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, Pressable, Linking, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Linking, RefreshControl, ActivityIndicator , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 
 import { useHealthConnect } from '@/stores/healthConnectStore';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
-import { Sidebar } from '@components/Sidebar';
 import { openHealthConnectSettings } from '@/lib/healthConnect';
 
 /**
@@ -24,14 +22,14 @@ import { openHealthConnectSettings } from '@/lib/healthConnect';
 export default function HealthScreen() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const status = useHealthConnect((s) => s.status);
-  const isLoading = useHealthConnect((s) => s.isLoading);
   const lastError = useHealthConnect((s) => s.lastError);
-  const today = useHealthConnect((s) => s.today);
   const lastSyncedAt = useHealthConnect((s) => s.lastSyncedAt);
   const probe = useHealthConnect((s) => s.probe);
   const connect = useHealthConnect((s) => s.connect);
@@ -43,9 +41,11 @@ export default function HealthScreen() {
     useCallback(() => {
       (async () => {
         const s = await probe();
+
         if (s === 'needsInstall') {
           await connect();
         }
+
         if (useHealthConnect.getState().status === 'ready') {
           await refreshToday();
         }
@@ -53,19 +53,10 @@ export default function HealthScreen() {
     }, [probe, connect, refreshToday])
   );
 
-  const handleConnect = async () => {
-    await connect();
-    await refreshToday(true);
-  };
-
   const handleRefresh = async () => {
     setRefreshing(true);
     await refreshToday(true);
     setRefreshing(false);
-  };
-
-  const handleOpenSettings = () => {
-    void openHealthConnectSettings();
   };
 
   const lastSyncLabel = lastSyncedAt
@@ -114,7 +105,6 @@ function StatusCard() {
   const status = useHealthConnect((s) => s.status);
   const isLoading = useHealthConnect((s) => s.isLoading);
   const connect = useHealthConnect((s) => s.connect);
-  const disconnect = useHealthConnect((s) => s.disconnect);
 
   const config = {
     unknown: { icon: 'sync' as const, label: 'Comprobando…', color: colors.textMuted },
@@ -166,14 +156,18 @@ function MetricGrid() {
 
   const format = (n: number | null | undefined, suffix = '') => {
     if (n == null) return '—';
+
     if (Number.isInteger(n)) return `${n.toLocaleString('es-ES')}${suffix}`;
+
     return `${n.toFixed(1)}${suffix}`;
   };
 
   const metersToKm = (m: number) => (m / 1000).toFixed(2);
+
   const minutesToH = (m: number) => {
     const h = Math.floor(m / 60);
     const rest = m % 60;
+
     return `${h}h ${rest}m`;
   };
 

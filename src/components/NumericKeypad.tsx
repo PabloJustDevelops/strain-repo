@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
+import { View, Text, Pressable, Modal , useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -10,7 +10,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
-import { useColorScheme } from 'react-native';
+
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { oneRmPreview } from '@lib/metrics';
@@ -54,8 +54,9 @@ interface NumericKeypadProps {
 }
 
 const WEIGHT_STEP_LARGE = 5;
+
 const WEIGHT_STEP_SMALL = 2.5;
-const WEIGHT_STEP_FINE = 1;
+
 const REPS_STEP = 1;
 
 export function NumericKeypad({
@@ -71,19 +72,14 @@ export function NumericKeypad({
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const hapticsEnabled = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   // Estado del valor en edición: un único buffer de texto.
   const [state, setState] = useState<KeypadState>(() => initialKeypadState(initialValue, field));
-
-  // Resetear al abrir (o al cambiar de paso, p. ej. peso → reps).
-  useEffect(() => {
-    if (visible) {
-      setState(initialKeypadState(initialValue, field));
-    }
-  }, [visible, initialValue, field]);
 
   const hapticTap = useCallback(() => {
     if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -97,7 +93,7 @@ export function NumericKeypad({
   const scale = useSharedValue(1);
   useEffect(() => {
     scale.value = withSequence(withTiming(1.15, { duration: 80 }), withTiming(1, { duration: 100 }));
-  }, [state.buffer]);
+  }, [state.buffer, scale]);
   const numberStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   // Lo mostrado y lo que se confirma salen del mismo buffer.
@@ -142,7 +138,6 @@ export function NumericKeypad({
 
   const label = field === 'weight' ? `Peso (${units})` : 'Repeticiones';
   const stepLarge = field === 'weight' ? WEIGHT_STEP_LARGE : REPS_STEP * 5;
-  const stepSmall = field === 'weight' ? WEIGHT_STEP_SMALL : REPS_STEP;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
@@ -306,17 +301,22 @@ function Key({
 }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const scale = useSharedValue(1);
+
   const handlePressIn = () => {
     scale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
   };
+
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15, stiffness: 300 });
   };
+
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const base = {
@@ -351,8 +351,10 @@ function Key({
 function StepButton({ label, onPress }: { label: string; onPress: () => void }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   return (

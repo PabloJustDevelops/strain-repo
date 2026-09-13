@@ -21,6 +21,7 @@ import { createMemoryStorage, getBrowserLocalStorage } from './storage';
  */
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 let cachedClient: SupabaseClient | null = null;
@@ -41,6 +42,7 @@ const secureStoreStorage = {
 /** Devuelve el cliente de Supabase (null si no está configurado). */
 export function getSupabase(): SupabaseClient | null {
   if (cachedClient) return cachedClient;
+
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
 
   cachedClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -54,6 +56,7 @@ export function getSupabase(): SupabaseClient | null {
       detectSessionInUrl: false,
     },
   });
+
   return cachedClient;
 }
 
@@ -65,42 +68,55 @@ export const isSupabaseConfigured = !!SUPABASE_URL && !!SUPABASE_ANON_KEY;
 
 export async function signInWithEmail(email: string, password: string) {
   const sb = getSupabase();
+
   if (!sb) throw new Error('Supabase no configurado. Añade EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY en .env');
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
   if (error) throw error;
+
   return data;
 }
 
 export async function signUpWithEmail(email: string, password: string) {
   const sb = getSupabase();
+
   if (!sb) throw new Error('Supabase no configurado');
+
   const { data, error } = await sb.auth.signUp({
     email,
     password,
     options: { emailRedirectTo: makeRedirectUri({ scheme: 'strain' }) },
   });
+
   if (error) throw error;
+
   return data;
 }
 
 export async function resetPassword(email: string) {
   const sb = getSupabase();
+
   if (!sb) throw new Error('Supabase no configurado');
+
   const { error } = await sb.auth.resetPasswordForEmail(email, {
     redirectTo: makeRedirectUri({ scheme: 'strain' }),
   });
+
   if (error) throw error;
 }
 
 export async function updatePassword(newPassword: string) {
   const sb = getSupabase();
+
   if (!sb) throw new Error('Supabase no configurado');
   const { error } = await sb.auth.updateUser({ password: newPassword });
+
   if (error) throw error;
 }
 
 export async function signOut() {
   const sb = getSupabase();
+
   if (!sb) return;
   await sb.auth.signOut();
 }
@@ -108,14 +124,17 @@ export async function signOut() {
 /** Devuelve la sesión actual (o null si no hay). */
 export async function getSession(): Promise<Session | null> {
   const sb = getSupabase();
+
   if (!sb) return null;
   const { data } = await sb.auth.getSession();
+
   return data.session;
 }
 
 /** Devuelve el usuario actual. */
 export async function getCurrentUser(): Promise<User | null> {
   const session = await getSession();
+
   return session?.user ?? null;
 }
 
@@ -137,6 +156,7 @@ export async function signInWithOAuth(
   idToken?: string,
 ) {
   const sb = getSupabase();
+
   if (!sb) throw new Error('Supabase no configurado');
 
   if (idToken) {
@@ -144,11 +164,14 @@ export async function signInWithOAuth(
       provider,
       token: idToken,
     });
+
     if (error) throw error;
+
     return data;
   }
 
   const redirectTo = makeRedirectUri({ scheme: 'strain' });
+
   const { data, error } = await sb.auth.signInWithOAuth({
     provider,
     options: {
@@ -156,26 +179,32 @@ export async function signInWithOAuth(
       skipBrowserRedirect: false,
     },
   });
+
   if (error) throw error;
 
   if (data?.url) {
     const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
     if (result.type === 'success' && result.url) {
       // Extraer tokens del fragmento URL
       const url = new URL(result.url);
       const params = new URLSearchParams(url.hash.slice(1));
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
+
       if (accessToken && refreshToken) {
         const { data: sessionData, error: sessErr } = await sb.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
+
         if (sessErr) throw sessErr;
+
         return sessionData;
       }
     }
   }
+
   return null;
 }
 

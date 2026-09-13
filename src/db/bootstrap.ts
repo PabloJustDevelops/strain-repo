@@ -2,8 +2,8 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
 
 import * as schema from './schema';
-import { runMigrations } from './migrations';
-import { seedExercises } from './seed';
+import { runMigrations } from '@db/migrations';
+import { seedExercises } from '@db/seed';
 import { createRepos, type Repos } from './repos';
 import { publishRepos } from './registry';
 import type { RawSqlite } from './seam';

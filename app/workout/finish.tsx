@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
-import { View, Text, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, useWindowDimensions , useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { darkTheme, lightTheme, spacing, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
 import { heaviestSet } from '@lib/metrics';
 import { Button } from '@components/Button';
@@ -33,8 +32,10 @@ export default function WorkoutFinishScreen() {
   const themeMode = usePreferences((s) => s.themeMode);
   const units = usePreferences((s) => s.units);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const session = useActiveWorkout((s) => s.session);
@@ -54,7 +55,7 @@ export default function WorkoutFinishScreen() {
     );
   }
 
-  const elapsed = Math.floor((Date.now() - session.startedAt.getTime()) / 1000);
+  const elapsed = session.elapsedSeconds;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -83,6 +84,7 @@ export default function WorkoutFinishScreen() {
           {session.exercises.map((ex) => {
             const completedSets = ex.sets.filter((s) => s.isCompleted);
             const best = heaviestSet(completedSets);
+
             return (
               <View key={ex.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
                 <View style={{ flex: 1 }}>
@@ -110,9 +112,12 @@ export default function WorkoutFinishScreen() {
 function StatRow({ label, value }: { label: string; value: string }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.xs }}>
       <Text style={{ color: colors.textMuted }}>{label}</Text>

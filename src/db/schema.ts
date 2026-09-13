@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { sqliteTable, text, integer, real, primaryKey, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 /**
  * Definición del esquema de la base de datos local de Strain.
@@ -238,18 +238,31 @@ export const syncQueue = sqliteTable('sync_queue', {
 // TIPOS inferidos (útil para type-safety en todo el código)
 // ============================================================
 export type Exercise = typeof exercises.$inferSelect;
+
 export type NewExercise = typeof exercises.$inferInsert;
+
 export type Routine = typeof routines.$inferSelect;
+
 export type NewRoutine = typeof routines.$inferInsert;
+
 export type RoutineExercise = typeof routineExercises.$inferSelect;
+
 export type NewRoutineExercise = typeof routineExercises.$inferInsert;
+
 export type WorkoutSession = typeof workoutSessions.$inferSelect;
+
 export type NewWorkoutSession = typeof workoutSessions.$inferInsert;
+
 export type SessionExercise = typeof sessionExercises.$inferSelect;
+
 export type NewSessionExercise = typeof sessionExercises.$inferInsert;
+
 export type Set = typeof sets.$inferSelect;
+
 export type NewSet = typeof sets.$inferInsert;
+
 export type PersonalRecord = typeof personalRecords.$inferSelect;
+
 export type NewPersonalRecord = typeof personalRecords.$inferInsert;
 
 // ============================================================
@@ -266,4 +279,5 @@ export const schema = {
   personalRecords,
   syncQueue,
 };
+
 export default schema;

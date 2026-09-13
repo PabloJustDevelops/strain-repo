@@ -1,10 +1,9 @@
 import { forwardRef, useEffect } from 'react';
-import { View, Text, ScrollView, useWindowDimensions } from 'react-native';
-import { useColorScheme } from 'react-native';
+import { View, Text , useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { darkTheme, lightTheme, spacing, fontSize } from '@lib/theme';
 import { topByVolume } from '@lib/metrics';
 import type { SessionExerciseSummary } from '@db/shapes';
 import type { WorkoutSession } from '@/types/domain';
@@ -41,6 +40,7 @@ export const WorkoutSummaryCard = forwardRef<View, WorkoutSummaryCardProps>(func
   useEffect(() => {
     // Le da un microtask al layout para que la captura no salga vacía.
     const t = setTimeout(() => onReady?.(), 80);
+
     return () => clearTimeout(t);
   }, [onReady]);
 

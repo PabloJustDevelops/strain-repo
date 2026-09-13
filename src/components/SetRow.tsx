@@ -1,20 +1,16 @@
-import { useEffect, useState } from 'react';
-import { View, Text, Modal, Pressable } from 'react-native';
+import { View, Text, Pressable , useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useColorScheme } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withSequence,
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { formatDuration } from '@lib/format';
 import { swipeActionOpacity } from '@lib/swipeActions';
 import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
 import type { SetView } from '@db/shapes';
@@ -55,8 +51,10 @@ export function SetRow({
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const translateX = useSharedValue(0);
@@ -69,16 +67,19 @@ export function SetRow({
     })
     .onEnd((e) => {
       const threshold = 80;
+
       if (e.translationX > threshold && !set.isCompleted) {
         translateX.value = withTiming(400, { duration: 200 });
         itemHeight.value = withTiming(0, { duration: 200 }, () => {
           runOnJS(onComplete)();
         });
+
         if (haptics) runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
       } else if (e.translationX < -threshold) {
         itemHeight.value = withTiming(0, { duration: 200 }, () => {
           runOnJS(onDelete)();
         });
+
         if (haptics) runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Warning);
       } else {
         translateX.value = withTiming(0, { duration: 200 });
@@ -113,8 +114,10 @@ export function SetRow({
     if (set.isCompleted && onEditWeight) {
       // Si ya está completado, abrir keypad para editar (no calculadora)
       onEditWeight();
+
       return;
     }
+
     const result = calculatePlates(set.weight);
     onShowPlates(result);
   };

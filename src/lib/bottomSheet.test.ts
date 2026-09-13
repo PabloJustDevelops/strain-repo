@@ -8,7 +8,9 @@ import { clampSheetDrag, shouldDismissSheet } from './bottomSheet';
  * Los umbrales se escriben como literales derivados de la altura de trabajo (no
  * leyendo las constantes del módulo) para que un cambio de constante se note. */
 const HEIGHT = 600;
+
 const DISMISS_AT = 200; // umbral documentado: 1/3 de la altura
+
 const FLICK = 900;      // velocidad documentada en px/s
 
 function dismiss(input: Partial<Parameters<typeof shouldDismissSheet>[0]> = {}) {

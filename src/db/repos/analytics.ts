@@ -27,6 +27,7 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
     async volumePerWeek(weeks = 12): Promise<{ weekStart: string; volume: number }[]> {
       const since = new Date();
       since.setDate(since.getDate() - weeks * 7);
+
       const rows = db
         .select({
           week: sql<string>`strftime('%Y-%W', ${schema.workoutSessions.startedAt}, 'unixepoch')`,
@@ -62,12 +63,14 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
         const expected = new Date(today);
         expected.setDate(today.getDate() - i);
         const expectedStr = expected.toISOString().split('T')[0];
+
         if (rows[i].day === expectedStr) {
           streak++;
         } else if (i === 0) {
           // Permitir que la racha cuente si ayer entrenó (no penalizar hoy en blanco)
           expected.setDate(today.getDate() - 1);
           const yesterdayStr = expected.toISOString().split('T')[0];
+
           if (rows[i].day === yesterdayStr) {
             streak++;
             continue;
@@ -78,14 +81,16 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
           break;
         }
       }
+
       return streak;
     },
 
     async personalRecords(exerciseId?: string): Promise<PersonalRecord[]> {
       if (exerciseId) {
-        return db.select().from(schema.personalRecords).where(eq(schema.personalRecords.exerciseId, exerciseId)).all() as PersonalRecord[];
+        return db.select().from(schema.personalRecords).where(eq(schema.personalRecords.exerciseId, exerciseId)).all();
       }
-      return db.select().from(schema.personalRecords).all() as PersonalRecord[];
+
+      return db.select().from(schema.personalRecords).all();
     },
 
     /**
@@ -95,6 +100,7 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
     async exerciseTimeline(exerciseId: string, sinceDays = 365) {
       const since = new Date();
       since.setDate(since.getDate() - sinceDays);
+
       const rows = db
         .select({
           sessionId: schema.workoutSessions.id,
@@ -117,6 +123,7 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
         .groupBy(schema.workoutSessions.id, schema.workoutSessions.startedAt)
         .orderBy(asc(schema.workoutSessions.startedAt))
         .all();
+
       return rows;
     },
 
@@ -124,6 +131,7 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
     async monthlyBest(exerciseId: string, sinceDays = 365) {
       const since = new Date();
       since.setDate(since.getDate() - sinceDays);
+
       return db
         .select({
           month: sql<string>`strftime('%Y-%m', ${schema.workoutSessions.startedAt}, 'unixepoch')`,
@@ -179,6 +187,7 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
           eq(schema.workoutSessions.status, 'completed'),
         ))
         .get();
+
       return totals ?? { sessions: 0, totalSets: 0, totalVolume: 0 };
     },
 
@@ -189,6 +198,7 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
     async dailyVolume(sinceDays = 365): Promise<{ date: string; count: number; volume: number }[]> {
       const since = new Date();
       since.setDate(since.getDate() - sinceDays);
+
       const rows = db
         .select({
           date: sql<string>`strftime('%Y-%m-%d', ${schema.workoutSessions.startedAt}, 'unixepoch')`,
@@ -202,6 +212,7 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
         ))
         .groupBy(sql`date`)
         .all();
+
       return rows;
     },
   };

@@ -28,6 +28,9 @@ export function createRepos(db: SqliteDb): Repos {
 }
 
 export type { AnalyticsRepo } from './analytics';
+
 export type { ExercisesRepo } from './exercises';
+
 export type { RoutinesRepo } from './routines';
+
 export type { FullSession, SessionTargetInput, SessionsRepo } from './sessions';

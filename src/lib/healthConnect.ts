@@ -52,12 +52,15 @@ const PERMISSIONS: HealthPermission[] = [
 ];
 
 let healthConnect: HealthConnectModule | null = null;
+
 let loadFailed = false;
+
 let warnedUnavailable = false;
 
 function warnUnavailableOnce(): void {
   if (warnedUnavailable) return;
   warnedUnavailable = true;
+
   if (typeof __DEV__ !== 'undefined' && __DEV__) {
     // console.log (no warn) para no abrir el overlay de LogBox, que tapa la UI.
     console.log(
@@ -69,11 +72,14 @@ function warnUnavailableOnce(): void {
 /** Carga el paquete nativo solo si hay un entorno real donde exista. */
 async function getHealthConnect(): Promise<HealthConnectModule | null> {
   if (Platform.OS !== 'android') return null;
+
   if (healthConnect) return healthConnect;
+
   if (loadFailed) return null;
 
   if (isExpoGo()) {
     warnUnavailableOnce();
+
     return null;
   }
 
@@ -82,42 +88,53 @@ async function getHealthConnect(): Promise<HealthConnectModule | null> {
   } catch (err) {
     loadFailed = true;
     console.warn('[health] No se pudo cargar react-native-health-connect', err);
+
     return null;
   }
+
   return healthConnect;
 }
 
 /** ¿Está disponible Health Connect en este dispositivo? */
 export async function checkAvailability(): Promise<number> {
   const HC = await getHealthConnect();
+
   if (!HC) return 0;
+
   return HC.getSdkStatus(PROVIDER_PACKAGE);
 }
 
 /** Inicializa el SDK. Devuelve true si OK. */
 export async function initializeClient(): Promise<boolean> {
   const HC = await getHealthConnect();
+
   if (!HC) return false;
+
   return HC.initialize(PROVIDER_PACKAGE);
 }
 
 /** Pide permisos al usuario. Devuelve los que concedió. */
 export async function requestPermissions(): Promise<readonly HealthPermission[]> {
   const HC = await getHealthConnect();
+
   if (!HC) return [];
+
   return HC.requestPermission([...PERMISSIONS]);
 }
 
 /** Devuelve los permisos ya concedidos. */
 export async function getGrantedPermissions(): Promise<readonly HealthPermission[]> {
   const HC = await getHealthConnect();
+
   if (!HC) return [];
+
   return HC.getGrantedPermissions();
 }
 
 /** Abre la app de Health Connect para que el usuario gestione los permisos. */
 export async function openHealthConnectSettings(): Promise<void> {
   const HC = await getHealthConnect();
+
   if (!HC) return;
   HC.openHealthConnectSettings();
 }
@@ -139,11 +156,14 @@ export interface DailyHealthSummary {
 const startOfDay = (d: Date): string => {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
+
   return x.toISOString();
 };
+
 const endOfDay = (d: Date): string => {
   const x = new Date(d);
   x.setHours(23, 59, 59, 999);
+
   return x.toISOString();
 };
 
@@ -164,6 +184,7 @@ export async function readTodayHealth(date: Date = new Date()): Promise<DailyHea
   };
 
   const HC = await getHealthConnect();
+
   if (!HC) return empty;
 
   const timeFilter = {
@@ -177,6 +198,7 @@ export async function readTodayHealth(date: Date = new Date()): Promise<DailyHea
       return await fn();
     } catch (err) {
       console.warn('[health] read failed', err);
+
       return null;
     }
   };
@@ -201,20 +223,24 @@ export async function readTodayHealth(date: Date = new Date()): Promise<DailyHea
   const avgHr = nHr > 0 ? Math.round(sumHr / nHr) : null;
 
   let restHr: number | null = null;
+
   try {
     const rest = await HC.readRecords('RestingHeartRate', { timeRangeFilter: timeFilter });
     const records = rest.records ?? [];
+
     if (records.length > 0) {
       restHr = records[records.length - 1].beatsPerMinute;
     }
   } catch {}
 
   let sleepMin: number | null = null;
+
   if (sleep && sleep.records && sleep.records.length > 0) {
     const totalMs = sleep.records.reduce(
       (acc: number, r: any) => acc + (new Date(r.endTime).getTime() - new Date(r.startTime).getTime()),
       0
     );
+
     sleepMin = Math.round(totalMs / 60000);
   }
 
@@ -254,6 +280,7 @@ export interface WorkoutSyncInput {
  */
 export async function writeWorkoutSession(input: WorkoutSyncInput): Promise<string | null> {
   const HC = await getHealthConnect();
+
   if (!HC) return null;
 
   const id = newId();
@@ -293,9 +320,11 @@ export async function writeWorkoutSession(input: WorkoutSyncInput): Promise<stri
 
   try {
     const ids = await HC.insertRecords(records);
+
     return ids[0] ?? id;
   } catch (err) {
     console.warn('[health] writeWorkoutSession failed', err);
+
     return null;
   }
 }

@@ -27,6 +27,7 @@ export function rawFromBetterSqlite(sqlite: Database.Database): RawSqlite {
       sqlite.exec(sql);
     },
     all<T>(sql: string): T[] {
+      // SAFETY: better-sqlite3 no conoce el tipo de la fila; el repo lo fija por query.
       return sqlite.prepare(sql).all() as T[];
     },
   };

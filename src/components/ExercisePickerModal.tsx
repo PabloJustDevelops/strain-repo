@@ -1,18 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, View, Text, Pressable, FlatList, TextInput } from 'react-native';
+import { Modal, View, Text, Pressable, FlatList, TextInput , useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import {
-  MUSCLE_GROUP_LABELS,
-  EQUIPMENT_LABELS,
-  type Exercise,
-  type MuscleGroup,
-  type Equipment,
-} from '@/types/domain';
+import { type Exercise } from '@/types/domain';
+import { muscleGroupLabel, equipmentLabel } from '@lib/labels';
 
 interface ExercisePickerModalProps {
   visible: boolean;
@@ -29,8 +23,10 @@ interface ExercisePickerModalProps {
 export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePickerModalProps) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [items, setItems] = useState<Exercise[]>([]);
@@ -39,12 +35,12 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
   useEffect(() => {
     if (!visible) return;
     let cancelled = false;
-    setQuery('');
     getRepos()
       .exercises.list()
       .then((list) => {
         if (!cancelled) setItems(list);
       });
+
     return () => {
       cancelled = true;
     };
@@ -58,9 +54,19 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
     [items, query]
   );
 
+  const handleClose = () => {
+    setQuery('');
+    onClose();
+  };
+
+  const handlePick = (exerciseId: string) => {
+    setQuery('');
+    onPick(exerciseId);
+  };
+
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} />
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
+      <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={handleClose} />
       <View
         style={{
           backgroundColor: colors.surfaceElevated,
@@ -83,7 +89,7 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
           <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
             Añadir ejercicio
           </Text>
-          <Pressable onPress={onClose} hitSlop={10}>
+          <Pressable onPress={handleClose} hitSlop={10}>
             <Ionicons name="close" size={24} color={colors.text} />
           </Pressable>
         </View>
@@ -133,7 +139,7 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
           }
           renderItem={({ item }) => (
             <Pressable
-              onPress={() => onPick(item.id)}
+              onPress={() => handlePick(item.id)}
               style={({ pressed }) => ({
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -160,8 +166,8 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
               <View style={{ flex: 1 }}>
                 <Text style={{ color: colors.text, fontWeight: '700' }}>{item.name}</Text>
                 <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
-                  {MUSCLE_GROUP_LABELS[item.muscleGroup as MuscleGroup]} ·{' '}
-                  {EQUIPMENT_LABELS[item.equipment as Equipment]}
+                  {muscleGroupLabel(item.muscleGroup)} ·{' '}
+                  {equipmentLabel(item.equipment)}
                 </Text>
               </View>
             </Pressable>

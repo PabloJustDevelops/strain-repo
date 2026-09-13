@@ -33,8 +33,10 @@ export function Button({
 }: ButtonProps) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const isDisabled = disabled || loading;
@@ -75,6 +77,7 @@ function getStyles(variant: ButtonProps['variant'], colors: typeof darkTheme, fu
     borderRadius: radius.md,
     minHeight: 44,
   };
+
   if (fullWidth) base.alignSelf = 'stretch';
 
   switch (variant) {

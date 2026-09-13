@@ -49,10 +49,13 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   async loadActive() {
     set({ isLoading: true });
     const active = await getRepos().sessions.activeSession();
+
     if (!active) {
       set({ session: null, isLoading: false });
+
       return;
     }
+
     const full = await getRepos().sessions.getFullSession(active.id);
     set({ session: full ? toActiveSessionView(full) : null, isLoading: false });
   },
@@ -65,7 +68,9 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async startFromRoutine(routineId) {
     const full = await getRepos().routines.getWithExercises(routineId);
+
     if (!full) return;
+
     const session = await getRepos().sessions.start({
       name: full.routine.name,
       routineId,
@@ -77,12 +82,14 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         restSeconds: re.restSeconds,
       })),
     });
+
     const detailed = await getRepos().sessions.getFullSession(session.id);
     set({ session: detailed ? toActiveSessionView(detailed) : null });
   },
 
   async addExercise(exerciseId) {
     const { session } = get();
+
     if (!session) return;
     // Un ejercicio recién agregado arranca con una serie para poder registrar
     // enseguida; si no, quedaría visible pero sin forma de anotar nada.
@@ -94,7 +101,9 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async completeSet(setId, weight, reps) {
     const { session } = get();
+
     if (!session) return;
+
     // Optimistic update
     const updated: ActiveSessionView = {
       ...session,
@@ -105,6 +114,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         ),
       })),
     };
+
     updated.completedSets = sessionTotals(updated.exercises.flatMap((ex) => ex.sets)).completedSets;
     set({ session: updated });
 
@@ -117,6 +127,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     // En un superset se descansa al cerrar la ronda, no en cada set: el dueño lo
     // decide la regla, y su `restSeconds` es el que arranca.
     const restOwner = supersetRestOwner(updated.exercises, setId);
+
     if (restOwner) {
       // Sin plan de rutina no hay descanso objetivo: cae al default del usuario.
       get().startRest(restOwner.restSeconds ?? usePreferences.getState().defaultRestSeconds);
@@ -125,6 +136,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async uncompleteSet(setId) {
     const { session } = get();
+
     if (!session) return;
     set({
       session: {
@@ -141,6 +153,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async updateSet(setId, patch) {
     const { session } = get();
+
     if (!session) return;
     set({
       session: {
@@ -158,6 +171,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async setSupersetGroup(sessionExerciseId, group) {
     const { session } = get();
+
     if (!session) return;
     set({
       session: {
@@ -173,6 +187,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   async addSet(sessionExerciseId) {
     await getRepos().sessions.addSet(sessionExerciseId);
     const { session } = get();
+
     if (!session) return;
     const full = await getRepos().sessions.getFullSession(session.id);
     set({ session: full ? toActiveSessionView(full) : null });
@@ -180,6 +195,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async deleteSet(setId) {
     const { session } = get();
+
     if (!session) return;
     set({
       session: {
@@ -207,6 +223,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   tickRest() {
     const { restStartedAt, restRemaining } = get();
+
     if (!restStartedAt) return;
     const elapsed = Math.floor((Date.now() - restStartedAt) / 1000);
     const remaining = Math.max(0, restRemaining - elapsed);
@@ -218,6 +235,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async finishWorkout() {
     const { session } = get();
+
     if (!session) return;
     await getRepos().sessions.finish(session.id);
 
@@ -225,6 +243,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     try {
       const { useHealthConnect } = await import('@stores/healthConnectStore');
       const status = useHealthConnect.getState().status;
+
       if (status === 'ready') {
         const { writeWorkoutSession, estimateCalories } = await import('@/lib/healthConnect');
         const end = new Date();
@@ -253,6 +272,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
   async discardWorkout() {
     const { session } = get();
+
     if (!session) return;
     await getRepos().sessions.discard(session.id);
     set({

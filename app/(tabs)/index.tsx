@@ -1,12 +1,11 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, Pressable, useWindowDimensions , useColorScheme } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
-import { useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { getRepos } from '@db';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
@@ -30,8 +29,10 @@ export default function TodayScreen() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const session = useActiveWorkout((s) => s.session);

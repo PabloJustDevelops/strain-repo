@@ -35,8 +35,10 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
   const loadActive = useActiveWorkout((s) => s.loadActive);
   const initAuth = useAuth((s) => s.init);
@@ -55,20 +57,24 @@ export default function RootLayout() {
         await initNotifications();
         // Re-aplica los recordatorios guardados por si el usuario los tenía activos
         const reminder = usePreferences.getState().reminder;
+
         if (reminder?.enabled) {
           await scheduleReminders(reminder);
         }
+
         if (cancelled) return;
         setBootError(null);
         setReady(true);
       } catch (err) {
         console.error('[strain] Error inicializando:', err);
+
         if (cancelled) return;
         setBootError(err instanceof Error ? err : new Error(String(err)));
         // No hay contenido que mostrar: sacamos el splash para que se vea el error.
         SplashScreen.hideAsync().catch(() => {});
       }
     })();
+
     return () => {
       cancelled = true;
     };

@@ -1,17 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
-import { View, Text, Modal, Pressable, useWindowDimensions } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, Pressable , useColorScheme , ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
-import { ScrollView } from 'react-native';
+
+
 import * as Haptics from 'expo-haptics';
 
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
-import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
+import type { PlateResult } from '@lib/plateCalculator';
 import { nextSupersetLetter } from '@lib/supersets';
 import { SetRow } from '@components/SetRow';
 import { Button } from '@components/Button';
@@ -35,16 +35,15 @@ import type { SetView } from '@db/shapes';
  */
 export default function ActiveWorkoutScreen() {
   const router = useRouter();
-  const { width, height } = useWindowDimensions();
-  const isLandscape = width > height;
-  const isWide = width >= 1024;
 
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const units = usePreferences((s) => s.units);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const session = useActiveWorkout((s) => s.session);
@@ -56,23 +55,28 @@ export default function ActiveWorkoutScreen() {
   const addExercise = useActiveWorkout((s) => s.addExercise);
   const setSupersetGroup = useActiveWorkout((s) => s.setSupersetGroup);
   const finishWorkout = useActiveWorkout((s) => s.finishWorkout);
-  const discardWorkout = useActiveWorkout((s) => s.discardWorkout);
 
   // Estados de UI
   const [platesFor, setPlatesFor] = useState<PlateResult | null>(null);
   const [editingSet, setEditingSet] = useState<{ id: string; weight: number; reps: number; previousWeight: number | null; previousReps: number | null; field: 'weight' | 'reps' } | null>(null);
   const [detailsSet, setDetailsSet] = useState<SetView | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [elapsed, setElapsed] = useState(0);
 
-  // Re-render cada segundo para el cronómetro
-  const [, setTick] = useState(0);
+  // Cronómetro: recalcula en un callback, nunca durante el render.
   useEffect(() => {
-    intervalRef.current = setInterval(() => setTick((t) => t + 1), 1000);
+    const startedAt = session?.startedAt;
+
+    if (!startedAt) return;
+    const update = () => setElapsed(Math.floor((Date.now() - startedAt.getTime()) / 1000));
+    const first = setTimeout(update, 0);
+    const interval = setInterval(update, 1000);
+
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      clearTimeout(first);
+      clearInterval(interval);
     };
-  }, []);
+  }, [session?.startedAt]);
 
   if (!session) {
     return (
@@ -83,12 +87,12 @@ export default function ActiveWorkoutScreen() {
     );
   }
 
-  const elapsed = Math.floor((Date.now() - session.startedAt.getTime()) / 1000);
-
   // Cargar últimos sets del mismo ejercicio para mostrar referencia
   const handleComplete = async (setId: string) => {
     const setDef = session.exercises.flatMap((e) => e.sets).find((s) => s.id === setId);
+
     if (!setDef) return;
+
     if (setDef.weight === 0 || setDef.reps === 0) {
       // Buscar el set anterior (mismo ejercicio, índice menor)
       const exercise = session.exercises.find((e) => e.sets.some((s) => s.id === setId));
@@ -101,14 +105,17 @@ export default function ActiveWorkoutScreen() {
         previousReps: previous?.reps ?? null,
         field: 'weight',
       });
+
       return;
     }
+
     // El descanso lo arranca el store junto con el completado del set.
     await completeSet(setId);
   };
 
   const handleKeypadConfirm = async (value: number) => {
     if (!editingSet) return;
+
     if (editingSet.field === 'weight') {
       // Guardar peso y pasar a pedir reps
       await updateSet(editingSet.id, { weight: value });
@@ -126,6 +133,7 @@ export default function ActiveWorkoutScreen() {
     if (editingSet && editingSet.field === 'reps' && editingSet.weight > 0) {
       await updateSet(editingSet.id, { weight: 0 });
     }
+
     setEditingSet(null);
   };
 
@@ -167,9 +175,11 @@ export default function ActiveWorkoutScreen() {
         )}
         {session.exercises.map((ex, exIdx) => {
           const prevEx = exIdx > 0 ? session.exercises[exIdx - 1] : null;
+
           const showSupersetHeader =
             ex.supersetGroup &&
             (!prevEx || prevEx.supersetGroup !== ex.supersetGroup);
+
           const nextEx = exIdx < session.exercises.length - 1 ? session.exercises[exIdx + 1] : null;
           const isSupersetEnd = ex.supersetGroup && (!nextEx || nextEx.supersetGroup !== ex.supersetGroup);
 
@@ -221,6 +231,7 @@ export default function ActiveWorkoutScreen() {
                 <View style={{ marginTop: spacing.sm }}>
                   {ex.sets.map((s) => {
                     const previous = ex.sets.filter((p) => p.setIndex < s.setIndex && p.isCompleted).pop();
+
                     return (
                       <Pressable key={s.id} onLongPress={() => setDetailsSet(s)} delayLongPress={350}>
                         <SetRow
@@ -309,6 +320,7 @@ export default function ActiveWorkoutScreen() {
 
       {/* Sheet: edición rápida de peso/reps con teclado numérico custom */}
       <NumericKeypad
+        key={editingSet ? `${editingSet.id}-${editingSet.field}` : 'none'}
         visible={!!editingSet}
         initialValue={editingSet ? (editingSet.field === 'weight' ? editingSet.weight : editingSet.reps) : 0}
         field={editingSet?.field ?? 'weight'}

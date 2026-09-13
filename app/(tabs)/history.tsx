@@ -1,13 +1,12 @@
 import { useCallback, useState } from 'react';
-import { View, Text, FlatList, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, FlatList, Pressable, useWindowDimensions , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { darkTheme, lightTheme, spacing, fontSize } from '@lib/theme';
 import { formatDuration, formatDateTime } from '@lib/format';
 import type { WorkoutSession } from '@/types/domain';
 import { Card } from '@components/Card';
@@ -24,8 +23,10 @@ export default function HistoryScreen() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const units = usePreferences((s) => s.units);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
@@ -88,15 +89,19 @@ export default function HistoryScreen() {
       </SafeAreaView>
     );
   }
+
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>{content}</SafeAreaView>;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+
   return (
     <View>
       <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textTransform: 'uppercase', fontWeight: '700' }}>

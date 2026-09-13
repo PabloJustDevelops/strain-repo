@@ -1,19 +1,16 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, Dimensions, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, Dimensions, useWindowDimensions , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { LineChart } from 'react-native-chart-kit';
-import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import type { Exercise } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Sidebar } from '@components/Sidebar';
 import { Heatmap, type HeatmapDay } from '@components/Heatmap';
-import { formatDateShort } from '@lib/format';
 
 /**
  * Pantalla de progreso:
@@ -28,14 +25,15 @@ export default function ProgressScreen() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const units = usePreferences((s) => s.units);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [weeklyVolume, setWeeklyVolume] = useState<{ weekStart: string; volume: number }[]>([]);
   const [streak, setStreak] = useState(0);
   const [prs, setPrs] = useState<{ exerciseName: string; oneRm: number }[]>([]);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapDay[]>([]);
 
   // Recarga al recuperar el foco y arma los PRs con el catálogo del mismo fetch,
@@ -51,11 +49,11 @@ export default function ProgressScreen() {
           getRepos().exercises.list(),
           getRepos().analytics.personalRecords(),
         ]);
+
         if (cancelled) return;
         setWeeklyVolume(volume);
         setStreak(current);
         setHeatmapData(heatmap);
-        setExercises(catalog);
         const names = new Map(catalog.map((e) => [e.id, e.name]));
         setPrs(
           records
@@ -66,6 +64,7 @@ export default function ProgressScreen() {
             }))
         );
       })();
+
       return () => {
         cancelled = true;
       };
@@ -168,5 +167,6 @@ export default function ProgressScreen() {
       </SafeAreaView>
     );
   }
+
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>{content}</SafeAreaView>;
 }

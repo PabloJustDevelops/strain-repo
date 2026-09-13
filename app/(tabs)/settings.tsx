@@ -1,8 +1,7 @@
-import { View, Text, ScrollView, Switch, Pressable, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, Switch, Pressable, Alert, Modal , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Stack, Link } from 'expo-router';
+import { Stack, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
@@ -13,7 +12,7 @@ import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
 import { getRepos } from '@db';
-import { exportData, importData } from '@lib/exportImport';
+import { exportData } from '@lib/exportImport';
 import { importStrongZip } from '@lib/strongFile';
 import {
   initNotifications,
@@ -33,7 +32,6 @@ import {
  * - Información de la app
  */
 export default function SettingsScreen() {
-  const router = useRouter();
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const setThemeMode = usePreferences((s) => s.setThemeMode);
@@ -45,8 +43,10 @@ export default function SettingsScreen() {
   const setKeepScreenAwake = usePreferences((s) => s.setKeepScreenAwake);
   const reminder = usePreferences((s) => s.reminder);
   const setReminder = usePreferences((s) => s.setReminder);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const [reminderModal, setReminderModal] = useState(false);
@@ -69,6 +69,7 @@ export default function SettingsScreen() {
   const handleImport = async () => {
     try {
       const doc = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
+
       if (doc.canceled) return;
       // Leer archivo y procesar
       // En web: usar fetch(file.uri); en nativo: usar FileSystem
@@ -81,6 +82,7 @@ export default function SettingsScreen() {
   const handleImportHevy = async () => {
     try {
       const doc = await DocumentPicker.getDocumentAsync({ type: 'application/zip' });
+
       if (doc.canceled) return;
       const result = await importStrongZip(doc.assets[0].uri, getRepos());
       Alert.alert('Listo', `Importadas ${result.workouts} sesiones con ${result.sets} sets.`);
@@ -111,13 +113,16 @@ export default function SettingsScreen() {
   const handleSaveReminder = async () => {
     setReminder(draftReminder);
     const granted = await requestNotificationPermission();
+
     if (draftReminder.enabled && !granted) {
       Alert.alert('Permiso denegado', 'No podemos enviarte recordatorios sin permiso de notificaciones.');
       setReminder({ ...draftReminder, enabled: false });
       await scheduleReminders({ ...draftReminder, enabled: false });
       setReminderModal(false);
+
       return;
     }
+
     await scheduleReminders(draftReminder);
     setReminderModal(false);
   };
@@ -337,11 +342,13 @@ export default function SettingsScreen() {
             <View style={{ flexDirection: 'row', gap: spacing.xs, marginTop: spacing.sm }}>
               {DAYS.map((d) => {
                 const active = draftReminder.daysOfWeek.includes(d.value);
+
                 return (
                   <Pressable
                     key={d.value}
                     onPress={() => {
                       const set = new Set(draftReminder.daysOfWeek);
+
                       if (set.has(d.value)) set.delete(d.value);
                       else set.add(d.value);
                       setDraftReminder({ ...draftReminder, daysOfWeek: Array.from(set) });
@@ -371,6 +378,7 @@ export default function SettingsScreen() {
                   'Toca hoy. Tu yo del futuro te lo agradecerá.',
                   'No rompas la racha. Sesión rápida y a casa.',
                 ];
+
                 Alert.alert('Mensaje rápido', undefined, [
                   ...presets.map((p) => ({ text: p, onPress: () => setDraftReminder({ ...draftReminder, message: p }) })),
                   { text: 'Cancelar', style: 'cancel' },
@@ -406,9 +414,12 @@ export default function SettingsScreen() {
 function SectionTitle({ title }: { title: string }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+
   return (
     <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 }}>
       {title}
@@ -419,18 +430,24 @@ function SectionTitle({ title }: { title: string }) {
 function Divider() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+
   return <View style={{ height: 1, backgroundColor: colors.border, marginVertical: spacing.md }} />;
 }
 
 function Row({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.sm }}>
       <Text style={{ color: colors.text }}>{label}</Text>
@@ -450,13 +467,17 @@ function SegmentedControl<T extends string>({
 }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
+
   return (
     <View style={{ flexDirection: 'row', backgroundColor: colors.background, borderRadius: radius.md, padding: 2, marginTop: spacing.sm }}>
       {options.map((opt) => {
         const active = opt.value === value;
+
         return (
           <Pressable
             key={opt.value}

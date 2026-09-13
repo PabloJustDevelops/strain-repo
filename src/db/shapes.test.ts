@@ -27,6 +27,7 @@ describe('shapes', () => {
       mechanic: 'compound',
       isCustom: false,
     });
+
     const row = await db.repos.exercises.create({
       name: 'Remo',
       muscleGroup: 'back',

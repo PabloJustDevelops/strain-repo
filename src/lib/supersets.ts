@@ -27,9 +27,11 @@ const SUPERSET_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
  */
 export function nextSupersetLetter(exercises: { supersetGroup: string | null }[]): string {
   const taken = new Set<string>();
+
   for (const ex of exercises) {
     if (ex.supersetGroup !== null) taken.add(ex.supersetGroup);
   }
+
   return SUPERSET_LETTERS.find((letter) => !taken.has(letter)) ?? 'A';
 }
 
@@ -57,10 +59,13 @@ export function supersetRestOwner<T extends SupersetCandidate>(
   setId: string
 ): T | null {
   const index = exercises.findIndex((ex) => ex.sets.some((set) => set.id === setId));
+
   if (index === -1) return null;
 
   const exercise = exercises[index];
+
   if (!exercise) return null;
+
   if (!exercise.supersetGroup) return exercise;
 
   const laterHasPending = exercises

@@ -1,7 +1,6 @@
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable , useColorScheme } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 
@@ -22,8 +21,10 @@ export function Sidebar() {
   const pathname = usePathname();
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   return (
@@ -52,6 +53,7 @@ export function Sidebar() {
       </Text>
       {NAV_ITEMS.map((item) => {
         const active = pathname === item.href || pathname.startsWith(item.href + '/');
+
         return (
           <Pressable
             key={item.href}

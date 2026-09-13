@@ -1,9 +1,8 @@
-import { View, Text, TextInput, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter, Stack } from 'expo-router';
 import { useState } from 'react';
 import * as Haptics from 'expo-haptics';
-import { useColorScheme } from 'react-native';
 
 import { signUpWithEmail, isSupabaseConfigured } from '@lib/supabase';
 import { useAuth } from '@stores/authStore';
@@ -26,8 +25,10 @@ export default function SignupScreen() {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
   const haptics = usePreferences((s) => s.hapticsEnabled);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
   const setSession = useAuth((s) => s.setSession);
 
@@ -39,20 +40,28 @@ export default function SignupScreen() {
   const handleSignup = async () => {
     if (!email || !password) {
       Alert.alert('Faltan datos', 'Introduce email y contraseña');
+
       return;
     }
+
     if (password.length < 8) {
       Alert.alert('Contraseña débil', 'Debe tener al menos 8 caracteres');
+
       return;
     }
+
     if (password !== confirm) {
       Alert.alert('No coinciden', 'Las contraseñas no coinciden');
+
       return;
     }
+
     if (haptics) Haptics.selectionAsync();
     setLoading(true);
+
     try {
       const data = await signUpWithEmail(email.trim(), password);
+
       if (data.session) {
         setSession(data.session);
         router.replace('/');
@@ -72,9 +81,13 @@ export default function SignupScreen() {
 
   const strength = (() => {
     if (password.length === 0) return { level: 0, label: '', color: colors.textMuted };
+
     if (password.length < 6) return { level: 1, label: 'Muy débil', color: colors.danger };
+
     if (password.length < 8) return { level: 2, label: 'Débil', color: colors.warning };
+
     if (password.length < 12) return { level: 3, label: 'Buena', color: colors.success };
+
     return { level: 4, label: 'Excelente', color: colors.success };
   })();
 

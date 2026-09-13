@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
-import { View, Text, Pressable, useWindowDimensions } from 'react-native';
-import { useColorScheme } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable , useColorScheme } from 'react-native';
 
 import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { darkTheme, lightTheme, spacing, fontSize } from '@lib/theme';
 
 /**
  * Datos de un día en el heatmap.
@@ -32,8 +30,10 @@ interface HeatmapProps {
 export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: HeatmapProps) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);
+
   const isDark =
     themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+
   const colors = isDark ? darkTheme : lightTheme;
 
   const { grid, monthLabels, maxVolume } = useMemo(() => {
@@ -55,21 +55,26 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
 
     for (let w = 0; w < weeks; w++) {
       const column: (HeatmapDay | null)[] = [];
+
       for (let d = 0; d < 7; d++) {
         const cellDate = new Date(startDate);
         cellDate.setDate(startDate.getDate() + w * 7 + d);
+
         if (cellDate > today) {
           column.push(null);
           continue;
         }
+
         const iso = cellDate.toISOString().split('T')[0];
         const hit = byDate.get(iso);
         column.push(hit ?? { date: iso, count: 0, volume: 0 });
       }
+
       gridData.push(column);
 
       const firstDayOfCol = new Date(startDate);
       firstDayOfCol.setDate(startDate.getDate() + w * 7);
+
       if (firstDayOfCol.getMonth() !== lastMonth) {
         lastMonth = firstDayOfCol.getMonth();
         monthMarkers.push({
@@ -78,15 +83,20 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
         });
       }
     }
+
     return { grid: gridData, monthLabels: monthMarkers, maxVolume: maxV };
   }, [data, weeks]);
 
   const intensity = (volume: number): string => {
     if (volume === 0) return colors.surface;
     const ratio = volume / maxVolume;
+
     if (ratio < 0.25) return colors.primary + '55';
+
     if (ratio < 0.5) return colors.primary + '99';
+
     if (ratio < 0.75) return colors.primary + 'cc';
+
     return colors.primary;
   };
 

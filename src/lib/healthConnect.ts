@@ -203,7 +203,7 @@ export async function readTodayHealth(date: Date = new Date()): Promise<DailyHea
   let restHr: number | null = null;
   try {
     const rest = await HC.readRecords('RestingHeartRate', { timeRangeFilter: timeFilter });
-    const records = (rest as any).records ?? [];
+    const records = rest.records ?? [];
     if (records.length > 0) {
       restHr = records[records.length - 1].beatsPerMinute;
     }

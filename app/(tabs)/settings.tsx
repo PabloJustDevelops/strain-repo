@@ -60,13 +60,7 @@ export default function SettingsScreen() {
   const handleExport = async () => {
     try {
       const json = await exportData(getRepos());
-      const result = await Sharing.shareAsync('data:application/json;base64,' + btoa(unescape(encodeURIComponent(json))));
-      // expo-sharing devuelve { action: 'sharedAction' | 'dismissedAction' }
-      // (TS marca `result` como void en algunas versiones; casteamos a any)
-      const action = (result as any)?.action;
-      if (action === 'dismissedAction') {
-        Alert.alert('Cancelado', 'No se ha exportado.');
-      }
+      await Sharing.shareAsync('data:application/json;base64,' + btoa(unescape(encodeURIComponent(json))));
     } catch (err) {
       Alert.alert('Error', String(err));
     }
@@ -200,7 +194,7 @@ export default function SettingsScreen() {
               { value: 'system', label: 'Sistema' },
             ]}
             value={themeMode}
-            onChange={(v) => setThemeMode(v as any)}
+            onChange={setThemeMode}
           />
           <Divider />
           <SectionTitle title="Unidades" />
@@ -210,7 +204,7 @@ export default function SettingsScreen() {
               { value: 'lb', label: 'Libras' },
             ]}
             value={units}
-            onChange={(v) => setUnits(v as any)}
+            onChange={setUnits}
           />
         </Card>
 
@@ -445,14 +439,14 @@ function Row({ label, value, onChange }: { label: string; value: boolean; onChan
   );
 }
 
-function SegmentedControl({
+function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
 }: {
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (v: string) => void;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
 }) {
   const colorScheme = useColorScheme();
   const themeMode = usePreferences((s) => s.themeMode);

@@ -48,7 +48,7 @@ export function getSupabase(): SupabaseClient | null {
       storage:
         Platform.OS === 'web'
           ? (getBrowserLocalStorage() ?? createMemoryStorage())
-          : (secureStoreStorage as any),
+          : secureStoreStorage,
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,

@@ -107,6 +107,19 @@ entre la sesión activa y el builder de rutinas. `supersetRestOwner` devuelve el
 descanso corresponde arrancar, así el `restSeconds` que se usa es el del ejercicio que cierra la
 ronda. Issue #2.
 
+### 10. El keypad confirmaba el peso truncado (known-issue K)
+
+**Causa**: `NumericKeypad` guardaba la parte entera en `value` y los decimales aparte en `decimals`.
+El display combinaba ambos, pero `onConfirm(value)` enviaba sólo la parte entera: la secuencia
+`1 0 2 . 5` mostraba `102.05` y confirmaba `102`. Como el 1RM en vivo se calcula con peso × reps,
+también se estimaba sobre el peso truncado.
+
+**Fix**: la edición vive en un reducer puro (`src/lib/keypad.ts`) cuyo estado es un único buffer de
+texto: lo mostrado y el valor que se confirma salen del mismo origen, así no pueden divergir.
+El keypad confirma `keypadValue(state)` (parte entera + decimales) y el 1RM en vivo usa ese mismo
+valor. Tests en `src/lib/keypad.test.ts`: secuencias multi-tecla, borrado del decimal dígito a dígito
+y preview de 1RM con peso decimal.
+
 ---
 
 ## Problemas estructurales abiertos (no resueltos)
@@ -122,7 +135,6 @@ ronda. Issue #2.
 | H | **La regla "el primer set es warmup" está duplicada**: `SessionsRepo.start` (`s === 1 ? ...`) y `exportImport` (`i === 0 ? ...`). | Puede divergir sin que nadie lo note. | Unificar en una sola definición cuando se toque alguno de los dos caminos. |
 | I | **`BetterSqliteStack.seam` se devuelve y ningún consumidor lo lee** (Speculative Generality del `/code-review`). | Superficie sin uso en el adapter de tests. | Borrarlo si sigue sin consumidor en el próximo review. |
 | J | **`pnpm build:web` falla en el render estático**: `ReferenceError: localStorage is not defined` al renderizar `app/_layout.tsx`. Los stores usan `createJSONStorage(() => AsyncStorage)`, que en web resuelve a `localStorage`, inexistente en el render de node. Reproducido también en `HEAD` limpio. | El gate de build web no pasa hoy por una causa ajena a los cambios de features. | Envolver el acceso al storage o desactivar el static rendering para web. No bloqueante por E (web solo dev). |
-| K | **La entrada decimal del keypad no se guarda**: al pulsar `.` y dígitos, el display muestra p. ej. `102.5` pero `onConfirm(value)` envía la parte entera (`102`), porque los decimales viven en el estado `decimals` y no en `value`. | El peso guardado no coincide con el mostrado. | Fuera de scope del 1RM en vivo (issue #4). Al tocar el keypad, confirmar el valor efectivo (`value` + `decimals`). |
 
 ---
 

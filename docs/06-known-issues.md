@@ -134,6 +134,22 @@ cuando hay entorno de ejecución real (nativo o navegador) y un almacén en memo
 los stores lo consumen. No se cambió el modo de render (sigue el output estático). `pnpm build:web`
 termina en `Exported: dist`. Tests en `src/lib/storage.test.ts`.
 
+### 12. Versiones de Expo desalineadas (known-issue B)
+
+**Causa**: el proyecto quedó en SDK 56 con librerías de React Native fuera de la versión que Expo
+esperaba para ese SDK (`react-native`, `safe-area-context`, `screens`, `view-shot`). Expo Go de las
+tiendas ya es SDK 57, así que abrir el proyecto daba "Project is incompatible with this version of
+Expo Go" y el warning "may not work correctly" al arrancar.
+
+**Fix**: subida a **Expo SDK 57 / React Native 0.86.3** siguiendo el walkthrough oficial:
+`pnpm add expo@~57.0.22` y `npx expo install --fix` para alinear todo (`expo-*`, `react-native`,
+`gesture-handler`, `reanimated`, `worklets`). `npx expo-doctor` queda **21/21 limpio**. Breaking
+changes aplicados: el plugin de Babel pasó de `react-native-reanimated/plugin` a
+`react-native-worklets/plugin` (el primero ya no existe en Reanimated 4.5) y se quitó
+`android.queries` de `app.json` (el schema del SDK 57 ya no lo acepta). Las guardas de Expo Go
+siguen intactas: `expo-constants` conserva `executionEnvironment` y los tests de
+`notifications`/`healthConnect` siguen en verde.
+
 ---
 
 ## Problemas estructurales abiertos (no resueltos)
@@ -141,7 +157,6 @@ termina en `Exported: dist`. Tests en `src/lib/storage.test.ts`.
 | # | Issue | Impacto | Workaround |
 |---|-------|---------|------------|
 | A | **No hay tests automatizados**. Toda la lógica crítica (repos, stores, cálculo de PR) está sin cobertura. | Riesgo de regresiones al refactorizar. | Pendiente decidir Jest vs Vitest y empezar por repositories. |
-| B | **Versiones de Expo SDK 52 desalineadas**. `react-native@0.76.0`, `safe-area-context@5.0.0`, `screens@4.0.0`, `view-shot@5.1.0` no son las que Expo espera. | Mensaje "may not work correctly" al arrancar. Build Android funciona; web warning-only. | Pendiente migración a SDK 52 patch o SDK 53. |
 | C | **Cambios sin commitear del usuario** (no míos). Hay ~25 archivos modificados en `git status` previos a este bloque: `auth/*`, `exercises/*`, `db/*`, varios `components/*`, `tsconfig.json`, etc. | Dificulta el `git pull` limpio. | El usuario debe revisarlos y commitear cuando quiera. Yo no los he tocado. |
 | D | **`expo-sqlite@15.0.6` vs `~15.1.4` esperado**. | Posibles bugs con la API async nueva. | Funciona en builds actuales; pendiente bumpear. |
 | E | **Web solo para dev**. No hay build de producción afinado para web. | La app no es usable públicamente desde URL pública. | Aceptado: producto es Android-first. |
@@ -153,6 +168,5 @@ termina en `Exported: dist`. Tests en `src/lib/storage.test.ts`.
 
 ## Decisiones de fix pendientes
 
-- Decidir si bumpear todo el bloque de versiones a las esperadas por Expo SDK 52 (puede romper cosas, hacer con cuidado).
 - Empezar a escribir tests unitarios al menos del repositorio principal (`SessionsRepo`).
 - Revisar y commitear los archivos modificados sin commitear del usuario antes de mergear a main.

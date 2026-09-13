@@ -13,6 +13,8 @@ import Animated, {
 import { useColorScheme } from 'react-native';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { oneRmPreview } from '@lib/metrics';
+import { formatWeight } from '@lib/format';
 
 /**
  * Teclado numérico táctil para introducir peso o repeticiones en el workout activo.
@@ -35,6 +37,8 @@ interface NumericKeypadProps {
   field: FieldType;
   units: 'kg' | 'lb';
   previousValue?: number | null;
+  /** Peso ya introducido del set; alimenta el 1RM en vivo en el paso de reps. */
+  previewWeight?: number | null;
   onConfirm: (value: number) => void;
   onCancel: () => void;
 }
@@ -50,6 +54,7 @@ export function NumericKeypad({
   field,
   units,
   previousValue,
+  previewWeight,
   onConfirm,
   onCancel,
 }: NumericKeypadProps) {
@@ -96,6 +101,10 @@ export function NumericKeypad({
   })();
 
   const isDecimalMode = field === 'weight' && decimals.length > 0;
+
+  // 1RM en vivo: sólo en el paso de reps, que es cuando ya se conoce el peso.
+  const oneRm =
+    field === 'reps' && previewWeight != null ? oneRmPreview(previewWeight, value) : null;
 
   // Manejo de teclas
   const handleDigit = (d: string) => {
@@ -209,6 +218,27 @@ export function NumericKeypad({
             <Text style={{ color: colors.textMuted, fontSize: fontSize.lg, fontWeight: '600' }}>
               {units}
             </Text>
+          )}
+          {field === 'reps' && oneRm != null && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.sm,
+                backgroundColor: colors.surface,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.xs,
+                borderRadius: radius.full,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Ionicons name="trending-up" size={16} color={colors.primary} />
+              <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>1RM estimado</Text>
+              <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: '700' }}>
+                {formatWeight(oneRm, units)}
+              </Text>
+            </View>
           )}
         </View>
 

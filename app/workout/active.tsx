@@ -302,6 +302,7 @@ export default function ActiveWorkoutScreen() {
         initialValue={editingSet ? (editingSet.field === 'weight' ? editingSet.weight : editingSet.reps) : 0}
         field={editingSet?.field ?? 'weight'}
         units={units}
+        previewWeight={editingSet?.weight ?? null}
         previousValue={
           editingSet
             ? editingSet.field === 'weight'

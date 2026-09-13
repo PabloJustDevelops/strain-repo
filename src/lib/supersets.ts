@@ -25,8 +25,12 @@ const SUPERSET_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
  * no queda ninguna libre devuelve `A` (caso degenerado: más de seis supersets en
  * un entrenamiento), que es el comportamiento que ya tenía el builder de rutinas.
  */
-export function nextSupersetLetter(used: Iterable<string>): string {
-  const taken = new Set(used);
+export function nextSupersetLetter(exercises: { supersetGroup: string | null }[]): string {
+  const taken = new Set(
+    exercises
+      .map((ex) => ex.supersetGroup)
+      .filter((letter): letter is string => letter !== null)
+  );
   return SUPERSET_LETTERS.find((letter) => !taken.has(letter)) ?? 'A';
 }
 

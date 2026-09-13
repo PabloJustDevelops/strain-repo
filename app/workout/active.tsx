@@ -12,6 +12,7 @@ import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
 import { formatDuration } from '@lib/format';
 import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
+import { nextSupersetLetter } from '@lib/supersets';
 import { SetRow } from '@components/SetRow';
 import { Button } from '@components/Button';
 import { Card } from '@components/Card';
@@ -181,7 +182,7 @@ export default function ActiveWorkoutScreen() {
                     Superset {ex.supersetGroup}
                   </Text>
                   <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginLeft: 'auto' }}>
-                    descansa solo cuando termines ambos
+                    descansá al cerrar el grupo
                   </Text>
                 </View>
               )}
@@ -262,7 +263,7 @@ export default function ActiveWorkoutScreen() {
                 {!isSupersetEnd && (
                   <Pressable
                     onPress={() => {
-                      const newGroup = ex.supersetGroup ? null : 'A';
+                      const newGroup = ex.supersetGroup ? null : nextSupersetLetter(session.exercises);
                       setSupersetGroup(ex.id, newGroup);
                     }}
                     style={{

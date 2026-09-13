@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { nextSupersetLetter } from '@lib/supersets';
 import { MUSCLE_GROUP_LABELS, type Exercise, type Routine, type RoutineExercise } from '@/types/domain';
 import { Card } from '@components/Card';
 import { Button } from '@components/Button';
@@ -64,20 +65,6 @@ export default function RoutineDetailScreen() {
     await refresh();
   };
 
-  /**
-   * Asigna una letra de superset reutilizando huecos libres: A, B, C...
-   * Si el ejercicio ya está en un grupo, devuelve la siguiente letra libre
-   * para permitir reasignarlo rápidamente.
-   */
-  const promptSupersetLetter = (current: string | null): string | null => {
-    const used = new Set(exercises.map((e) => e.supersetGroup).filter(Boolean) as string[]);
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    for (const l of letters) {
-      if (!used.has(l)) return l;
-    }
-    return current ?? 'A';
-  };
-
   const renderItem = ({ item, drag, isActive }: RenderItemParams<RoutineExerciseRow>) => (
     <ScaleDecorator>
       <Pressable onLongPress={drag} disabled={isActive} delayLongPress={150}>
@@ -99,7 +86,7 @@ export default function RoutineDetailScreen() {
             <Pressable
               onPress={async () => {
                 if (!id) return;
-                const next = item.supersetGroup ? null : promptSupersetLetter(item.supersetGroup);
+                const next = item.supersetGroup ? null : nextSupersetLetter(exercises);
                 await getRepos().routines.setSupersetGroup(id, [item.id], next);
                 if (haptics) Haptics.selectionAsync();
                 await refresh();

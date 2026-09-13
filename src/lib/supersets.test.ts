@@ -89,17 +89,23 @@ describe('supersets', () => {
   });
 
   describe('nextSupersetLetter', () => {
+    const group = (supersetGroup: string | null) => ({ supersetGroup });
+
     it('empieza en A y sigue por B', () => {
       expect(nextSupersetLetter([])).toBe('A');
-      expect(nextSupersetLetter(['A'])).toBe('B');
+      expect(nextSupersetLetter([group('A')])).toBe('B');
     });
 
     it('reutiliza huecos', () => {
-      expect(nextSupersetLetter(['A', 'C'])).toBe('B');
+      expect(nextSupersetLetter([group('A'), group('C')])).toBe('B');
+    });
+
+    it('ignora los ejercicios sin grupo', () => {
+      expect(nextSupersetLetter([group(null), group('A'), group(null)])).toBe('B');
     });
 
     it('si no quedan letras libres cae en A, como el builder de rutinas', () => {
-      expect(nextSupersetLetter(['A', 'B', 'C', 'D', 'E', 'F'])).toBe('A');
+      expect(nextSupersetLetter(['A', 'B', 'C', 'D', 'E', 'F'].map(group))).toBe('A');
     });
   });
 });

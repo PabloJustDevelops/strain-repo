@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, Pressable, useColorScheme } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -27,12 +27,14 @@ function toError(err: unknown): Error {
  * - Inicializa la BD (migraciones + seed) antes de mostrar contenido.
  * - Configura el tema según preferencias + esquema del sistema.
  * - Carga cualquier sesión activa en memoria.
- * - Aplica el color de fondo a la barra del sistema en nativo.
  *
- * Si el arranque falla, NO se renderiza la app con el data layer a medias: se
- * muestra la causa real y un botón para reintentar. Antes el error se tragaba y
- * cada pantalla reventaba con "Data layer no inicializado", que no decía nada
- * del problema de fondo.
+ * El data layer se publica en un efecto, y los efectos corren DESPUÉS del primer
+ * render. Por eso el árbol de pantallas no se monta hasta que `ready` es true:
+ * si una pantalla llamara a `getRepos()` en su render, la carrera está perdida
+ * de antemano. Mientras no esté listo, el splash sigue tapando el hueco.
+ *
+ * Si el arranque falla, se muestra la causa real y un botón para reintentar (que
+ * vuelve a dejar todo en marcha, incluido `ready`).
  */
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -43,6 +45,7 @@ export default function RootLayout() {
   const loadActive = useActiveWorkout((s) => s.loadActive);
   const initAuth = useAuth((s) => s.init);
 
+  const [ready, setReady] = useState(false);
   const [bootError, setBootError] = useState<Error | null>(null);
   const [bootAttempt, setBootAttempt] = useState(0);
 
@@ -59,12 +62,15 @@ export default function RootLayout() {
         if (reminder?.enabled) {
           await scheduleReminders(reminder);
         }
-        if (!cancelled) setBootError(null);
+        if (cancelled) return;
+        setBootError(null);
+        setReady(true);
       } catch (err) {
         console.error('[strain] Error inicializando:', err);
-        if (!cancelled) setBootError(toError(err));
-      } finally {
-        if (!cancelled) SplashScreen.hideAsync().catch(() => {});
+        if (cancelled) return;
+        setBootError(toError(err));
+        // No hay contenido que mostrar: sacamos el splash para que se vea el error.
+        SplashScreen.hideAsync().catch(() => {});
       }
     })();
     return () => {
@@ -72,8 +78,14 @@ export default function RootLayout() {
     };
   }, [loadActive, initAuth, bootAttempt]);
 
+  // El splash tapa el hueco hasta que hay data layer y contenido listo.
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
+
   const handleRetry = () => {
     setBootError(null);
+    setReady(false);
     setBootAttempt((n) => n + 1);
   };
 
@@ -108,6 +120,20 @@ export default function RootLayout() {
             >
               <Text style={{ color: '#fff', fontWeight: '700' }}>Reintentar</Text>
             </Pressable>
+          </View>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
+  // Todavía no hay data layer: NO se monta el árbol de pantallas (el splash tapa).
+  if (!ready) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+        <SafeAreaProvider>
+          <StatusBar style={isDark ? 'light' : 'dark'} />
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={colors.primary} />
           </View>
         </SafeAreaProvider>
       </GestureHandlerRootView>

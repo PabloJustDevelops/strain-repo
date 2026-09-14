@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, Dimensions, useWindowDimensions , useColorScheme } from 'react-native';
+import { View, Text, ScrollView, useWindowDimensions , useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { LineChart } from 'react-native-chart-kit';
@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { getRepos } from '@db';
 import { usePreferences } from '@stores/preferencesStore';
 import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { weekMonthLabels } from '@lib/weeks';
+import { topPersonalRecords, type PersonalRecordSummary } from '@lib/personalRecords';
 import { Card } from '@components/Card';
 import { Sidebar } from '@components/Sidebar';
 import { Heatmap, type HeatmapDay } from '@components/Heatmap';
@@ -33,7 +35,7 @@ export default function ProgressScreen() {
 
   const [weeklyVolume, setWeeklyVolume] = useState<{ weekStart: string; volume: number }[]>([]);
   const [streak, setStreak] = useState(0);
-  const [prs, setPrs] = useState<{ exerciseName: string; oneRm: number }[]>([]);
+  const [prs, setPrs] = useState<PersonalRecordSummary[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapDay[]>([]);
 
   // Recarga al recuperar el foco y arma los PRs con el catálogo del mismo fetch,
@@ -59,6 +61,7 @@ export default function ProgressScreen() {
           records
             .filter((r) => r.recordType === 'one_rm')
             .map((r) => ({
+              exerciseId: r.exerciseId,
               exerciseName: names.get(r.exerciseId) ?? 'Ejercicio',
               oneRm: r.value,
             }))
@@ -71,9 +74,11 @@ export default function ProgressScreen() {
     }, [])
   );
 
+  const recentWeeks = weeklyVolume.slice(-6);
+
   const chartData = {
-    labels: weeklyVolume.slice(-6).map((w) => w.weekStart.split('-')[1]),
-    datasets: [{ data: weeklyVolume.slice(-6).map((w) => Math.round(w.volume)) }],
+    labels: weekMonthLabels(recentWeeks.map((w) => w.weekStart)),
+    datasets: [{ data: recentWeeks.map((w) => Math.round(w.volume)) }],
   };
 
   const content = (
@@ -115,7 +120,7 @@ export default function ProgressScreen() {
         ) : (
           <LineChart
             data={chartData}
-            width={Dimensions.get('window').width - 64}
+            width={width - 64}
             height={200}
             yAxisLabel=""
             yAxisSuffix={` ${units}`}
@@ -143,11 +148,9 @@ export default function ProgressScreen() {
             Completa tu primer workout para empezar a registrar PRs.
           </Text>
         ) : (
-          prs
-            .sort((a, b) => b.oneRm - a.oneRm)
-            .slice(0, 10)
+          topPersonalRecords(prs)
             .map((pr) => (
-              <View key={pr.exerciseName} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
+              <View key={pr.exerciseId} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
                 <Text style={{ color: colors.text }}>{pr.exerciseName}</Text>
                 <Text style={{ color: colors.primary, fontWeight: '700' }}>
                   {pr.oneRm.toFixed(1)} {units}

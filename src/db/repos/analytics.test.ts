@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { openInMemoryDatabase, type BetterSqliteStack } from '../testing/better-sqlite';
+import { weekMonthLabels } from '@lib/weeks';
 
 /**
  * Estas consultas agrupaban por el ALIAS del SELECT (`week`, `day`, `month`,
@@ -115,6 +116,14 @@ describe('analytics · volumePerWeek', () => {
 
     expect(rows).toHaveLength(1);
     expect(rows[0].volume).toBe(500);
+  });
+
+  it('la semana sembrada se etiqueta con su mes real (grafico con datos)', async () => {
+    await loggedSession(new Date(Date.UTC(2026, 2, 9, 12)), 100, 5);
+
+    const rows = await db.repos.analytics.volumePerWeek(5200);
+
+    expect(weekMonthLabels(rows.map((r) => r.weekStart))).toEqual(['mar']);
   });
 });
 

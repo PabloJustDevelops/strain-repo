@@ -28,9 +28,11 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
       const since = new Date();
       since.setDate(since.getDate() - weeks * 7);
 
+      const weekExpr = sql<string>`strftime('%Y-%W', ${schema.workoutSessions.startedAt}, 'unixepoch')`;
+
       const rows = db
         .select({
-          week: sql<string>`strftime('%Y-%W', ${schema.workoutSessions.startedAt}, 'unixepoch')`,
+          week: weekExpr,
           volume: sql<number>`COALESCE(SUM(${schema.workoutSessions.totalVolume}), 0)`,
         })
         .from(schema.workoutSessions)
@@ -38,19 +40,21 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
           eq(schema.workoutSessions.status, 'completed'),
           gte(schema.workoutSessions.startedAt, since),
         ))
-        .groupBy(sql`week`)
+        .groupBy(weekExpr)
         .all();
 
       return rows.map((r) => ({ weekStart: r.week, volume: r.volume }));
     },
 
     async currentStreak(): Promise<number> {
+      const dayExpr = sql<string>`strftime('%Y-%m-%d', ${schema.workoutSessions.startedAt}, 'unixepoch')`;
+
       const rows = db
-        .select({ day: sql<string>`strftime('%Y-%m-%d', ${schema.workoutSessions.startedAt}, 'unixepoch')` })
+        .select({ day: dayExpr })
         .from(schema.workoutSessions)
         .where(eq(schema.workoutSessions.status, 'completed'))
-        .groupBy(sql`day`)
-        .orderBy(sql`day DESC`)
+        .groupBy(dayExpr)
+        .orderBy(sql`${dayExpr} DESC`)
         .all();
 
       if (rows.length === 0) return 0;
@@ -132,9 +136,11 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
       const since = new Date();
       since.setDate(since.getDate() - sinceDays);
 
+      const monthExpr = sql<string>`strftime('%Y-%m', ${schema.workoutSessions.startedAt}, 'unixepoch')`;
+
       return db
         .select({
-          month: sql<string>`strftime('%Y-%m', ${schema.workoutSessions.startedAt}, 'unixepoch')`,
+          month: monthExpr,
           bestOneRm: sql<number>`MAX(${oneRmSql(schema.sets.weight, schema.sets.reps)})`,
           bestWeight: sql<number>`MAX(${schema.sets.weight})`,
           bestReps: sql<number>`MAX(${schema.sets.reps})`,
@@ -148,8 +154,8 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
           eq(schema.workoutSessions.status, 'completed'),
           gte(schema.workoutSessions.startedAt, since),
         ))
-        .groupBy(sql`month`)
-        .orderBy(sql`month`)
+        .groupBy(monthExpr)
+        .orderBy(monthExpr)
         .all();
     },
 
@@ -199,9 +205,11 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
       const since = new Date();
       since.setDate(since.getDate() - sinceDays);
 
+      const dateExpr = sql<string>`strftime('%Y-%m-%d', ${schema.workoutSessions.startedAt}, 'unixepoch')`;
+
       const rows = db
         .select({
-          date: sql<string>`strftime('%Y-%m-%d', ${schema.workoutSessions.startedAt}, 'unixepoch')`,
+          date: dateExpr,
           count: sql<number>`COUNT(DISTINCT ${schema.workoutSessions.id})`,
           volume: sql<number>`COALESCE(SUM(${schema.workoutSessions.totalVolume}), 0)`,
         })
@@ -210,7 +218,7 @@ export function createAnalyticsRepo(db: SqliteDb): AnalyticsRepo {
           eq(schema.workoutSessions.status, 'completed'),
           gte(schema.workoutSessions.startedAt, since),
         ))
-        .groupBy(sql`date`)
+        .groupBy(dateExpr)
         .all();
 
       return rows;

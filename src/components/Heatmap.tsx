@@ -160,7 +160,7 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
         </View>
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm, justifyContent: 'flex-end' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm, marginLeft: labelWidth }}>
         <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>Menos</Text>
         {[0, 0.25, 0.5, 0.75, 1].map((r) => (
           <View

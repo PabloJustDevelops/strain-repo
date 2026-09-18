@@ -2,6 +2,7 @@ import { getRepos } from '@db';
 import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
+import { Heatmap, type HeatmapDay } from '@components/Heatmap';
 import { Screen } from '@components/Screen';
 import { formatDateShort } from '@lib/format';
 import { topPersonalRecords, type PersonalRecordSummary } from '@lib/personalRecords';
@@ -31,6 +32,7 @@ export function ProgressScreen() {
 
   const volume = useLoad<WeekVolume[]>([], () => getRepos().analytics.volumePerWeek(12));
   const streak = useLoad(0, () => getRepos().analytics.currentStreak());
+  const days = useLoad<HeatmapDay[]>([], () => getRepos().analytics.dailyVolume(365));
   const records = useLoad<PersonalRecordSummary[]>([], async () => {
     const [stored, catalog] = await Promise.all([
       getRepos().analytics.personalRecords(),
@@ -48,7 +50,7 @@ export function ProgressScreen() {
   });
 
   const top = topPersonalRecords(records.data);
-  const loading = volume.loading || streak.loading || records.loading;
+  const loading = volume.loading || streak.loading || records.loading || days.loading;
 
   return (
     <Screen title="Progreso">
@@ -59,6 +61,19 @@ export function ProgressScreen() {
         <text className="StatValue" style={{ color: colors.text }}>
           {streak.loading ? '—' : `${streak.data} ${streak.data === 1 ? 'día' : 'días'}`}
         </text>
+      </Card>
+
+      <Card>
+        <text className="CardTitle" style={{ color: colors.text }}>
+          Consistencia
+        </text>
+        <text className="CardBody" style={{ color: colors.textMuted }}>
+          Últimas 13 semanas, más oscuro = más volumen.
+        </text>
+
+        {days.error ? <ErrorNote message={days.error} /> : null}
+
+        <Heatmap data={days.data} weeks={13} />
       </Card>
 
       <Card>

@@ -5,6 +5,7 @@ import { ErrorNote, Loading } from '@components/Loading';
 import { Screen } from '@components/Screen';
 import { formatDateTime, formatDuration } from '@lib/format';
 import { remountKey } from '@lib/reactKeys';
+import { useRouter } from '@lib/router';
 import { useLoad } from '@lib/useLoad';
 import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
@@ -14,11 +15,12 @@ import type { WorkoutSession } from '@/types/domain';
  * Historial de workouts completados, desde `sessionsRepo.list()`.
  *
  * Cada fila ya trae los totales que la sesión cachea al cerrarse (volumen y
- * series), así que no hace falta releer los sets. El detalle de una sesión
- * queda para la Fase 3, por eso las filas todavía no navegan.
+ * series), así que no hace falta releer los sets. Tocar una fila abre el detalle
+ * de la sesión (`history/[id]`) con su desglose de series.
  */
 export function HistoryScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const units = usePreferences((s) => s.units);
 
   const sessions = useLoad<WorkoutSession[]>([], () => getRepos().sessions.list(100));
@@ -40,19 +42,21 @@ export function HistoryScreen() {
 
       {sessions.data.map((session) => (
         <Card key={remountKey('session', session.id)}>
-          <view className="RowBetween">
-            <text className="ListTitle" style={{ color: colors.text }}>
-              {session.name}
-            </text>
-            <text className="Meta" style={{ color: colors.textMuted }}>
-              {formatDateTime(new Date(session.startedAt))}
-            </text>
-          </view>
+          <view bindtap={() => router.push('history/[id]', { id: session.id })}>
+            <view className="RowBetween">
+              <text className="ListTitle" style={{ color: colors.text }}>
+                {session.name}
+              </text>
+              <text className="Meta" style={{ color: colors.textMuted }}>
+                {formatDateTime(new Date(session.startedAt))}
+              </text>
+            </view>
 
-          <view className="StatRow">
-            <Stat label="Volumen" value={`${Math.round(session.totalVolume)} ${units}`} />
-            <Stat label="Series" value={String(session.totalSets)} />
-            <Stat label="Duración" value={formatDuration(session.durationSeconds ?? 0)} />
+            <view className="StatRow">
+              <Stat label="Volumen" value={`${Math.round(session.totalVolume)} ${units}`} />
+              <Stat label="Series" value={String(session.totalSets)} />
+              <Stat label="Duración" value={formatDuration(session.durationSeconds ?? 0)} />
+            </view>
           </view>
         </Card>
       ))}

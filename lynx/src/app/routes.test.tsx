@@ -42,11 +42,21 @@ describe('registro de rutas (Lynx)', () => {
     }
   });
 
-  it('cubre las 7 pestañas, las 4 rutas de pila y el contenedor (tabs)', () => {
+  it('cubre las 7 pestañas, las 5 rutas de pila y el contenedor (tabs)', () => {
     expect(TAB_ROUTES).toHaveLength(7);
-    expect(STACK_ROUTES).toHaveLength(4);
-    expect(ROUTE_NAMES).toHaveLength(12);
+    expect(STACK_ROUTES).toHaveLength(5);
+    expect(ROUTE_NAMES).toHaveLength(13);
     expect(ROUTE_NAMES).toContain(TABS_ROUTE);
+  });
+
+  it('el flujo de entrenamiento ya no resuelve a los stubs', () => {
+    const stub = resolveRoute('routines/[id]');
+
+    for (const name of ['workout/active', 'workout/finish', 'exercises/[id]', 'history/[id]']) {
+      expect(resolveRoute(name)).not.toBe(stub);
+    }
+
+    expect(resolveRoute('history/[id]')).toBeTypeOf('function');
   });
 
   it('ninguna pestaña queda sin etiqueta ni sin componente', () => {

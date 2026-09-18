@@ -2,18 +2,17 @@ import type { ComponentType } from '@lynx-js/react';
 
 import { Shell } from '@components/Shell';
 import { ExercisesScreen } from '@/screens/ExercisesScreen';
+import { ExerciseDetailScreen } from '@/screens/ExerciseDetailScreen';
 import { HealthScreen } from '@/screens/HealthScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ProgressScreen } from '@/screens/ProgressScreen';
 import { RoutinesScreen } from '@/screens/RoutinesScreen';
+import { SessionDetailScreen } from '@/screens/SessionDetailScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
-import {
-  ExerciseDetailScreen,
-  RoutineDetailScreen,
-  WorkoutActiveScreen,
-  WorkoutFinishScreen,
-} from '@/screens/StubScreens';
+import { RoutineDetailScreen } from '@/screens/StubScreens';
+import { WorkoutActiveScreen } from '@/screens/WorkoutActiveScreen';
+import { WorkoutFinishScreen } from '@/screens/WorkoutFinishScreen';
 
 /**
  * Registro de rutas de la migración a Lynx.
@@ -78,6 +77,7 @@ export const TAB_COMPONENTS: Record<TabRoute, ComponentType<RouteProps>> = {
 export const STACK_ROUTES = [
   'routines/[id]',
   'exercises/[id]',
+  'history/[id]',
   'workout/active',
   'workout/finish',
 ] as const;
@@ -87,6 +87,7 @@ export type StackRoute = (typeof STACK_ROUTES)[number];
 export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
   'routines/[id]': RoutineDetailScreen,
   'exercises/[id]': ExerciseDetailScreen,
+  'history/[id]': SessionDetailScreen,
   'workout/active': WorkoutActiveScreen,
   'workout/finish': WorkoutFinishScreen,
 };

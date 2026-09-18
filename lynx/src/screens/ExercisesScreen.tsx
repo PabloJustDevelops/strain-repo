@@ -7,23 +7,18 @@ import { ErrorNote, Loading } from '@components/Loading';
 import { MuscleChip } from '@components/MuscleChip';
 import { Screen } from '@components/Screen';
 import { Text } from '@components/Text';
-import { equipmentLabel, muscleGroupLabel } from '@lib/labels';
+import {
+  MUSCLE_FILTERS,
+  equipmentLabel,
+  muscleFilterChip,
+  muscleGroupLabel,
+  type MuscleFilter,
+} from '@lib/labels';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
 import { useLoad } from '@lib/useLoad';
 import { useTheme } from '@lib/useTheme';
-import { MUSCLE_GROUP_LABELS, type Exercise, type MuscleGroup } from '@/types/domain';
-
-const MUSCLE_FILTERS: readonly (MuscleGroup | 'all')[] = [
-  'all',
-  'chest',
-  'back',
-  'legs',
-  'shoulders',
-  'arms',
-  'core',
-  'other',
-];
+import type { Exercise } from '@/types/domain';
 
 /**
  * Biblioteca de ejercicios sobre `exercisesRepo`.
@@ -36,7 +31,7 @@ export function ExercisesScreen() {
   const router = useRouter();
 
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<MuscleGroup | 'all'>('all');
+  const [filter, setFilter] = useState<MuscleFilter>('all');
 
   const exercises = useLoad<Exercise[]>([], () => getRepos().exercises.list());
 
@@ -62,15 +57,19 @@ export function ExercisesScreen() {
       />
 
       <view className="ChipRow">
-        {MUSCLE_FILTERS.map((group) => (
-          <MuscleChip
-            key={remountKey('muscle', group)}
-            group={group === 'all' ? 'chest' : group}
-            label={group === 'all' ? 'Todos' : MUSCLE_GROUP_LABELS[group]}
-            active={filter === group}
-            onPress={() => setFilter(group)}
-          />
-        ))}
+        {MUSCLE_FILTERS.map((group) => {
+          const chip = muscleFilterChip(group);
+
+          return (
+            <MuscleChip
+              key={remountKey('muscle', group)}
+              group={chip.group}
+              label={chip.label}
+              active={filter === group}
+              onPress={() => setFilter(group)}
+            />
+          );
+        })}
       </view>
 
       {exercises.loading ? <Loading /> : null}

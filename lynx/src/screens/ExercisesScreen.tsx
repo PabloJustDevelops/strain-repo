@@ -53,7 +53,7 @@ export function ExercisesScreen() {
     >
       <input
         className="Input"
-        style={{ backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }}
+        style={{ backgroundColor: colors.surface, borderColor: colors.line, color: colors.textPrimary }}
         placeholder="Buscar ejercicio"
         bindinput={(e) => setQuery(e.detail.value)}
       />
@@ -83,10 +83,10 @@ export function ExercisesScreen() {
       {filtered.map((exercise) => (
         <Card key={remountKey('exercise', exercise.id)}>
           <view bindtap={() => router.push('exercises/[id]', { id: exercise.id })}>
-            <text className="ListTitle" style={{ color: colors.text }}>
+            <text className="ListTitle" style={{ color: colors.textPrimary }}>
               {exercise.name}
             </text>
-            <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+            <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
               {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
             </text>
           </view>

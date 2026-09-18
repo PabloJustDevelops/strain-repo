@@ -17,7 +17,7 @@ export function Card({ padded = true, children }: CardProps) {
   return (
     <view
       className={padded ? 'Card CardPadded' : 'Card'}
-      style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      style={{ backgroundColor: colors.surface, borderColor: colors.line }}
     >
       {children}
     </view>

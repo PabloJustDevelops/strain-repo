@@ -55,19 +55,19 @@ export function ProgressScreen() {
   return (
     <Screen title="Progreso">
       <Card>
-        <text className="CardLabel" style={{ color: colors.textMuted }}>
+        <text className="CardLabel" style={{ color: colors.textSecondary }}>
           Racha actual
         </text>
-        <text className="StatValue" style={{ color: colors.text }}>
+        <text className="StatValue" style={{ color: colors.textPrimary }}>
           {streak.loading ? '—' : `${streak.data} ${streak.data === 1 ? 'día' : 'días'}`}
         </text>
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.text }}>
+        <text className="CardTitle" style={{ color: colors.textPrimary }}>
           Consistencia
         </text>
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        <text className="CardBody" style={{ color: colors.textSecondary }}>
           Últimas 13 semanas, más oscuro = más volumen.
         </text>
 
@@ -77,27 +77,27 @@ export function ProgressScreen() {
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.text }}>
+        <text className="CardTitle" style={{ color: colors.textPrimary }}>
           Volumen semanal
         </text>
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        <text className="CardBody" style={{ color: colors.textSecondary }}>
           Últimas 12 semanas, en {units}.
         </text>
 
         {volume.error ? <ErrorNote message={volume.error} /> : null}
 
         {!volume.loading && volume.data.length === 0 ? (
-          <text className="CardBody" style={{ color: colors.textMuted }}>
+          <text className="CardBody" style={{ color: colors.textSecondary }}>
             Aún no hay datos suficientes.
           </text>
         ) : null}
 
         {volume.data.map((week) => (
           <view className="RowBetween" key={remountKey('week', week.weekStart)}>
-            <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+            <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
               {formatDateShort(weekMonday(week.weekStart))}
             </text>
-            <text className="ListTitle" style={{ color: colors.text }}>
+            <text className="ListTitle" style={{ color: colors.textPrimary }}>
               {Math.round(week.volume)} {units}
             </text>
           </view>
@@ -105,24 +105,24 @@ export function ProgressScreen() {
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.text }}>
+        <text className="CardTitle" style={{ color: colors.textPrimary }}>
           Récords personales (1RM estimado)
         </text>
 
         {records.error ? <ErrorNote message={records.error} /> : null}
 
         {!records.loading && top.length === 0 ? (
-          <text className="CardBody" style={{ color: colors.textMuted }}>
+          <text className="CardBody" style={{ color: colors.textSecondary }}>
             Completa tu primer workout para empezar a registrar PRs.
           </text>
         ) : null}
 
         {top.map((pr) => (
           <view className="RowBetween" key={remountKey('pr', pr.exerciseId)}>
-            <text className="ListTitle" style={{ color: colors.text }}>
+            <text className="ListTitle" style={{ color: colors.textPrimary }}>
               {pr.exerciseName}
             </text>
-            <text className="ListTitle" style={{ color: colors.primary }}>
+            <text className="ListTitle" style={{ color: colors.accent }}>
               {pr.oneRm.toFixed(1)} {units}
             </text>
           </view>

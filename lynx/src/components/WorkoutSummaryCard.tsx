@@ -38,22 +38,22 @@ export function WorkoutSummaryCard({ session, width = 360, height = 540 }: Worko
   return (
     <view
       className="SummaryCard"
-      style={{ width, height, backgroundColor: colors.background, borderColor: colors.border }}
+      style={{ width, height, backgroundColor: colors.bg, borderColor: colors.line }}
     >
       <view>
         <view className="SummaryBrand">
-          <view className="SummaryBrandBadge" style={{ backgroundColor: colors.primary }}>
+          <view className="SummaryBrandBadge" style={{ backgroundColor: colors.accent }}>
             <text className="SummaryBrandMark">S</text>
           </view>
-          <text className="SummaryBrandName" style={{ color: colors.text }}>
+          <text className="SummaryBrandName" style={{ color: colors.textPrimary }}>
             STRAIN
           </text>
         </view>
 
-        <text className="SummaryDate" style={{ color: colors.textMuted }}>
+        <text className="SummaryDate" style={{ color: colors.textSecondary }}>
           {formatDateShort(start)}
         </text>
-        <text className="SummaryTitle" style={{ color: colors.text }}>
+        <text className="SummaryTitle" style={{ color: colors.textPrimary }}>
           {session.name}
         </text>
       </view>
@@ -67,18 +67,18 @@ export function WorkoutSummaryCard({ session, width = 360, height = 540 }: Worko
 
         {top.length > 0 ? (
           <view className="SummaryTop">
-            <text className="CardLabel" style={{ color: colors.textMuted }}>
+            <text className="CardLabel" style={{ color: colors.textSecondary }}>
               Top ejercicios
             </text>
             {top.map((entry, index) => (
               <view className="RowBetween" key={`top-${index}-${entry.name}`}>
-                <text className="SummaryRank" style={{ color: colors.primary }}>
+                <text className="SummaryRank" style={{ color: colors.accent }}>
                   {index + 1}
                 </text>
-                <text className="SummaryTopName" style={{ color: colors.text }}>
+                <text className="SummaryTopName" style={{ color: colors.textPrimary }}>
                   {entry.name}
                 </text>
-                <text className="Meta" style={{ color: colors.textMuted }}>
+                <text className="Meta" style={{ color: colors.textSecondary }}>
                   {formatNumber(entry.volume)} kg
                 </text>
               </view>
@@ -87,7 +87,7 @@ export function WorkoutSummaryCard({ session, width = 360, height = 540 }: Worko
         ) : null}
       </view>
 
-      <text className="SummaryFooter" style={{ color: colors.textMuted }}>
+      <text className="SummaryFooter" style={{ color: colors.textSecondary }}>
         strain.app · workout #{session.id.slice(-4)}
       </text>
     </view>
@@ -99,10 +99,10 @@ function Stat({ label, value, unit }: { label: string; value: string; unit?: str
 
   return (
     <view className="Stat">
-      <text className="StatLabel" style={{ color: colors.textMuted }}>
+      <text className="StatLabel" style={{ color: colors.textSecondary }}>
         {label}
       </text>
-      <text className="ListTitle" style={{ color: colors.text }}>
+      <text className="ListTitle" style={{ color: colors.textPrimary }}>
         {value}
         {unit ? ` ${unit}` : ''}
       </text>

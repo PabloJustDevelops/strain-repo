@@ -21,14 +21,14 @@ export function MuscleChip({ group, active = false, label, onPress }: MuscleChip
     <view
       className="Chip"
       style={{
-        backgroundColor: active ? colors.primary : colors.surfaceElevated,
-        borderColor: active ? colors.primary : colors.border,
+        backgroundColor: active ? colors.accent : colors.surfaceRaised,
+        borderColor: active ? colors.accent : colors.line,
       }}
       bindtap={onPress}
     >
       <text
         className="ChipText"
-        style={{ color: active ? '#ffffff' : colors.text }}
+        style={{ color: active ? '#ffffff' : colors.textPrimary }}
       >
         {label ?? group}
       </text>

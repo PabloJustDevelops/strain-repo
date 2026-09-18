@@ -33,15 +33,15 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
         <view>
           <view className="RowBetween">
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textMuted }}>
+              <text className="StatLabel" style={{ color: colors.textSecondary }}>
                 Objetivo
               </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <text className="ListTitle" style={{ color: colors.textPrimary }}>
                 {formatWeight(result.totalWeight + result.remainder, units)}
               </text>
             </view>
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textMuted }}>
+              <text className="StatLabel" style={{ color: colors.textSecondary }}>
                 Alcanzable
               </text>
               <text
@@ -53,13 +53,13 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
             </view>
           </view>
 
-          <view className="PlateBar" style={{ backgroundColor: colors.background }}>
+          <view className="PlateBar" style={{ backgroundColor: colors.bg }}>
             <view className="PlateSide">
               {[...perSide].reverse().map((kg, index) => (
                 <PlateDisk key={`L-${index}-${kg}`} kg={kg} />
               ))}
             </view>
-            <view className="PlateRod" style={{ backgroundColor: colors.text }} />
+            <view className="PlateRod" style={{ backgroundColor: colors.textPrimary }} />
             <view className="PlateSide">
               {perSide.map((kg, index) => (
                 <PlateDisk key={`R-${index}-${kg}`} kg={kg} />
@@ -68,16 +68,16 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
           </view>
 
           {result.platesPerSide.length === 0 ? (
-            <text className="CardBody" style={{ color: colors.textMuted }}>
+            <text className="CardBody" style={{ color: colors.textSecondary }}>
               Solo la barra ({formatWeight(result.barWeight, units)}).
             </text>
           ) : (
             result.platesPerSide.map((plate) => (
               <view className="RowBetween" key={`plate-${plate.plateKg}`}>
-                <text className="ListSubtitle" style={{ color: colors.text }}>
+                <text className="ListSubtitle" style={{ color: colors.textPrimary }}>
                   {plate.plateKg} kg
                 </text>
-                <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                   ×{plate.perSide} por lado
                 </text>
               </view>

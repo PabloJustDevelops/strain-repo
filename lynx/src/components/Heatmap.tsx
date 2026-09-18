@@ -37,13 +37,13 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
 
     const ratio = volume / grid.maxVolume;
 
-    if (ratio < 0.25) return withAlpha(colors.primary, 0.25);
+    if (ratio < 0.25) return withAlpha(colors.accent, 0.25);
 
-    if (ratio < 0.5) return withAlpha(colors.primary, 0.5);
+    if (ratio < 0.5) return withAlpha(colors.accent, 0.5);
 
-    if (ratio < 0.75) return withAlpha(colors.primary, 0.75);
+    if (ratio < 0.75) return withAlpha(colors.accent, 0.75);
 
-    return colors.primary;
+    return colors.accent;
   }
 
   return (
@@ -53,7 +53,7 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
           <text
             className="HeatmapMonth"
             key={remountKey('month', `${marker.col}-${marker.label}`)}
-            style={{ color: colors.textMuted, left: marker.col * (cellSize + 3) }}
+            style={{ color: colors.textSecondary, left: marker.col * (cellSize + 3) }}
           >
             {marker.label}
           </text>
@@ -66,7 +66,7 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
             <text
               className="HeatmapDayLabel"
               key={remountKey('day', label)}
-              style={{ color: colors.textMuted, height: cellSize + 3, lineHeight: cellSize + 3 }}
+              style={{ color: colors.textSecondary, height: cellSize + 3, lineHeight: cellSize + 3 }}
             >
               {label}
             </text>
@@ -102,7 +102,7 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
       </view>
 
       <view className="HeatmapLegend">
-        <text className="HeatmapDayLabel" style={{ color: colors.textMuted }}>
+        <text className="HeatmapDayLabel" style={{ color: colors.textSecondary }}>
           Menos
         </text>
         {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
@@ -110,11 +110,11 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
             className="HeatmapLegendCell"
             key={remountKey('legend', ratio)}
             style={{
-              backgroundColor: ratio === 0 ? colors.surface : withAlpha(colors.primary, ratio * 0.8),
+              backgroundColor: ratio === 0 ? colors.surface : withAlpha(colors.accent, ratio * 0.8),
             }}
           />
         ))}
-        <text className="HeatmapDayLabel" style={{ color: colors.textMuted }}>
+        <text className="HeatmapDayLabel" style={{ color: colors.textSecondary }}>
           Más
         </text>
       </view>

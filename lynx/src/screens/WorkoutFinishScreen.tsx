@@ -29,7 +29,7 @@ export function WorkoutFinishScreen() {
 
   if (!summary) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <EmptyState
           title="¡Buen trabajo!"
           body="No hay un resumen reciente para mostrar."
@@ -40,51 +40,51 @@ export function WorkoutFinishScreen() {
   }
 
   return (
-    <view className="Screen" style={{ backgroundColor: colors.background }}>
+    <view className="Screen" style={{ backgroundColor: colors.bg }}>
       <scroll-view className="ScreenScroll" scroll-orientation="vertical">
         <view className="ScreenContent">
           <view className="FinishHero">
             <view className="FinishBadge" style={{ backgroundColor: colors.success }}>
               <text className="FinishBadgeMark">✓</text>
             </view>
-            <text className="FinishTitle" style={{ color: colors.text }}>
+            <text className="FinishTitle" style={{ color: colors.textPrimary }}>
               ¡Workout completado!
             </text>
-            <text className="FinishSubtitle" style={{ color: colors.textMuted }}>
+            <text className="FinishSubtitle" style={{ color: colors.textSecondary }}>
               {summary.name}
             </text>
           </view>
 
           <Card>
             <view className="RowBetween">
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                 Duración
               </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <text className="ListTitle" style={{ color: colors.textPrimary }}>
                 {formatDuration(summary.durationSeconds)}
               </text>
             </view>
             <view className="RowBetween">
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                 Volumen total
               </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <text className="ListTitle" style={{ color: colors.textPrimary }}>
                 {formatNumber(summary.totalVolume)} {units}
               </text>
             </view>
             <view className="RowBetween">
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                 Series completadas
               </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <text className="ListTitle" style={{ color: colors.textPrimary }}>
                 {summary.completedSets} / {summary.totalSets}
               </text>
             </view>
             <view className="RowBetween">
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                 Ejercicios
               </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <text className="ListTitle" style={{ color: colors.textPrimary }}>
                 {summary.exercises.length}
               </text>
             </view>
@@ -92,15 +92,15 @@ export function WorkoutFinishScreen() {
 
           {summary.prs.length > 0 ? (
             <Card>
-              <text className="CardTitle" style={{ color: colors.text }}>
+              <text className="CardTitle" style={{ color: colors.textPrimary }}>
                 Récords de la sesión
               </text>
               {summary.prs.map((pr) => (
                 <view className="RowBetween" key={remountKey('pr', pr.exerciseId)}>
-                  <text className="ListTitle" style={{ color: colors.text }}>
+                  <text className="ListTitle" style={{ color: colors.textPrimary }}>
                     {pr.exerciseName}
                   </text>
-                  <text className="ListTitle" style={{ color: colors.primary }}>
+                  <text className="ListTitle" style={{ color: colors.accent }}>
                     {pr.value.toFixed(1)} {units}
                   </text>
                 </view>
@@ -109,21 +109,21 @@ export function WorkoutFinishScreen() {
           ) : null}
 
           <Card>
-            <text className="CardTitle" style={{ color: colors.text }}>
+            <text className="CardTitle" style={{ color: colors.textPrimary }}>
               Resumen por ejercicio
             </text>
             {summary.exercises.map((exercise) => (
               <view className="RowBetween" key={remountKey('summaryExercise', exercise.id)}>
                 <view className="RowFill">
-                  <text className="ListTitle" style={{ color: colors.text }}>
+                  <text className="ListTitle" style={{ color: colors.textPrimary }}>
                     {exercise.name}
                   </text>
-                  <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                  <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                     {exercise.completedSets} series · {formatNumber(exercise.volume)} {units}
                   </text>
                 </view>
                 {exercise.best ? (
-                  <text className="ListTitle" style={{ color: colors.primary }}>
+                  <text className="ListTitle" style={{ color: colors.accent }}>
                     {formatWeight(exercise.best.weight, units)} × {exercise.best.reps}
                   </text>
                 ) : null}

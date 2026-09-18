@@ -28,13 +28,13 @@ interface VariantStyle {
 function variantStyle(variant: ButtonVariant, colors: ThemeColors): VariantStyle {
   switch (variant) {
     case 'secondary':
-      return { background: colors.surfaceElevated, border: colors.border, text: colors.text };
+      return { background: colors.surfaceRaised, border: colors.line, text: colors.textPrimary };
     case 'ghost':
-      return { background: 'transparent', border: 'transparent', text: colors.primary };
+      return { background: 'transparent', border: 'transparent', text: colors.accent };
     case 'danger':
       return { background: colors.danger, border: colors.danger, text: '#ffffff' };
     case 'primary':
-      return { background: colors.primary, border: colors.primary, text: '#ffffff' };
+      return { background: colors.accent, border: colors.accent, text: '#ffffff' };
   }
 }
 

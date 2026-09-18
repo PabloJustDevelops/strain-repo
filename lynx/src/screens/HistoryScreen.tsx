@@ -44,10 +44,10 @@ export function HistoryScreen() {
         <Card key={remountKey('session', session.id)}>
           <view bindtap={() => router.push('history/[id]', { id: session.id })}>
             <view className="RowBetween">
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <text className="ListTitle" style={{ color: colors.textPrimary }}>
                 {session.name}
               </text>
-              <text className="Meta" style={{ color: colors.textMuted }}>
+              <text className="Meta" style={{ color: colors.textSecondary }}>
                 {formatDateTime(new Date(session.startedAt))}
               </text>
             </view>
@@ -69,10 +69,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 
   return (
     <view className="Stat">
-      <text className="StatLabel" style={{ color: colors.textMuted }}>
+      <text className="StatLabel" style={{ color: colors.textSecondary }}>
         {label}
       </text>
-      <text className="StatText" style={{ color: colors.text }}>
+      <text className="StatText" style={{ color: colors.textPrimary }}>
         {value}
       </text>
     </view>

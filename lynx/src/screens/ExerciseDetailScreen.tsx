@@ -100,7 +100,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
   if (loading) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <Loading />
       </view>
     );
@@ -108,7 +108,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
   if (error) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <ErrorNote message={error} />
       </view>
     );
@@ -116,7 +116,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
   if (!exercise) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <EmptyState
           title="Ejercicio no encontrado"
           body={`No hay ningún ejercicio con el id "${id}".`}
@@ -131,10 +131,10 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
   const latestPr = prs.find((pr) => pr.recordType === 'one_rm');
 
   return (
-    <view className="Screen" style={{ backgroundColor: colors.background }}>
+    <view className="Screen" style={{ backgroundColor: colors.bg }}>
       <scroll-view className="ScreenScroll" scroll-orientation="vertical">
         <view className="ScreenContent">
-          <text className="ScreenTitle" style={{ color: colors.text }}>
+          <text className="ScreenTitle" style={{ color: colors.textPrimary }}>
             {exercise.name}
           </text>
 
@@ -145,31 +145,31 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
           </view>
 
           <Card>
-            <text className="CardLabel" style={{ color: colors.textMuted }}>
+            <text className="CardLabel" style={{ color: colors.textSecondary }}>
               Estadísticas totales
             </text>
             <view className="StatRow">
               <view className="Stat">
-                <text className="StatLabel" style={{ color: colors.textMuted }}>
+                <text className="StatLabel" style={{ color: colors.textSecondary }}>
                   Sesiones
                 </text>
-                <text className="StatValue" style={{ color: colors.text }}>
+                <text className="StatValue" style={{ color: colors.textPrimary }}>
                   {stats?.sessions ?? 0}
                 </text>
               </view>
               <view className="Stat">
-                <text className="StatLabel" style={{ color: colors.textMuted }}>
+                <text className="StatLabel" style={{ color: colors.textSecondary }}>
                   Sets
                 </text>
-                <text className="StatValue" style={{ color: colors.text }}>
+                <text className="StatValue" style={{ color: colors.textPrimary }}>
                   {stats?.totalSets ?? 0}
                 </text>
               </view>
               <view className="Stat">
-                <text className="StatLabel" style={{ color: colors.textMuted }}>
+                <text className="StatLabel" style={{ color: colors.textSecondary }}>
                   Volumen
                 </text>
-                <text className="StatValue" style={{ color: colors.text }}>
+                <text className="StatValue" style={{ color: colors.textPrimary }}>
                   {formatNumber(stats?.totalVolume ?? 0)} {units}
                 </text>
               </view>
@@ -177,7 +177,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
           </Card>
 
           <Card>
-            <text className="CardTitle" style={{ color: colors.text }}>
+            <text className="CardTitle" style={{ color: colors.textPrimary }}>
               Progresión
             </text>
 
@@ -189,12 +189,12 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                   <view
                     className="SegmentItem"
                     key={remountKey('metric', option.value)}
-                    style={{ backgroundColor: active ? colors.primaryMuted : 'transparent' }}
+                    style={{ backgroundColor: active ? colors.accentSoft : 'transparent' }}
                     bindtap={() => setMetric(option.value)}
                   >
                     <text
                       className="SegmentLabel"
-                      style={{ color: active ? colors.primary : colors.textMuted }}
+                      style={{ color: active ? colors.accent : colors.textSecondary }}
                     >
                       {option.label}
                     </text>
@@ -204,7 +204,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
             </view>
 
             {visible.length < 2 ? (
-              <text className="CardBody" style={{ color: colors.textMuted }}>
+              <text className="CardBody" style={{ color: colors.textSecondary }}>
                 Necesitás al menos 2 sesiones con este ejercicio para ver la progresión.
               </text>
             ) : (
@@ -218,7 +218,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                       className="BarColumn"
                       key={remountKey('bar', row.sessionId)}
                     >
-                      <view className="BarFill" style={{ height, backgroundColor: colors.primary }} />
+                      <view className="BarFill" style={{ height, backgroundColor: colors.accent }} />
                     </view>
                   );
                 })}
@@ -227,10 +227,10 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
             {visible.length >= 2 ? (
               <view className="RowBetween">
-                <text className="Meta" style={{ color: colors.textMuted }}>
+                <text className="Meta" style={{ color: colors.textSecondary }}>
                   {formatDateShort(new Date(visible[0].date))}
                 </text>
-                <text className="Meta" style={{ color: colors.textMuted }}>
+                <text className="Meta" style={{ color: colors.textSecondary }}>
                   {formatDateShort(new Date(visible[visible.length - 1].date))}
                 </text>
               </view>
@@ -245,15 +245,15 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                     className="SegmentItem"
                     key={remountKey('range', option)}
                     style={{
-                      backgroundColor: active ? colors.primary : colors.surface,
-                      borderColor: active ? colors.primary : colors.border,
+                      backgroundColor: active ? colors.accent : colors.surface,
+                      borderColor: active ? colors.accent : colors.line,
                       borderWidth: 1,
                     }}
                     bindtap={() => setRange(option)}
                   >
                     <text
                       className="SegmentLabel"
-                      style={{ color: active ? '#ffffff' : colors.text }}
+                      style={{ color: active ? '#ffffff' : colors.textPrimary }}
                     >
                       {option}
                     </text>
@@ -265,13 +265,13 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
           {latestPr ? (
             <Card>
-              <text className="CardLabel" style={{ color: colors.textMuted }}>
+              <text className="CardLabel" style={{ color: colors.textSecondary }}>
                 Récord personal
               </text>
-              <text className="StatValue" style={{ color: colors.primary }}>
+              <text className="StatValue" style={{ color: colors.accent }}>
                 {latestPr.value.toFixed(1)} {units}
               </text>
-              <text className="CardBody" style={{ color: colors.textMuted }}>
+              <text className="CardBody" style={{ color: colors.textSecondary }}>
                 {formatWeight(latestPr.weight ?? 0, units)} × {latestPr.reps ?? '?'} reps ·{' '}
                 {formatDateShort(new Date(latestPr.achievedAt))}
               </text>
@@ -280,20 +280,20 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
           {prs.length > 0 ? (
             <Card>
-              <text className="CardTitle" style={{ color: colors.text }}>
+              <text className="CardTitle" style={{ color: colors.textPrimary }}>
                 Historial de récords
               </text>
               {prs.map((pr) => (
                 <view className="RowBetween" key={remountKey('pr', pr.id)}>
                   <view>
-                    <text className="ListTitle" style={{ color: colors.text }}>
+                    <text className="ListTitle" style={{ color: colors.textPrimary }}>
                       {pr.recordType === 'one_rm' ? '1RM estimado' : pr.recordType}
                     </text>
-                    <text className="Meta" style={{ color: colors.textMuted }}>
+                    <text className="Meta" style={{ color: colors.textSecondary }}>
                       {formatDateShort(new Date(pr.achievedAt))}
                     </text>
                   </view>
-                  <text className="ListTitle" style={{ color: colors.primary }}>
+                  <text className="ListTitle" style={{ color: colors.accent }}>
                     {pr.value.toFixed(1)} {units}
                   </text>
                 </view>
@@ -303,10 +303,10 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
           {exercise.instructions ? (
             <Card>
-              <text className="CardTitle" style={{ color: colors.text }}>
+              <text className="CardTitle" style={{ color: colors.textPrimary }}>
                 Instrucciones
               </text>
-              <text className="CardBody" style={{ color: colors.text }}>
+              <text className="CardBody" style={{ color: colors.textPrimary }}>
                 {exercise.instructions}
               </text>
             </Card>
@@ -329,8 +329,8 @@ function Tag({ text }: { text: string }) {
   const { colors } = useTheme();
 
   return (
-    <view className="Tag" style={{ backgroundColor: colors.primaryMuted }}>
-      <text className="TagText" style={{ color: colors.primary }}>
+    <view className="Tag" style={{ backgroundColor: colors.accentSoft }}>
+      <text className="TagText" style={{ color: colors.accent }}>
         {text}
       </text>
     </view>

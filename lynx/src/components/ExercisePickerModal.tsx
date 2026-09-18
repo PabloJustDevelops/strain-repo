@@ -60,7 +60,7 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
     >
       <input
         className="Input"
-        style={{ backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }}
+        style={{ backgroundColor: colors.surface, borderColor: colors.line, color: colors.textPrimary }}
         placeholder="Buscar ejercicio"
         bindinput={(e) => setQuery(e.detail.value)}
       />
@@ -68,7 +68,7 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
       <scroll-view className="SheetScroll" scroll-orientation="vertical">
         <view className="SheetScrollContent">
           {filtered.length === 0 ? (
-            <text className="CardBody" style={{ color: colors.textMuted }}>
+            <text className="CardBody" style={{ color: colors.textSecondary }}>
               Sin resultados.
             </text>
           ) : null}
@@ -77,22 +77,22 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
             <view
               className="PickerRow"
               key={remountKey('picker', exercise.id)}
-              style={{ backgroundColor: colors.background, borderColor: colors.border }}
+              style={{ backgroundColor: colors.bg, borderColor: colors.line }}
               bindtap={() => {
                 setQuery('');
                 onPick(exercise.id);
               }}
             >
-              <view className="PickerBadge" style={{ backgroundColor: colors.primaryMuted }}>
-                <text className="PickerBadgeLabel" style={{ color: colors.primary }}>
+              <view className="PickerBadge" style={{ backgroundColor: colors.accentSoft }}>
+                <text className="PickerBadgeLabel" style={{ color: colors.accent }}>
                   +
                 </text>
               </view>
               <view className="RowFill">
-                <text className="ListTitle" style={{ color: colors.text }}>
+                <text className="ListTitle" style={{ color: colors.textPrimary }}>
                   {exercise.name}
                 </text>
-                <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                   {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
                 </text>
               </view>

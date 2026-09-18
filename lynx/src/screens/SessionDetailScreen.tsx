@@ -32,7 +32,7 @@ export function SessionDetailScreen({ params }: RouteProps) {
 
   if (loaded.loading) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <Loading />
       </view>
     );
@@ -40,7 +40,7 @@ export function SessionDetailScreen({ params }: RouteProps) {
 
   if (loaded.error) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <ErrorNote message={loaded.error} />
       </view>
     );
@@ -48,7 +48,7 @@ export function SessionDetailScreen({ params }: RouteProps) {
 
   if (!session) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <EmptyState
           title="Sesión no encontrada"
           body={`No hay ninguna sesión guardada con el id "${id}".`}
@@ -58,38 +58,38 @@ export function SessionDetailScreen({ params }: RouteProps) {
   }
 
   return (
-    <view className="Screen" style={{ backgroundColor: colors.background }}>
+    <view className="Screen" style={{ backgroundColor: colors.bg }}>
       <scroll-view className="ScreenScroll" scroll-orientation="vertical">
         <view className="ScreenContent">
-          <text className="CardLabel" style={{ color: colors.textMuted }}>
+          <text className="CardLabel" style={{ color: colors.textSecondary }}>
             Resumen
           </text>
-          <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+          <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
             {formatDateTime(new Date(session.startedAt))}
           </text>
 
           <view className="StatRow">
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textMuted }}>
+              <text className="StatLabel" style={{ color: colors.textSecondary }}>
                 Series
               </text>
-              <text className="StatText" style={{ color: colors.text }}>
+              <text className="StatText" style={{ color: colors.textPrimary }}>
                 {session.totalSets}
               </text>
             </view>
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textMuted }}>
+              <text className="StatLabel" style={{ color: colors.textSecondary }}>
                 Volumen
               </text>
-              <text className="StatText" style={{ color: colors.text }}>
+              <text className="StatText" style={{ color: colors.textPrimary }}>
                 {formatNumber(session.totalVolume)} {units}
               </text>
             </view>
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textMuted }}>
+              <text className="StatLabel" style={{ color: colors.textSecondary }}>
                 Duración
               </text>
-              <text className="StatText" style={{ color: colors.text }}>
+              <text className="StatText" style={{ color: colors.textPrimary }}>
                 {formatDuration(session.durationSeconds ?? 0)}
               </text>
             </view>
@@ -104,17 +104,17 @@ export function SessionDetailScreen({ params }: RouteProps) {
 
             return (
               <Card key={remountKey('sessionExercise', exercise.id)}>
-                <text className="ListTitle" style={{ color: colors.text }}>
+                <text className="ListTitle" style={{ color: colors.textPrimary }}>
                   {exercise.name}
                 </text>
-                <text className="Meta" style={{ color: colors.textMuted }}>
+                <text className="Meta" style={{ color: colors.textSecondary }}>
                   {completed.length} series
                 </text>
                 {completed.map((set, index) => (
                   <text
                     className="ListSubtitle"
                     key={remountKey('set', set.id)}
-                    style={{ color: colors.text }}
+                    style={{ color: colors.textPrimary }}
                   >
                     {index + 1}. {set.weight} {units} × {set.reps} reps
                   </text>

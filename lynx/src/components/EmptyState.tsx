@@ -18,11 +18,11 @@ export function EmptyState({ title, body, action }: EmptyStateProps) {
 
   return (
     <view className="Empty">
-      <text className="EmptyTitle" style={{ color: colors.text }}>
+      <text className="EmptyTitle" style={{ color: colors.textPrimary }}>
         {title}
       </text>
       {body ? (
-        <text className="EmptyBody" style={{ color: colors.textMuted }}>
+        <text className="EmptyBody" style={{ color: colors.textSecondary }}>
           {body}
         </text>
       ) : null}

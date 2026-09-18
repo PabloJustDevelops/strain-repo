@@ -20,16 +20,16 @@ export function Screen({ title, subtitle, right, children }: ScreenProps) {
   const { colors } = useTheme();
 
   return (
-    <view className="Screen" style={{ backgroundColor: colors.background }}>
-      <view className="ScreenHeader" style={{ borderColor: colors.border }}>
+    <view className="Screen" style={{ backgroundColor: colors.bg }}>
+      <view className="ScreenHeader" style={{ borderColor: colors.line }}>
         <view className="ScreenHeaderRow">
-          <text className="ScreenTitle" style={{ color: colors.text }}>
+          <text className="ScreenTitle" style={{ color: colors.textPrimary }}>
             {title}
           </text>
           {right}
         </view>
         {subtitle ? (
-          <text className="ScreenSubtitle" style={{ color: colors.textMuted }}>
+          <text className="ScreenSubtitle" style={{ color: colors.textSecondary }}>
             {subtitle}
           </text>
         ) : null}

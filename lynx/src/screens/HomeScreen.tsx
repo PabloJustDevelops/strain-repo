@@ -44,7 +44,7 @@ export function HomeScreen() {
       {session ? (
         <view
           className="Hero"
-          style={{ backgroundColor: colors.primary }}
+          style={{ backgroundColor: colors.accent }}
           bindtap={() => router.push('workout/active')}
         >
           <text className="HeroLabel">Workout en curso</text>
@@ -55,10 +55,10 @@ export function HomeScreen() {
         </view>
       ) : (
         <Card>
-          <text className="CardTitle" style={{ color: colors.text }}>
+          <text className="CardTitle" style={{ color: colors.textPrimary }}>
             Empieza un workout
           </text>
-          <text className="CardBody" style={{ color: colors.textMuted }}>
+          <text className="CardBody" style={{ color: colors.textSecondary }}>
             Comienza uno vacío o elige una de tus rutinas.
           </text>
           <view className="RowActions">
@@ -73,19 +73,19 @@ export function HomeScreen() {
       )}
 
       <Card>
-        <text className="CardLabel" style={{ color: colors.textMuted }}>
+        <text className="CardLabel" style={{ color: colors.textSecondary }}>
           Racha actual
         </text>
-        <text className="StatValue" style={{ color: colors.text }}>
+        <text className="StatValue" style={{ color: colors.textPrimary }}>
           {streak.loading ? '—' : streak.data}
         </text>
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        <text className="CardBody" style={{ color: colors.textSecondary }}>
           {streak.data === 1 ? 'día seguido entrenando' : 'días seguidos entrenando'}
         </text>
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.text }}>
+        <text className="CardTitle" style={{ color: colors.textPrimary }}>
           Acciones rápidas
         </text>
         <view className="RowActions">

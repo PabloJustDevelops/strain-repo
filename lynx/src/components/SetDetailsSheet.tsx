@@ -54,28 +54,28 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
       <Card>
         <view className="StatRow">
           <view className="Stat">
-            <text className="StatLabel" style={{ color: colors.textMuted }}>
+            <text className="StatLabel" style={{ color: colors.textSecondary }}>
               Peso
             </text>
-            <text className="StatText" style={{ color: colors.text }}>
+            <text className="StatText" style={{ color: colors.textPrimary }}>
               {set.weight} {units}
             </text>
           </view>
           <view className="Stat">
-            <text className="StatLabel" style={{ color: colors.textMuted }}>
+            <text className="StatLabel" style={{ color: colors.textSecondary }}>
               Reps
             </text>
-            <text className="StatText" style={{ color: colors.text }}>
+            <text className="StatText" style={{ color: colors.textPrimary }}>
               {set.reps}
             </text>
           </view>
           <view className="Stat">
-            <text className="StatLabel" style={{ color: colors.textMuted }}>
+            <text className="StatLabel" style={{ color: colors.textSecondary }}>
               Estado
             </text>
             <text
               className="StatText"
-              style={{ color: set.isCompleted ? colors.success : colors.textMuted }}
+              style={{ color: set.isCompleted ? colors.success : colors.textSecondary }}
             >
               {set.isCompleted ? 'Completado' : 'Pendiente'}
             </text>
@@ -83,7 +83,7 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
         </view>
       </Card>
 
-      <text className="CardLabel" style={{ color: colors.text }}>
+      <text className="CardLabel" style={{ color: colors.textPrimary }}>
         RPE
       </text>
       <view className="ChipRow">
@@ -95,12 +95,12 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
               className="Chip"
               key={`rpe-${option}`}
               style={{
-                backgroundColor: selected ? colors.primary : colors.surface,
-                borderColor: selected ? colors.primary : colors.border,
+                backgroundColor: selected ? colors.accent : colors.surface,
+                borderColor: selected ? colors.accent : colors.line,
               }}
               bindtap={() => setRpe(selected ? null : option)}
             >
-              <text className="ChipText" style={{ color: selected ? '#ffffff' : colors.text }}>
+              <text className="ChipText" style={{ color: selected ? '#ffffff' : colors.textPrimary }}>
                 {option}
               </text>
             </view>
@@ -108,21 +108,21 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
         })}
       </view>
 
-      <text className="CardLabel" style={{ color: colors.text }}>
+      <text className="CardLabel" style={{ color: colors.textPrimary }}>
         Notas (opcional)
       </text>
       <textarea
         className="Notes"
         style={{
-          backgroundColor: colors.background,
-          borderColor: colors.border,
-          color: colors.text,
+          backgroundColor: colors.bg,
+          borderColor: colors.line,
+          color: colors.textPrimary,
         }}
         placeholder="Técnica, sensaciones, cómo te sentiste…"
         maxlength={MAX_NOTES}
         bindinput={(e) => setNotes(e.detail.value)}
       />
-      <text className="Meta" style={{ color: colors.textMuted }}>
+      <text className="Meta" style={{ color: colors.textSecondary }}>
         {notes.length}/{MAX_NOTES}
       </text>
     </Sheet>

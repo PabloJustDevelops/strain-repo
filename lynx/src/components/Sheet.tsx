@@ -38,14 +38,14 @@ export function Sheet({ visible, title, onClose, children, footer }: SheetProps)
 
       <view
         className="SheetPanel"
-        style={{ backgroundColor: colors.surfaceElevated, borderColor: colors.border }}
+        style={{ backgroundColor: colors.surfaceRaised, borderColor: colors.line }}
       >
         <view className="SheetHeader">
-          <text className="SheetTitle" style={{ color: colors.text }}>
+          <text className="SheetTitle" style={{ color: colors.textPrimary }}>
             {title}
           </text>
           <view className="SheetClose" bindtap={onClose}>
-            <text className="SheetCloseLabel" style={{ color: colors.textMuted }}>
+            <text className="SheetCloseLabel" style={{ color: colors.textSecondary }}>
               Cerrar
             </text>
           </view>

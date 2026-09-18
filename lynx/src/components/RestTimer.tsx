@@ -39,15 +39,15 @@ export function RestTimer() {
   return (
     <view
       className="RestTimer"
-      style={{ backgroundColor: colors.surfaceElevated, borderColor: colors.border }}
+      style={{ backgroundColor: colors.surfaceRaised, borderColor: colors.line }}
     >
       <view className="RowFill">
-        <text className="RestLabel" style={{ color: colors.textMuted }}>
+        <text className="RestLabel" style={{ color: colors.textSecondary }}>
           DESCANSO
         </text>
         <text
           className="RestClock"
-          style={{ color: almostDone ? colors.warning : colors.text }}
+          style={{ color: almostDone ? colors.warning : colors.textPrimary }}
         >
           {formatDuration(restRemaining)}
         </text>
@@ -58,7 +58,7 @@ export function RestTimer() {
         style={{ backgroundColor: colors.surface }}
         bindtap={() => startRest(restRemaining - 15)}
       >
-        <text className="RestSmallLabel" style={{ color: colors.text }}>
+        <text className="RestSmallLabel" style={{ color: colors.textPrimary }}>
           −15
         </text>
       </view>
@@ -68,14 +68,14 @@ export function RestTimer() {
         style={{ backgroundColor: colors.surface }}
         bindtap={() => startRest(restRemaining + 15)}
       >
-        <text className="RestSmallLabel" style={{ color: colors.text }}>
+        <text className="RestSmallLabel" style={{ color: colors.textPrimary }}>
           +15
         </text>
       </view>
 
       <view
         className="RestSkip"
-        style={{ backgroundColor: colors.primary }}
+        style={{ backgroundColor: colors.accent }}
         bindtap={skipRest}
       >
         <text className="RestSkipLabel">Saltar</text>

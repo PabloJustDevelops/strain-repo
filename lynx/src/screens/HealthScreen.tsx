@@ -23,7 +23,7 @@ function statusColor(status: HealthConnectStatus, colors: ThemeColors): string {
   if (status === 'unavailable') return colors.danger;
   if (status === 'needsInstall' || status === 'notAuthorized') return colors.warning;
 
-  return colors.textMuted;
+  return colors.textSecondary;
 }
 
 /**
@@ -51,7 +51,7 @@ export function HealthScreen() {
     <Screen title="Salud" subtitle="Health Connect">
       <Card>
         <view className="RowBetween">
-          <text className="ListTitle" style={{ color: colors.text }}>
+          <text className="ListTitle" style={{ color: colors.textPrimary }}>
             Health Connect
           </text>
           <text className="ListTitle" style={{ color: statusColor(status, colors) }}>
@@ -59,7 +59,7 @@ export function HealthScreen() {
           </text>
         </view>
 
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        <text className="CardBody" style={{ color: colors.textSecondary }}>
           El bridge nativo todavía no existe: en Lynx, Health Connect pide un native
           module propio expuesto con lynx.getJSModule. Sin él, el driver es nulo y todo
           esto reporta no disponible.
@@ -72,7 +72,7 @@ export function HealthScreen() {
 
       {status === 'ready' && today ? (
         <Card>
-          <text className="CardTitle" style={{ color: colors.text }}>
+          <text className="CardTitle" style={{ color: colors.textPrimary }}>
             Hoy
           </text>
           <view className="StatRow">
@@ -102,10 +102,10 @@ function Metric({ label, value }: { label: string; value: string }) {
 
   return (
     <view className="Stat">
-      <text className="StatLabel" style={{ color: colors.textMuted }}>
+      <text className="StatLabel" style={{ color: colors.textSecondary }}>
         {label}
       </text>
-      <text className="StatText" style={{ color: colors.text }}>
+      <text className="StatText" style={{ color: colors.textPrimary }}>
         {value}
       </text>
     </view>

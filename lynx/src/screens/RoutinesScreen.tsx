@@ -46,22 +46,22 @@ export function RoutinesScreen() {
         <Card key={remountKey('routine', routine.id)}>
           <view className="RowBetween">
             <view className="RowFill">
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <text className="ListTitle" style={{ color: colors.textPrimary }}>
                 {routine.name}
               </text>
               {routine.description ? (
-                <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                   {routine.description}
                 </text>
               ) : null}
             </view>
             <view
               className="ColorSwatch"
-              style={{ backgroundColor: routine.color ?? colors.primary }}
+              style={{ backgroundColor: routine.color ?? colors.accent }}
             />
           </view>
 
-          <text className="Meta" style={{ color: colors.textMuted }}>
+          <text className="Meta" style={{ color: colors.textSecondary }}>
             Actualizada {formatDateTime(new Date(routine.updatedAt))}
           </text>
 

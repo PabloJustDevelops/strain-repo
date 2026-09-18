@@ -62,38 +62,38 @@ export function SetRow({
   return (
     <view
       className="WorkoutSet"
-      style={{ borderColor: colors.border, backgroundColor: colors.surface }}
+      style={{ borderColor: colors.line, backgroundColor: colors.surface }}
       bindlongpress={onOpenDetails}
     >
       <view className="WorkoutSetRow">
-        <text className="SetIndex" style={{ color: colors.textMuted }}>
+        <text className="SetIndex" style={{ color: colors.textSecondary }}>
           {set.setIndex}
         </text>
 
         <view className="SetPrev">
           {previous ? (
-            <text className="SetPrevText" style={{ color: colors.textMuted }}>
+            <text className="SetPrevText" style={{ color: colors.textSecondary }}>
               ant. {previous.reps}×{previous.weight}
             </text>
           ) : null}
         </view>
 
         <view className="SetCell" bindtap={handleWeightTap}>
-          <text className="SetValue" style={{ color: colors.text }}>
+          <text className="SetValue" style={{ color: colors.textPrimary }}>
             {set.weight || '—'}
           </text>
-          <text className="SetUnit" style={{ color: colors.textMuted }}>
+          <text className="SetUnit" style={{ color: colors.textSecondary }}>
             {units}
           </text>
         </view>
 
-        <view className="SetDivider" style={{ backgroundColor: colors.border }} />
+        <view className="SetDivider" style={{ backgroundColor: colors.line }} />
 
         <view className="SetCell" bindtap={onEditReps}>
-          <text className="SetValue" style={{ color: colors.text }}>
+          <text className="SetValue" style={{ color: colors.textPrimary }}>
             {set.reps || '—'}
           </text>
-          <text className="SetUnit" style={{ color: colors.textMuted }}>
+          <text className="SetUnit" style={{ color: colors.textSecondary }}>
             reps
           </text>
         </view>
@@ -101,8 +101,8 @@ export function SetRow({
         <view
           className="SetToggle"
           style={{
-            backgroundColor: set.isCompleted ? colors.completed : 'transparent',
-            borderColor: set.isCompleted ? colors.completed : colors.border,
+            backgroundColor: set.isCompleted ? colors.success : 'transparent',
+            borderColor: set.isCompleted ? colors.success : colors.line,
           }}
           bindtap={set.isCompleted ? onUncomplete : onComplete}
         >
@@ -121,7 +121,7 @@ export function SetRow({
 
         {onOpenDetails ? (
           <view className="SetIconButton" bindtap={onOpenDetails}>
-            <text className="SetIconLabel" style={{ color: colors.textMuted }}>
+            <text className="SetIconLabel" style={{ color: colors.textSecondary }}>
               ⋯
             </text>
           </view>
@@ -131,12 +131,12 @@ export function SetRow({
       {hasDetails ? (
         <view className="SetDetailsLine">
           {set.rpe !== null ? (
-            <text className="SetDetailText" style={{ color: colors.textMuted }}>
+            <text className="SetDetailText" style={{ color: colors.textSecondary }}>
               RPE {set.rpe}
             </text>
           ) : null}
           {set.notes ? (
-            <text className="SetDetailText" style={{ color: colors.textMuted }}>
+            <text className="SetDetailText" style={{ color: colors.textSecondary }}>
               {set.notes}
             </text>
           ) : null}

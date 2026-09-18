@@ -85,16 +85,16 @@ export function NumericKeypad({
       }
     >
       <view className="KeypadDisplay">
-        <text className="KeypadValue" style={{ color: colors.text }}>
+        <text className="KeypadValue" style={{ color: colors.textPrimary }}>
           {display}
         </text>
         {field === 'weight' ? (
-          <text className="KeypadUnit" style={{ color: colors.textMuted }}>
+          <text className="KeypadUnit" style={{ color: colors.textSecondary }}>
             {units}
           </text>
         ) : null}
         {oneRm !== null ? (
-          <text className="KeypadOneRm" style={{ color: colors.textMuted }}>
+          <text className="KeypadOneRm" style={{ color: colors.textSecondary }}>
             1RM estimado {formatWeight(oneRm, units)}
           </text>
         ) : null}
@@ -120,10 +120,10 @@ export function NumericKeypad({
       {previousValue != null && previousValue > 0 ? (
         <view
           className="KeypadQuickPick"
-          style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+          style={{ backgroundColor: colors.surface, borderColor: colors.line }}
           bindtap={() => setState(quickPickState(previousValue, field))}
         >
-          <text className="KeypadQuickLabel" style={{ color: colors.textMuted }}>
+          <text className="KeypadQuickLabel" style={{ color: colors.textSecondary }}>
             Anterior: {previousValue}
           </text>
         </view>
@@ -178,12 +178,12 @@ function Key({
     <view
       className="KeypadKey"
       style={{
-        backgroundColor: muted ? colors.surface : colors.background,
-        borderColor: colors.border,
+        backgroundColor: muted ? colors.surface : colors.bg,
+        borderColor: colors.line,
       }}
       bindtap={onPress}
     >
-      <text className="KeypadKeyLabel" style={{ color: colors.text }}>
+      <text className="KeypadKeyLabel" style={{ color: colors.textPrimary }}>
         {label}
       </text>
     </view>
@@ -196,10 +196,10 @@ function StepButton({ label, onPress }: { label: string; onPress: () => void }) 
   return (
     <view
       className="KeypadStep"
-      style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      style={{ backgroundColor: colors.surface, borderColor: colors.line }}
       bindtap={onPress}
     >
-      <text className="KeypadStepLabel" style={{ color: colors.text }}>
+      <text className="KeypadStepLabel" style={{ color: colors.textPrimary }}>
         {label}
       </text>
     </view>

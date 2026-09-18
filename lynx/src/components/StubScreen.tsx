@@ -22,25 +22,25 @@ export function StubScreen({ title, note, params }: StubScreenProps) {
   return (
     <Screen title={title} subtitle="Stub navegable">
       <Card>
-        <text className="CardTitle" style={{ color: colors.text }}>
+        <text className="CardTitle" style={{ color: colors.textPrimary }}>
           Pantalla pendiente
         </text>
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        <text className="CardBody" style={{ color: colors.textSecondary }}>
           {note}
         </text>
       </Card>
 
       {keys.length > 0 ? (
         <Card>
-          <text className="CardLabel" style={{ color: colors.textMuted }}>
+          <text className="CardLabel" style={{ color: colors.textSecondary }}>
             Parámetros de la ruta
           </text>
           {keys.map((key) => (
             <view className="RowBetween" key={remountKey('param', key)}>
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
                 {key}
               </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <text className="ListTitle" style={{ color: colors.textPrimary }}>
                 {params[key]}
               </text>
             </view>

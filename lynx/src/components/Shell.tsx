@@ -46,11 +46,11 @@ export function Shell() {
     <view className="Shell">
       <view className="ShellHeader" style={{ backgroundColor: colors.surface }}>
         <view className="BackButton" bindtap={router.back}>
-          <text className="BackLabel" style={{ color: colors.primary }}>
+          <text className="BackLabel" style={{ color: colors.accent }}>
             ‹ Atrás
           </text>
         </view>
-        <text className="ShellRoute" style={{ color: colors.textMuted }}>
+        <text className="ShellRoute" style={{ color: colors.textSecondary }}>
           {route.name}
         </text>
       </view>
@@ -76,7 +76,7 @@ function TabBar({ active, onSelect }: { active: TabRoute; onSelect: (tab: string
   return (
     <view
       className="TabBar"
-      style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      style={{ backgroundColor: colors.surface, borderColor: colors.line }}
     >
       {TAB_ROUTES.map((tab) => {
         const isActive = tab === active;
@@ -89,13 +89,13 @@ function TabBar({ active, onSelect }: { active: TabRoute; onSelect: (tab: string
           >
             <text
               className="TabLabel"
-              style={{ color: isActive ? colors.primary : colors.textMuted }}
+              style={{ color: isActive ? colors.accent : colors.textSecondary }}
             >
               {TAB_LABELS[tab]}
             </text>
             <view
               className="TabMarker"
-              style={{ backgroundColor: isActive ? colors.primary : 'transparent' }}
+              style={{ backgroundColor: isActive ? colors.accent : 'transparent' }}
             />
           </view>
         );

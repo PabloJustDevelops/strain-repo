@@ -5,7 +5,7 @@ export function Loading({ label = 'Cargando…' }: { label?: string }) {
   const { colors } = useTheme();
 
   return (
-    <text className="LoadingText" style={{ color: colors.textMuted }}>
+    <text className="LoadingText" style={{ color: colors.textSecondary }}>
       {label}
     </text>
   );

@@ -14,6 +14,8 @@ module.exports = defineConfig([
       '.expo/**',
       // Plugin de lint vendorizado.
       'tools/oxlint/anti-slop/**',
+      // Prototipo externo de Lynx: no es codigo de la app ni sigue sus gates.
+      'lynx/**',
     ],
   },
   expoConfig,

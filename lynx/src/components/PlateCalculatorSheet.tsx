@@ -1,6 +1,7 @@
 import { Sheet } from '@components/Sheet';
 import { formatWeight } from '@lib/format';
 import { plateShortfallMessage, type PlateResult } from '@lib/plateCalculator';
+import { px } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
 import { Text } from '@components/Text';
@@ -100,5 +101,5 @@ function PlateDisk({ kg }: { kg: number }) {
   const height = Math.min(60, 12 + kg * 1.8);
   const backgroundColor = kg >= 20 ? '#ef4444' : kg >= 10 ? '#3b82f6' : kg >= 5 ? '#22c55e' : '#a3a3a3';
 
-  return <view className="PlateDisk" style={{ height, backgroundColor }} />;
+  return <view className="PlateDisk" style={{ height: px(height), backgroundColor }} />;
 }

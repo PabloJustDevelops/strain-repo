@@ -2,7 +2,7 @@ import { useMemo } from '@lynx-js/react';
 
 import { buildHeatmapGrid, type HeatmapDay } from '@lib/heatmap';
 import { remountKey } from '@lib/reactKeys';
-import { withAlpha } from '@lib/theme';
+import { px, withAlpha } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
 import { Text } from '@components/Text';
 
@@ -56,7 +56,7 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
             tone="textSecondary"
             className="HeatmapMonth"
             key={remountKey('month', `${marker.col}-${marker.label}`)}
-            style={{ left: marker.col * (cellSize + 3) }}
+            style={{ left: px(marker.col * (cellSize + 3)) }}
           >
             {marker.label}
           </Text>
@@ -70,7 +70,7 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
               role="detail"
               tone="textSecondary"
               key={remountKey('day', label)}
-              style={{ height: cellSize + 3, lineHeight: cellSize + 3 }}
+              style={{ height: px(cellSize + 3), lineHeight: px(cellSize + 3) }}
             >
               {label}
             </Text>
@@ -86,8 +86,8 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
                     className="HeatmapCell"
                     key={remountKey('cell', day.date)}
                     style={{
-                      width: cellSize,
-                      height: cellSize,
+                      width: px(cellSize),
+                      height: px(cellSize),
                       backgroundColor: intensity(day.volume),
                     }}
                     bindtap={onDayPress ? () => onDayPress(day) : undefined}
@@ -96,7 +96,7 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
                   <view
                     className="HeatmapCell HeatmapCellEmpty"
                     key={remountKey('future', `${weekIndex}-${dayIndex}`)}
-                    style={{ width: cellSize, height: cellSize }}
+                    style={{ width: px(cellSize), height: px(cellSize) }}
                   />
                 )
               )}

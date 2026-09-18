@@ -1,5 +1,6 @@
 import { formatDateShort, formatNumber } from '@lib/format';
 import { topByVolume } from '@lib/metrics';
+import { px } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
 import type { SessionExerciseSummary } from '@db/shapes';
 import type { WorkoutSession } from '@/types/domain';
@@ -39,7 +40,7 @@ export function WorkoutSummaryCard({ session, width = 360, height = 540 }: Worko
   return (
     <view
       className="SummaryCard"
-      style={{ width, height, backgroundColor: colors.bg, borderColor: colors.line }}
+      style={{ width: px(width), height: px(height), backgroundColor: colors.bg, borderColor: colors.line }}
     >
       <view>
         <view className="SummaryBrand">

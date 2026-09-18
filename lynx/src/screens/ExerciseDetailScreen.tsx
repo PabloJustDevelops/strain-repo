@@ -6,6 +6,7 @@ import { ErrorNote, Loading } from '@components/Loading';
 import { formatDateShort, formatNumber, formatWeight } from '@lib/format';
 import { equipmentLabel, muscleGroupLabel } from '@lib/labels';
 import { remountKey } from '@lib/reactKeys';
+import { BORDER_WIDTH, px } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
 import { getRepos, type AnalyticsRepo } from '@db';
 import type { Exercise } from '@/types/domain';
@@ -220,7 +221,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                       className="BarColumn"
                       key={remountKey('bar', row.sessionId)}
                     >
-                      <view className="BarFill" style={{ height, backgroundColor: colors.accent }} />
+                      <view className="BarFill" style={{ height: px(height), backgroundColor: colors.accent }} />
                     </view>
                   );
                 })}
@@ -249,7 +250,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                     style={{
                       backgroundColor: active ? colors.accent : colors.surface,
                       borderColor: active ? colors.accent : colors.line,
-                      borderWidth: 1,
+                      borderWidth: BORDER_WIDTH,
                     }}
                     bindtap={() => setRange(option)}
                   >

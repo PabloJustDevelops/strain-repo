@@ -1,4 +1,5 @@
-﻿import { estimateOneRm } from '@lib/metrics';
+﻿import { dayKey } from '@lib/format';
+import { estimateOneRm } from '@lib/metrics';
 
 import { createKvStore } from './kv';
 import type { PersonalRecord, SessionExercise, Set as DbSet, WorkoutSession } from './schema';
@@ -12,10 +13,6 @@ function weekKey(d: Date): string {
   const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
   const week = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   return `${date.getUTCFullYear()}-${String(week).padStart(2, '0')}`;
-}
-
-function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function monthKey(d: Date): string {

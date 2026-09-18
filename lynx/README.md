@@ -47,6 +47,12 @@ Lynx **no es React Native**. No trae out-of-the-box:
   native module SQLite.
 - **Repo de ejercicios** (`src/db/exercisesRepo.ts`): misma interfaz pública que el
   repo Drizzle, pero sobre la seam KV. Con tests.
+- **Semilla del catálogo** (`src/db/seed.ts`): port 1:1 de `src/db/seed.ts` de la app
+  Expo — los **47 ejercicios**, mismo orden y mismos campos (paridad de dominio);
+  sólo cambia la seam (sobre KV los campos con default de tabla se completan al
+  mapear y el id/timestamps los pone el repo). `seedExercises(exercises)` es
+  idempotente (`count() > 0 → return`) y el bootstrap la corre **antes** de publicar
+  los repos, así la biblioteca arranca poblada.
 
 ## Fase 2 — hecho ✅
 

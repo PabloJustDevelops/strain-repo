@@ -1,6 +1,7 @@
 import { createAnalyticsRepo, type AnalyticsRepo } from './analyticsRepo';
 import { createExercisesRepo, type ExercisesRepo } from './exercisesRepo';
 import { createRoutinesRepo, type RoutinesRepo } from './routinesRepo';
+import { seedExercises } from './seed';
 import { createSessionsRepo, type SessionsRepo } from './sessionsRepo';
 import { getStorage } from './storage';
 import type { Storage } from './storage';
@@ -47,11 +48,19 @@ export function getRepos(): Repos {
 
 let bootstrapping: Promise<Repos> | null = null;
 
-/** Composition root: crea los repos sobre el storage compartido. Idempotente. */
+/**
+ * Composition root: compone los repos sobre el storage compartido, siembra el
+ * catálogo y publica la capa de datos. Idempotente.
+ *
+ * La siembra corre ANTES de `publishRepos`: si se publicara primero, una pantalla
+ * podría leer la biblioteca todavía vacía. Un fallo (de siembra incluido) no se
+ * traga: se propaga con su causa y limpia el cache para poder reintentar.
+ */
 export function bootstrapDatabase(): Promise<Repos> {
   if (!bootstrapping) {
     bootstrapping = (async () => {
       const repos = createRepos(getStorage());
+      await seedExercises(repos.exercises);
       publishRepos(repos);
       return repos;
     })().catch((err) => {

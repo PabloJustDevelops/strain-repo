@@ -41,11 +41,13 @@ vi.mock('@lynx-js/react/jsx-dev-runtime', () => ({
   jsxDEV: () => null,
 }));
 
+import { ICON_NAMES } from '@components/Icon';
 import {
   ROUTE_NAMES,
   STACK_ROUTES,
   STACK_TITLES,
   TAB_COMPONENTS,
+  TAB_ICONS,
   TAB_LABELS,
   TAB_ROUTES,
   TABS_ROUTE,
@@ -61,11 +63,32 @@ describe('registro de rutas (Lynx)', () => {
     }
   });
 
-  it('cubre las 7 pestañas, las rutas de pila y el contenedor (tabs)', () => {
-    expect(TAB_ROUTES).toHaveLength(7);
-    expect(STACK_ROUTES).toHaveLength(7);
-    expect(ROUTE_NAMES).toHaveLength(15);
+  it('cubre las 5 pestañas, las rutas de pila y el contenedor (tabs)', () => {
+    expect(TAB_ROUTES).toHaveLength(5);
+    expect(STACK_ROUTES).toHaveLength(8);
+    expect(ROUTE_NAMES).toHaveLength(14);
     expect(ROUTE_NAMES).toContain(TABS_ROUTE);
+  });
+
+  it('Salud ya no es pestaña: es una ruta de pila, y se entra desde Ajustes', () => {
+    expect(TAB_ROUTES).not.toContain('health');
+    expect(STACK_ROUTES).toContain('health');
+    expect(resolveRoute('health')).toBeTypeOf('function');
+    expect(routeTitle('health')).toBe('Salud');
+  });
+
+  it('Historial ya no es pestaña: su lista vive en Progreso y el detalle sigue igual', () => {
+    expect(TAB_ROUTES).not.toContain('history');
+    // La lista es contenido de Progreso, pero el detalle no se movió de ruta.
+    expect(TAB_COMPONENTS.progress).toBeTypeOf('function');
+    expect(STACK_ROUTES).toContain('history/[id]');
+    expect(resolveRoute('history/[id]')).toBeTypeOf('function');
+  });
+
+  it('cada pestaña declara su icono, y el icono es uno del set', () => {
+    for (const tab of TAB_ROUTES) {
+      expect(ICON_NAMES, tab).toContain(TAB_ICONS[tab]);
+    }
   });
 
   it('el editor de rutinas tiene sus tres rutas registradas y con título humano', () => {

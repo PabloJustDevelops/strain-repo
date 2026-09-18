@@ -90,12 +90,7 @@ export function HomeScreen() {
           Acciones rápidas
         </Text>
         <view className="RowActions">
-          <Button
-            title="Biblioteca"
-            variant="secondary"
-            onPress={() => goToTab('exercises')}
-          />
-          <Button title="Historial" variant="secondary" onPress={() => goToTab('history')} />
+          <Button title="Biblioteca" variant="secondary" onPress={() => goToTab('exercises')} />
           <Button title="Progreso" variant="secondary" onPress={() => goToTab('progress')} />
         </view>
       </Card>

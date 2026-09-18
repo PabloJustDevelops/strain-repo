@@ -4,9 +4,11 @@ Reescritura de la app Expo/React Native de Strain sobre **Lynx + ReactLynx + Rsp
 La app original en la raíz del repo **sigue intacta**: esto vive en `lynx/` como
 migración incremental.
 
-> Estado: **Fase 5 (editor de rutinas) hecha**. Quedan la auth real y los native
-> modules. La app Expo sigue siendo la de producción. El diseño y los tokens
-> están en la sección [Sistema de UI](#sistema-de-ui).
+> Estado: **Fase 5 (editor de rutinas) hecha** y **diseño v2, parte A** (tokens +
+> componentes + shell de 5 pestañas) en `feat/lynx-diseno-v2`. Quedan la auth real,
+> los native modules y la parte B (las pantallas sobre el sistema v2). La app Expo
+> sigue siendo la de producción. Los tokens vigentes están en
+> [Sistema de UI v2](#sistema-de-ui-v2--parte-a).
 
 ## Por fases (decisión del dueño)
 
@@ -167,6 +169,10 @@ que el flujo de entrenamiento ya no caiga en los stubs).
 
 
 ## Sistema de UI (Fase 4)
+
+> ⚠️ Los tokens, la escala y los componentes de esta sección quedaron
+> **sustituidos por el [sistema v2](#sistema-de-ui-v2--parte-a)**. Se conserva como
+> registro de lo que hizo la fase; los valores vigentes son los de la v2.
 
 El aspecto era lo que quedaba flojo: `App.css` tenía 1.127 líneas y ~160 clases a
 mano, y el theme era una copia literal del de Tailwind (grises puros + `#3b82f6`).
@@ -396,6 +402,102 @@ el mismo: si un día pesa de más, el editor es un solo fichero y se vuelve a
 botones sin tocar los datos.
 
 
+## Sistema de UI v2 — parte A
+
+Sustituye los tokens y añade los componentes del sistema nuevo. **No toca
+pantallas**: eso es la parte B. Por eso las pantallas de esta parte siguen
+compilando y los tests pasan usando los componentes viejos.
+
+### Tokens (`src/lib/theme.ts`)
+
+| Rol | Claro | Oscuro | Para qué |
+|---|---|---|---|
+| `bg` | `#F6F8FB` | `#0B0E13` | fondo de la app, detrás de todo |
+| `surface` | `#FFFFFF` | `#141922` | superficie base: tarjetas, barras |
+| `surfaceRaised` | `#EDF2F9` | `#1C2230` | un nivel por encima: hojas, controles, activos |
+| `border` | `#D8DFEA` | `#262E3B` | separadores y bordes (un único grosor, 1px) |
+| `textPrimary` | `#0F1723` | `#EAF0F8` | texto principal |
+| `textSecondary` | `#4A5768` | `#A9B6C9` | texto de apoyo |
+| `accent` | `#1D4ED8` | `#3B82F6` | acción primaria y selección |
+| `onAccent` | `#FFFFFF` | `#0B0E13` | texto sobre el acento |
+| `success` | `#0F7A52` | `#34D399` | estados semánticos |
+| `warn` | `#9A6100` | `#F59E0B` | |
+| `danger` | `#C62B2B` | `#F87171` | |
+
+`textInverse` y `accentSoft` siguen como roles de apoyo. `line` y `warning`
+quedan como **alias** de `border` y `warn` sólo para que las pantallas anteriores
+a la v2 compilen sin tocarlas; la parte B los retira.
+
+- **El borde es sutil, no un borde duro.** El `border` de la v2 baja a propósito
+  del 3:1 que pide un borde significativo: agrupa sin encerrar. Por eso el test
+  fija el **rango** (≥1.15 y ≤2.5 sobre cada superficie) y no el umbral viejo.
+  El texto sigue por encima de 4.5:1 (mínimo medido: 4.79:1).
+- **Tipografía (seis pasos)**: `detail` 12/16 500, `support` 14/20 400,
+  `body` 16/24 400, `heading` 18/24 600, `title` 22/28 600, `display` 34/40 700.
+  La compensación en oscuro no cambia: +2 de interlineado y un escalón menos de
+  peso (nunca por debajo de 400).
+- **Espaciado** 4 / 8 / 16 / 24 / 36 (`xs|sm|md|lg|xl`); **radios** `control` 8,
+  `container` 12, `pill` 999; **movimiento** `fast` 100ms y `base` 150ms, con el
+  estado pulsado en una receta (`pressedStyle`): opacidad 0.6 y escala 0.98.
+- La regla de unidad sigue igual: ninguna longitud llega al motor sin `px()`.
+
+### Componentes nuevos
+
+`Icon` (set propio: SVG inline con trazo de 2px sobre caja de 24 — chevron,
+chevronRight, home, plus, check, clock, streak, list, dumbbell, chart, heart,
+settings), `ListRow`, `SectionHeader`, `StatBlock`, `PrimaryActionBar`, `Chip`,
+`SegmentedControl` y `EmptyState` (que gana `icon`). Los glifos de texto (`‹`,
+`✓`, `⋯`, `⌫`) dejan de usarse como iconos: dependían de la fuente de cada
+plataforma.
+
+En Lynx un `<svg>` no lleva hijos, así que el icono es un documento SVG en el
+`content` del elemento y el color se resuelve con `current-color`; `iconSvg()` es
+la función pura que lo arma.
+
+Reglas que aplican al sistema: nada de tarjeta dentro de tarjeta, lo que se
+repite se pinta como **fila**, el acento sólo en la acción primaria y en lo
+seleccionado, ningún color comunica un estado **solo** (la pestaña activa lleva
+marcador y el chip seleccionado cambia el rol de su texto) y los nombres largos
+truncan con elipsis (`text-maxline` del `<text>` más `text-overflow: ellipsis`,
+que es lo que Lynx pide para cortar de verdad).
+
+### Shell: de 7 pestañas a 5
+
+`TAB_ROUTES` = `home, routines, exercises, progress, settings` (Hoy, Rutinas,
+Ejercicios, Progreso, Ajustes), cada una con icono y etiqueta; el icono vive en
+`TAB_ICONS`, en el registro, porque es parte de declarar la pestaña.
+
+- **Historial** deja de ser pestaña: la lista de sesiones se muestra como bloque
+  dentro de `ProgressScreen`, sobre el componente compartido `HistoryList` (que
+  también usa la pantalla de historial, así no hay dos listas que puedan
+  divergir). `history/[id]` sigue funcionando igual.
+- **Salud** deja de ser pestaña: pasa a ruta de pila y se abre desde una fila de
+  Ajustes. `HealthScreen` y su lógica quedan intactas.
+- En **Hoy** desaparece el atajo "Historial", que apuntaba a la pestaña que ya no
+  existe (el historial ahora se lee en Progreso).
+
+### Tests de la parte A
+
+`src/test/jsxCapture.ts` es el arnés: el runtime de ReactLynx no carga en Node y
+el repo no trae renderer, así que los tests reemplazan el runtime de JSX por uno
+que **captura** el árbol y afirman sobre los nodos y las props que cada
+componente escribió. Con eso los ocho componentes tienen test propio, sin montar
+nada.
+
+Los tests de tema se reescribieron para los tokens v2 —no se borró ningún caso—
+y el registro de rutas ahora exige 5 pestañas con icono, `health` como ruta de
+pila y que `history` no sea pestaña.
+
+### Gates parte A
+
+- `node node_modules/typescript/bin/tsc --noEmit` → exit 0
+- `node node_modules/vitest/vitest.mjs run` → 21 ficheros / **152 tests** (eran 102)
+- `node node_modules/@lynx-js/rspeedy/bin/rspeedy.js build` →
+  `dist/main.lynx.bundle` **549.9 kB** (era 528.3 kB)
+
+El bundle sube ~21 kB por los ocho componentes y los documentos SVG de los
+iconos.
+
 ## Comandos
 
 > Nota: en este host los shims de bun/npm en PowerShell dan guerra con stderr.
@@ -414,6 +516,10 @@ que muestra `rspeedy dev`.
 
 ## Próximas fases (propuesta)
 
+- **Diseño v2, parte B — pantallas**: pasar las pantallas al sistema v2 (tokens
+  nuevos, y los componentes `ListRow` / `SectionHeader` / `StatBlock` /
+  `PrimaryActionBar` / `Chip` / `SegmentedControl`), y con eso retirar los alias
+  `line` y `warning` de `theme.ts`.
 - **Fase 4.1 — Swipe y listas**: `SwipeAction` en la fila de serie y `List` en las
   pantallas de lista, más `Presence` donde aporte (ver "Lo que queda").
 - **Fase 5 — Editor de rutinas**: ✅ hecha (ver arriba). `routines/new`,

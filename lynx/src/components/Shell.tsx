@@ -1,10 +1,12 @@
 import { EmptyState } from '@components/EmptyState';
+import { Icon } from '@components/Icon';
+import { Text } from '@components/Text';
 import { remountKey } from '@lib/reactKeys';
 import { useCurrentRoute, useRouter, useTabs } from '@lib/router';
 import { useTheme } from '@lib/useTheme';
-import { Text } from '@components/Text';
 import {
   TAB_COMPONENTS,
+  TAB_ICONS,
   TAB_LABELS,
   TAB_ROUTES,
   TABS_ROUTE,
@@ -48,14 +50,18 @@ export function Shell() {
     <view className="Shell">
       <view
         className="ShellHeader"
-        style={{ backgroundColor: colors.surface, borderColor: colors.line }}
+        style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
+        {/* El chevron es del set propio: antes era el glifo `‹`, que se ve
+            distinto en cada plataforma. */}
         <view className="BackButton" bindtap={router.back}>
-          <Text role="title" tone="accent">
-            ‹ Atrás
+          <Icon name="chevron" size={20} tone="accent" />
+          <Text role="body" tone="accent" className="BackLabel">
+            Atrás
           </Text>
         </view>
-        <Text role="title" tone="textPrimary">
+
+        <Text role="title" tone="textPrimary" className="ShellTitle">
           {routeTitle(route.name)}
         </Text>
       </view>
@@ -74,28 +80,27 @@ export function Shell() {
   );
 }
 
-/** Tab bar inferior: las siete pestañas del registro, en fila. */
+/**
+ * Tab bar inferior: las pestañas del registro, en fila.
+ *
+ * Cada pestaña es icono + etiqueta. El estado seleccionado se marca con el
+ * acento **y** con el marcador de abajo: el color solo no comunica un estado.
+ */
 function TabBar({ active, onSelect }: { active: TabRoute; onSelect: (tab: string) => void }) {
   const { colors } = useTheme();
 
   return (
     <view
       className="TabBar"
-      style={{ backgroundColor: colors.surface, borderColor: colors.line }}
+      style={{ backgroundColor: colors.surface, borderColor: colors.border }}
     >
       {TAB_ROUTES.map((tab) => {
         const isActive = tab === active;
 
         return (
-          <view
-            className="TabButton"
-            key={remountKey('tab', tab)}
-            bindtap={() => onSelect(tab)}
-          >
-            <Text
-              role="detail"
-              tone={isActive ? 'accent' : 'textSecondary'}
-            >
+          <view className="TabButton" key={remountKey('tab', tab)} bindtap={() => onSelect(tab)}>
+            <Icon name={TAB_ICONS[tab]} size={22} tone={isActive ? 'accent' : 'textSecondary'} />
+            <Text role="detail" tone={isActive ? 'accent' : 'textSecondary'} className="TabLabel">
               {TAB_LABELS[tab]}
             </Text>
             <view

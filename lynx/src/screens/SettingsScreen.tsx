@@ -1,9 +1,13 @@
 import { Switch, SwitchThumb, SwitchTrack } from '@lynx-js/lynx-ui';
 
 import { Card } from '@components/Card';
+import { Icon } from '@components/Icon';
+import { ListRow } from '@components/ListRow';
 import { Screen } from '@components/Screen';
+import { SectionHeader } from '@components/SectionHeader';
 import { Text } from '@components/Text';
 import { remountKey } from '@lib/reactKeys';
+import { useRouter } from '@lib/router';
 import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
 import type { ThemeMode, Units } from '@/types/domain';
@@ -28,6 +32,7 @@ const UNIT_OPTIONS: { value: Units; label: string }[] = [
  */
 export function SettingsScreen() {
   const { colors, isDark } = useTheme();
+  const router = useRouter();
 
   const themeMode = usePreferences((s) => s.themeMode);
   const setThemeMode = usePreferences((s) => s.setThemeMode);
@@ -101,6 +106,17 @@ export function SettingsScreen() {
           (con driver nulo), pero no hay UI que las use todavía.
         </Text>
       </Card>
+
+      {/* Salud dejó de ser pestaña en la v2: se entra desde acá. Fila con
+          chevron porque navega, sin tarjeta alrededor. */}
+      <SectionHeader title="Integraciones" />
+      <ListRow
+        leading={<Icon name="heart" size={20} tone="textPrimary" />}
+        title="Salud"
+        meta="Health Connect"
+        chevron
+        onPress={() => router.push('health')}
+      />
 
       <Card>
         <Text role="detail" tone="textSecondary">

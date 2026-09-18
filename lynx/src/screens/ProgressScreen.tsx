@@ -1,9 +1,11 @@
 import { getRepos } from '@db';
 import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
+import { HistoryList } from '@components/HistoryList';
 import { ErrorNote, Loading } from '@components/Loading';
 import { Heatmap, type HeatmapDay } from '@components/Heatmap';
 import { Screen } from '@components/Screen';
+import { SectionHeader } from '@components/SectionHeader';
 import { Text } from '@components/Text';
 import { formatDateShort } from '@lib/format';
 import { topPersonalRecords, type PersonalRecordSummary } from '@lib/personalRecords';
@@ -25,6 +27,10 @@ interface WeekVolume {
  * semanal se muestra como lista de semanas. Los datos son los mismos que
  * alimentarían al gráfico: `analytics.volumePerWeek` y las etiquetas de mes de
  * `@lib/weeks`.
+ *
+ * Desde la v2 esta pantalla es también donde se lee el **historial**: la lista de
+ * sesiones dejó de ser pestaña y se muestra como bloque al final, con los mismos
+ * datos y el mismo destino (`history/[id]`).
  */
 export function ProgressScreen() {
   const units = usePreferences((s) => s.units);
@@ -127,6 +133,9 @@ export function ProgressScreen() {
           </view>
         ))}
       </Card>
+
+      <SectionHeader title="Historial" />
+      <HistoryList />
 
       {loading ? <Loading /> : null}
     </Screen>

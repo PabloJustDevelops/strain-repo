@@ -1,11 +1,11 @@
 import type { ComponentType } from '@lynx-js/react';
 
 import { Shell } from '@components/Shell';
+import type { IconName } from '@components/Icon';
 import { AddExerciseScreen } from '@/screens/AddExerciseScreen';
 import { ExercisesScreen } from '@/screens/ExercisesScreen';
 import { ExerciseDetailScreen } from '@/screens/ExerciseDetailScreen';
 import { HealthScreen } from '@/screens/HealthScreen';
-import { HistoryScreen } from '@/screens/HistoryScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ProgressScreen } from '@/screens/ProgressScreen';
 import { RoutineDetailScreen } from '@/screens/RoutineDetailScreen';
@@ -42,16 +42,15 @@ export const TABS_ROUTE = '(tabs)';
 /** Pestaña a la que cae `(tabs)` cuando no trae `tab` en los params. */
 export const DEFAULT_TAB = 'home';
 
-/** Las siete pestañas, con los mismos nombres que `app/(tabs)` en Expo. */
-export const TAB_ROUTES = [
-  'home',
-  'routines',
-  'exercises',
-  'history',
-  'progress',
-  'health',
-  'settings',
-] as const;
+/**
+ * Las cinco pestañas del shell.
+ *
+ * La v2 cerró las dos pestañas que no aguantaban ser pestaña: **Historial** es
+ * contenido de Progreso (su lista de sesiones se lee dentro de esa pantalla) y
+ * **Salud** pasó a ser una ruta de pila, que se abre desde Ajustes. Con cinco
+ * pestañas cada una entra con icono y etiqueta sin apretarse.
+ */
+export const TAB_ROUTES = ['home', 'routines', 'exercises', 'progress', 'settings'] as const;
 
 export type TabRoute = (typeof TAB_ROUTES)[number];
 
@@ -59,29 +58,47 @@ export const TAB_LABELS: Record<TabRoute, string> = {
   home: 'Hoy',
   routines: 'Rutinas',
   exercises: 'Ejercicios',
-  history: 'Historial',
   progress: 'Progreso',
-  health: 'Salud',
   settings: 'Ajustes',
+};
+
+/**
+ * Icono de cada pestaña.
+ *
+ * Vive en el registro y no en el `Shell` porque es parte de declarar la
+ * pestaña: así el test puede exigir que ninguna se quede sin icono, igual que
+ * exige que ninguna se quede sin etiqueta.
+ */
+export const TAB_ICONS: Record<TabRoute, IconName> = {
+  home: 'home',
+  routines: 'list',
+  exercises: 'dumbbell',
+  progress: 'chart',
+  settings: 'settings',
 };
 
 export const TAB_COMPONENTS: Record<TabRoute, ComponentType<RouteProps>> = {
   home: HomeScreen,
   routines: RoutinesScreen,
   exercises: ExercisesScreen,
-  history: HistoryScreen,
   progress: ProgressScreen,
-  health: HealthScreen,
   settings: SettingsScreen,
 };
 
-/** Rutas de pila: viven por encima de las pestañas. */
+/**
+ * Rutas de pila: viven por encima de las pestañas.
+ *
+ * `health` está acá y no en las pestañas porque Salud dejó de ser una pestaña:
+ * se entra desde Ajustes. `history/[id]` sigue igual: lo que cambió es dónde se
+ * lee la lista de sesiones, no el detalle.
+ */
 export const STACK_ROUTES = [
   'routines/new',
   'routines/[id]',
   'routines/[id]/add-exercise',
   'exercises/[id]',
   'history/[id]',
+  'health',
   'workout/active',
   'workout/finish',
 ] as const;
@@ -94,6 +111,7 @@ export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
   'routines/[id]/add-exercise': AddExerciseScreen,
   'exercises/[id]': ExerciseDetailScreen,
   'history/[id]': SessionDetailScreen,
+  health: HealthScreen,
   'workout/active': WorkoutActiveScreen,
   'workout/finish': WorkoutFinishScreen,
 };
@@ -112,6 +130,7 @@ export const STACK_TITLES: Record<StackRoute, string> = {
   'routines/[id]/add-exercise': 'Añadir ejercicio',
   'exercises/[id]': 'Detalle del ejercicio',
   'history/[id]': 'Detalle de la sesión',
+  health: 'Salud',
   'workout/active': 'Entrenamiento activo',
   'workout/finish': 'Resumen del entrenamiento',
 };

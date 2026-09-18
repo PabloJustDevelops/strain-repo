@@ -20,6 +20,15 @@ interface TextProps {
   role?: TypeRole;
   /** Rol de color. Por defecto, texto principal. */
   tone?: TextTone;
+  /**
+   * Corta el texto a N líneas y mete elipsis al final.
+   *
+   * En Lynx el corte no lo hace el CSS solo: la elipsis necesita
+   * `text-overflow: ellipsis` **y** el atributo `text-maxline` del `<text>`,
+   * que es lo que este prop agrega. Sin él, un nombre largo se envuelve o
+   * desborda en vez de truncarse.
+   */
+  maxLines?: number;
   /** Clases de layout (no de tipografía ni de color). */
   className?: string;
   /** Estilos extra, por encima del rol. */
@@ -38,6 +47,7 @@ interface TextProps {
 export function Text({
   role = 'support',
   tone = 'textPrimary',
+  maxLines,
   className,
   style,
   children,
@@ -48,6 +58,7 @@ export function Text({
     <text
       className={className}
       style={{ ...typeStyle(role, isDark), color: colors[tone], ...style }}
+      text-maxline={maxLines === undefined ? undefined : String(maxLines)}
     >
       {children}
     </text>

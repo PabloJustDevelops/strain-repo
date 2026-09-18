@@ -16,6 +16,8 @@ Bienvenido a la documentación del proyecto **Strain**. Aquí se recoge todo lo 
 | 08 | [Setup local](./08-setup.md) | Cómo arrancar el proyecto en dev (web y Android) |
 | 09 | [Remodelación Web Dashboard](./09-remodelacion-web-dashboard.md) | Propuesta de arquitectura web + refinamiento mobile + sync |
 | 10 | [C6: targets de rutina en la sesión](./10-c6-targets-de-rutina.md) | Spec pendiente de grilling: persistir los targets que hoy se descartan |
+| 11 | [Plan para una app tipo Hevy](./11-plan-app-tipo-hevy.md) | Cómo está montada Hevy, los tres pilares, arquitectura objetivo y fases F0-F7 |
+| 12 | [Entornos de desarrollo y preview de Lynx](./12-entorno-desarrollo-lynx.md) | Navegador (Lynx for Web), móvil por QR, escritorio, emulador y DevTool |
 
 ## Estado del proyecto (resumen rápido)
 

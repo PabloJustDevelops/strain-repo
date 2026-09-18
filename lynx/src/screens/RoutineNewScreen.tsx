@@ -5,12 +5,9 @@ import { getRepos } from '@db';
 import { Button } from '@components/Button';
 import { ErrorNote } from '@components/Loading';
 import { Text } from '@components/Text';
-import { ROUTINE_NAME_MAX, validateRoutineName } from '@lib/routineEditor';
+import { ROUTINE_NAME_MAX, ROUTINE_NOTE_MAX, validateRoutineName } from '@lib/routineEditor';
 import { useRouter } from '@lib/router';
 import { useTheme } from '@lib/useTheme';
-
-/** Tope de la nota, el mismo que usan las notas de un set. */
-const NOTE_MAX = 280;
 
 /**
  * Creación de una rutina: nombre, nota opcional y la lista de ejercicios vacía.
@@ -94,12 +91,12 @@ export function RoutineNewScreen() {
                   color: colors.textPrimary,
                 }}
                 placeholder="Para qué sirve esta rutina"
-                maxLength={NOTE_MAX}
+                maxLength={ROUTINE_NOTE_MAX}
                 value={note}
                 onInput={(value) => setNote(value)}
               />
               <Text role="detail" tone="textSecondary">
-                {note.length}/{NOTE_MAX}
+                {note.length}/{ROUTINE_NOTE_MAX}
               </Text>
             </view>
 

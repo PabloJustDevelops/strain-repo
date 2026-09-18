@@ -7,11 +7,11 @@ import { HealthScreen } from '@/screens/HealthScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ProgressScreen } from '@/screens/ProgressScreen';
+import { RoutineDetailScreen } from '@/screens/RoutineDetailScreen';
 import { RoutineNewScreen } from '@/screens/RoutineNewScreen';
 import { RoutinesScreen } from '@/screens/RoutinesScreen';
 import { SessionDetailScreen } from '@/screens/SessionDetailScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
-import { RoutineDetailScreen } from '@/screens/StubScreens';
 import { WorkoutActiveScreen } from '@/screens/WorkoutActiveScreen';
 import { WorkoutFinishScreen } from '@/screens/WorkoutFinishScreen';
 

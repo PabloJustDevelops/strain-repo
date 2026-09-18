@@ -68,14 +68,15 @@ describe('registro de rutas (Lynx)', () => {
     expect(ROUTE_NAMES).toContain(TABS_ROUTE);
   });
 
-  it('el flujo de entrenamiento ya no resuelve a los stubs', () => {
-    const stub = resolveRoute('routines/[id]');
+  it('cada ruta de pila resuelve a una pantalla propia', () => {
+    const components = STACK_ROUTES.map((name) => resolveRoute(name));
 
-    for (const name of ['workout/active', 'workout/finish', 'exercises/[id]', 'history/[id]']) {
-      expect(resolveRoute(name)).not.toBe(stub);
+    for (const component of components) {
+      expect(component).toBeTypeOf('function');
     }
 
-    expect(resolveRoute('history/[id]')).toBeTypeOf('function');
+    // Sin stubs compartidos: dos rutas no pueden caer en el mismo componente.
+    expect(new Set(components).size).toBe(components.length);
   });
 
   it('ninguna pestaña queda sin etiqueta ni sin componente', () => {

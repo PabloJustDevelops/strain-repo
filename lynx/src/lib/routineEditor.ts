@@ -11,6 +11,9 @@ import type { Exercise } from '@/types/domain';
 /** Tope del nombre de una rutina. Más largo no entra en la cabecera ni en la tab. */
 export const ROUTINE_NAME_MAX = 60;
 
+/** Tope de la nota de una rutina, el mismo que las notas de un set. */
+export const ROUTINE_NOTE_MAX = 280;
+
 /**
  * Mensaje de error del nombre, o `null` si es válido.
  *

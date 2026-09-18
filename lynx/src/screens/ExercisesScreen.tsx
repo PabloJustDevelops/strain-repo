@@ -2,7 +2,6 @@ import { Input } from '@lynx-js/lynx-ui';
 import { useState } from '@lynx-js/react';
 
 import { getRepos } from '@db';
-import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { MuscleChip } from '@components/MuscleChip';
@@ -85,16 +84,19 @@ export function ExercisesScreen() {
       ) : null}
 
       {filtered.map((exercise) => (
-        <Card key={remountKey('exercise', exercise.id)}>
-          <view bindtap={() => router.push('exercises/[id]', { id: exercise.id })}>
-            <Text role="title" tone="textPrimary">
-              {exercise.name}
-            </Text>
-            <Text role="support" tone="textSecondary">
-              {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
-            </Text>
-          </view>
-        </Card>
+        <view
+          className="ListRow"
+          key={remountKey('exercise', exercise.id)}
+          style={{ borderColor: colors.line }}
+          bindtap={() => router.push('exercises/[id]', { id: exercise.id })}
+        >
+          <Text role="title" tone="textPrimary">
+            {exercise.name}
+          </Text>
+          <Text role="support" tone="textSecondary">
+            {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
+          </Text>
+        </view>
       ))}
     </Screen>
   );

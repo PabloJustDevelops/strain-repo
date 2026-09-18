@@ -1,5 +1,4 @@
 import { getRepos } from '@db';
-import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { Screen } from '@components/Screen';
@@ -8,6 +7,7 @@ import { formatDateTime, formatDuration } from '@lib/format';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
 import { useLoad } from '@lib/useLoad';
+import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
 import type { WorkoutSession } from '@/types/domain';
 
@@ -19,6 +19,7 @@ import type { WorkoutSession } from '@/types/domain';
  * de la sesión (`history/[id]`) con su desglose de series.
  */
 export function HistoryScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const units = usePreferences((s) => s.units);
 
@@ -40,24 +41,27 @@ export function HistoryScreen() {
       ) : null}
 
       {sessions.data.map((session) => (
-        <Card key={remountKey('session', session.id)}>
-          <view bindtap={() => router.push('history/[id]', { id: session.id })}>
-            <view className="RowBetween">
-              <Text role="title" tone="textPrimary">
-                {session.name}
-              </Text>
-              <Text role="detail" tone="textSecondary">
-                {formatDateTime(new Date(session.startedAt))}
-              </Text>
-            </view>
-
-            <view className="StatRow">
-              <Stat label="Volumen" value={`${Math.round(session.totalVolume)} ${units}`} />
-              <Stat label="Series" value={String(session.totalSets)} />
-              <Stat label="Duración" value={formatDuration(session.durationSeconds ?? 0)} />
-            </view>
+        <view
+          className="ListRow"
+          key={remountKey('session', session.id)}
+          style={{ borderColor: colors.line }}
+          bindtap={() => router.push('history/[id]', { id: session.id })}
+        >
+          <view className="RowBetween">
+            <Text role="title" tone="textPrimary">
+              {session.name}
+            </Text>
+            <Text role="detail" tone="textSecondary">
+              {formatDateTime(new Date(session.startedAt))}
+            </Text>
           </view>
-        </Card>
+
+          <view className="StatRow">
+            <Stat label="Volumen" value={`${Math.round(session.totalVolume)} ${units}`} />
+            <Stat label="Series" value={String(session.totalSets)} />
+            <Stat label="Duración" value={formatDuration(session.durationSeconds ?? 0)} />
+          </view>
+        </view>
       ))}
     </Screen>
   );

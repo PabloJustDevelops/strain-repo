@@ -1,9 +1,9 @@
 import { getRepos } from '@db';
 import { Button } from '@components/Button';
-import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { formatDateTime } from '@lib/format';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
@@ -11,7 +11,6 @@ import { useLoad } from '@lib/useLoad';
 import { useTheme } from '@lib/useTheme';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import type { Routine } from '@/types/domain';
-import { Text } from '@components/Text';
 
 /**
  * Lista de rutinas (plantillas reutilizables).
@@ -44,7 +43,11 @@ export function RoutinesScreen() {
       ) : null}
 
       {routines.data.map((routine) => (
-        <Card key={remountKey('routine', routine.id)}>
+        <view
+          className="ListRow"
+          key={remountKey('routine', routine.id)}
+          style={{ borderColor: colors.line }}
+        >
           <view className="RowBetween">
             <view className="RowFill">
               <Text role="title" tone="textPrimary">
@@ -74,7 +77,7 @@ export function RoutinesScreen() {
               onPress={() => router.push('routines/[id]', { id: routine.id })}
             />
           </view>
-        </Card>
+        </view>
       ))}
     </Screen>
   );

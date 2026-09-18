@@ -305,7 +305,7 @@ comprueba la tabla ruta → título.
 - `node node_modules/typescript/bin/tsc --noEmit` → exit 0
 - `node node_modules/vitest/vitest.mjs run` → 10 ficheros / **66 tests** (eran 47)
 - `node node_modules/@lynx-js/rspeedy/bin/rspeedy.js build` →
-  `dist/main.lynx.bundle` **451.5 kB**
+  `dist/main.lynx.bundle` **451.8 kB**
 
 El bundle sube respecto de los 331 kB del final de la Fase 3: la hoja de lynx-ui
 arrastra su runtime de gestos y de animación. Es el precio de tener arrastre para

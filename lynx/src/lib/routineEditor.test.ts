@@ -11,6 +11,7 @@ import {
   orderRowsByIds,
   prescriptionLabel,
   removeById,
+  selectorEmptyState,
   toggleId,
   validateRoutineName,
   withoutExisting,
@@ -121,6 +122,32 @@ describe('withoutExisting / toggleId (selección múltiple)', () => {
     expect(toggleId(['a'], 'b')).toEqual(['a', 'b']);
     expect(toggleId(['a', 'b', 'c'], 'b')).toEqual(['a', 'c']);
     expect(toggleId(['a'], 'a')).toEqual([]);
+  });
+});
+
+describe('selectorEmptyState (estado vacío del selector)', () => {
+  it('biblioteca vacía: manda a crear ejercicios, no dice que ya está todo', () => {
+    const empty = selectorEmptyState(0, 0, 0);
+
+    expect(empty?.title).toBe('Tu biblioteca está vacía');
+    expect(empty?.body).toContain('pestaña Ejercicios');
+    expect(empty?.title).not.toContain('Ya tenés');
+  });
+
+  it('catálogo con la rutina completa: avisa que ya tiene todo', () => {
+    const empty = selectorEmptyState(47, 0, 0);
+
+    expect(empty?.title).toBe('Ya tenés todos los ejercicios');
+  });
+
+  it('catálogo no vacío pero filtro sin coincidencias: sin resultados', () => {
+    const empty = selectorEmptyState(47, 10, 0);
+
+    expect(empty?.title).toBe('Sin resultados');
+  });
+
+  it('con resultados disponibles no hay estado vacío', () => {
+    expect(selectorEmptyState(47, 10, 3)).toBeNull();
   });
 });
 

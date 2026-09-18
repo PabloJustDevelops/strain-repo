@@ -314,10 +314,9 @@ comprueba la tabla ruta → título.
 
 ### Gates Fase 4
 
-- `node node_modules/typescript/bin/tsc --noEmit` → exit 0
-- `node node_modules/vitest/vitest.mjs run` → 10 ficheros / **66 tests** (eran 47)
-- `node node_modules/@lynx-js/rspeedy/bin/rspeedy.js build` →
-  `dist/main.lynx.bundle` **451.8 kB**
+- `bun run typecheck` → exit 0
+- `bun run test` → 10 ficheros / **66 tests** (eran 47)
+- `bun run build` → `dist/main.lynx.bundle` **451.8 kB**
 
 El bundle sube respecto de los 331 kB del final de la Fase 3: la hoja de lynx-ui
 arrastra su runtime de gestos y de animación. Es el precio de tener arrastre para
@@ -490,29 +489,25 @@ pila y que `history` no sea pestaña.
 
 ### Gates parte A
 
-- `node node_modules/typescript/bin/tsc --noEmit` → exit 0
-- `node node_modules/vitest/vitest.mjs run` → 21 ficheros / **152 tests** (eran 102)
-- `node node_modules/@lynx-js/rspeedy/bin/rspeedy.js build` →
-  `dist/main.lynx.bundle` **549.9 kB** (era 528.3 kB)
+- `bun run typecheck` → exit 0
+- `bun run test` → 21 ficheros / **152 tests** (eran 102)
+- `bun run build` → `dist/main.lynx.bundle` **549.9 kB** (era 528.3 kB)
 
 El bundle sube ~21 kB por los ocho componentes y los documentos SVG de los
 iconos.
 
 ## Comandos
 
-> Nota: en este host los shims de bun/npm en PowerShell dan guerra con stderr.
-> Lanzar los binarios con `node` directamente es lo fiable.
-
-```powershell
+```bash
 cd lynx
-node node_modules/typescript/bin/tsc --noEmit          # typecheck
-node node_modules/vitest/vitest.mjs run                # tests
-node node_modules/@lynx-js/rspeedy/bin/rspeedy.js dev  # dev server (QR para Lynx Explorer)
-node node_modules/@lynx-js/rspeedy/bin/rspeedy.js build # build → dist/main.lynx.bundle
+bun run typecheck   # typecheck (tsc --noEmit)
+bun run test        # tests (vitest run)
+bun run dev         # dev server (página web + QR para Lynx Explorer)
+bun run build       # build → dist/main.lynx.bundle
 ```
 
 Para ver la app: instala **Lynx Explorer** en el emulador/dispositivo y escanea el QR
-que muestra `rspeedy dev`.
+que muestra `bun run dev`.
 
 ## Próximas fases (propuesta)
 

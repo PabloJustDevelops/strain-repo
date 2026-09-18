@@ -8,9 +8,9 @@
  *   de Lynx es estático y el tema es dinámico.
  *
  * Reglas de los valores que sí aparecen acá:
- * - Espaciado: sólo 4 / 8 / 16 / 36.
- * - Radios: sólo chip (999), control (10) y tarjeta (14).
- * - Bordes: siempre 1px (el color lo pone el token `line` inline).
+ * - Espaciado: sólo 4 / 8 / 16 / 24 / 36.
+ * - Radios: sólo control (8), contenedor (12) y píldora (999).
+ * - Bordes: siempre 1px (el color lo pone el token `border` inline).
  * - Área táctil: nada interactivo mide menos de 44 en su lado corto.
  */
 
@@ -24,13 +24,20 @@
 
 .ShellHeader { display: flex; flex-direction: row; align-items: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-bottom-width: 1px; }
 
-.BackButton { display: flex; align-items: center; min-height: 44px; padding-right: 16px; }
+.ShellTitle { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
+.BackButton { display: flex; flex-direction: row; align-items: center; min-height: 44px; padding-right: 16px; }
+
+.BackLabel { margin-left: 4px; }
 
 /* --- Tab bar -------------------------------------------------------------- */
 
-.TabBar { display: flex; flex-direction: row; width: 100%; border-width: 1px; }
+/* Sólo la línea de arriba: la barra cierra la pantalla, no la encierra. */
+.TabBar { display: flex; flex-direction: row; width: 100%; border-top-width: 1px; }
 
 .TabButton { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 44px; padding-top: 8px; padding-bottom: 8px; }
+
+.TabLabel { margin-top: 4px; }
 
 .TabMarker { width: 16px; height: 2px; margin-top: 4px; border-radius: 1px; }
 
@@ -295,3 +302,39 @@
 
 /* Fila de selección múltiple del selector de ejercicios. */
 .SelectRow { display: flex; flex-direction: row; align-items: center; min-height: 44px; padding-top: 16px; padding-bottom: 16px; border-bottom-width: 1px; }
+
+/* --- Componentes v2 ------------------------------------------------------- */
+
+/* Fila de lista: leading + cuerpo + chevron, todo en una línea. */
+.ListRowMain { display: flex; flex-direction: row; align-items: center; }
+.ListRowLeading { display: flex; flex-direction: row; align-items: center; justify-content: center; margin-right: 8px; }
+.ListRowBody { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+/* Nombres largos: se corta con elipsis, nunca desborda la fila. */
+.ListRowTitle { overflow: hidden; text-overflow: ellipsis; }
+.ListRowMeta { overflow: hidden; text-overflow: ellipsis; }
+
+/* Cabecera de sección: título + acción opcional. */
+.SectionHeader { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; margin-top: 16px; }
+.SectionHeaderTitle { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.SectionHeaderAction { display: flex; flex-direction: row; align-items: center; }
+
+/* Cifra con etiqueta y unidad al pie. */
+.StatBlock { display: flex; flex-direction: column; margin-right: 16px; margin-bottom: 8px; }
+.StatBlockValue { display: flex; flex-direction: row; align-items: flex-end; }
+.StatBlockUnit { margin-left: 4px; }
+
+/* Barra inferior de la acción primaria. */
+.PrimaryActionBar { display: flex; flex-direction: column; width: 100%; padding: 16px; border-top-width: 1px; }
+.PrimaryAction { display: flex; flex-direction: row; align-items: center; justify-content: center; width: 100%; min-height: 44px; padding-left: 16px; padding-right: 16px; }
+.PrimaryActionDisabled { opacity: 0.5; }
+.PrimaryActionLabel { overflow: hidden; text-overflow: ellipsis; }
+
+/* Control segmentado: la opción activa la pinta el componente, no el CSS. */
+.SegmentedControl { display: flex; flex-direction: row; border-width: 1px; border-radius: 12px; padding: 4px; margin-top: 8px; }
+.Segment { flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; min-height: 44px; border-radius: 8px; }
+
+/* Estado vacío con icono. */
+.EmptyIcon { display: flex; flex-direction: row; align-items: center; justify-content: center; margin-bottom: 8px; }
+
+/* Bloque de historial: la misma lista dentro de Progreso o en su pantalla. */
+.HistoryList { display: flex; flex-direction: column; width: 100%; }

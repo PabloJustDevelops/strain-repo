@@ -7,6 +7,7 @@ import {
   darkTheme,
   lightTheme,
   motion,
+  pressedStyle,
   px,
   radius,
   space,
@@ -17,12 +18,12 @@ import {
 } from './theme';
 
 /**
- * Invariantes del sistema de diseño.
+ * Invariantes del sistema de diseño v2.
  *
  * Estos tests son la parte "medible" del sistema: si alguien cambia un token y
- * rompe el contraste, la escala o el ritmo, acá salta. El contraste se calcula
- * con la fórmula de WCAG 2.1 (luminancia relativa), la misma que usan las
- * herramientas de auditoría.
+ * rompe el contraste, la escala, el ritmo o el estado pulsado, acá salta. El
+ * contraste se calcula con la fórmula de WCAG 2.1 (luminancia relativa), la
+ * misma que usan las herramientas de auditoría.
  */
 
 function channelLuminance(value: number): number {
@@ -56,18 +57,17 @@ const TEXT_PAIRS: [keyof ThemeColors, keyof ThemeColors][] = [
   ['textSecondary', 'surfaceRaised'],
   ['accent', 'bg'],
   ['accent', 'surface'],
-  ['accent', 'accentSoft'],
   ['onAccent', 'accent'],
   ['success', 'surface'],
-  ['warning', 'surface'],
+  ['warn', 'surface'],
   ['danger', 'surface'],
 ];
 
-/** Bordes significativos: el `line` contra cada superficie del sistema. */
-const LINE_PAIRS: [keyof ThemeColors, keyof ThemeColors][] = [
-  ['line', 'bg'],
-  ['line', 'surface'],
-  ['line', 'surfaceRaised'],
+/** El borde del sistema, contra cada superficie sobre la que se dibuja. */
+const BORDER_PAIRS: [keyof ThemeColors, keyof ThemeColors][] = [
+  ['border', 'bg'],
+  ['border', 'surface'],
+  ['border', 'surfaceRaised'],
 ];
 
 describe.each([
@@ -82,34 +82,32 @@ describe.each([
     }
   });
 
-  it('el borde del sistema llega a 3:1 sobre cada superficie', () => {
-    for (const [fg, bg] of LINE_PAIRS) {
+  /**
+   * El borde de la v2 es una línea **sutil**: agrupa sin encerrar. Deliberadamente
+   * baja del 3:1 que pide un borde significativo de la WCAG, así que lo que este
+   * test fija es el rango: por encima de 1.15 se ve, y por debajo de 2.5 sigue
+   * siendo una línea y no vuelve a ser el borde duro que la v2 abandona.
+   */
+  it('el borde se ve pero no vuelve a ser un borde duro', () => {
+    for (const [fg, bg] of BORDER_PAIRS) {
       const ratio = contrastRatio(theme[fg], theme[bg]);
 
-      expect(ratio, `${fg} sobre ${bg} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
+      expect(ratio, `${fg} sobre ${bg} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(1.15);
+      expect(ratio, `${fg} sobre ${bg} = ${ratio.toFixed(2)}:1`).toBeLessThanOrEqual(2.5);
     }
   });
 
-  it('tiene los doce roles de color, todos en hex de 6 dígitos', () => {
-    const roles: (keyof ThemeColors)[] = [
-      'bg',
-      'surface',
-      'surfaceRaised',
-      'line',
-      'textPrimary',
-      'textSecondary',
-      'textInverse',
-      'accent',
-      'accentSoft',
-      'onAccent',
-      'success',
-      'warning',
-      'danger',
-    ];
-
-    for (const role of roles) {
-      expect(theme[role], role).toMatch(/^#[0-9a-f]{6}$/);
+  it('todos los roles de color son hex de 6 dígitos, y los dos temas tienen los mismos', () => {
+    for (const [role, value] of Object.entries(theme)) {
+      expect(value, role).toMatch(/^#[0-9a-f]{6}$/i);
     }
+
+    expect(Object.keys(lightTheme).sort()).toEqual(Object.keys(darkTheme).sort());
+  });
+
+  it('los alias de compatibilidad no se despegan de los roles v2', () => {
+    expect(theme.line).toBe(theme.border);
+    expect(theme.warning).toBe(theme.warn);
   });
 
   it('los neutros del tema oscuro están tintados, no son gris puro', () => {
@@ -126,10 +124,14 @@ describe.each([
 });
 
 describe('escala tipográfica', () => {
-  it('son cinco pasos, de 13 a 28', () => {
-    expect(TYPE_SCALE).toEqual([13, 15, 17, 22, 28]);
+  it('son seis pasos, de 12 a 34, en orden ascendente', () => {
+    expect(TYPE_SCALE).toEqual([12, 14, 16, 18, 22, 34]);
     expect(Object.keys(type)).toHaveLength(TYPE_SCALE.length);
     expect(Object.values(type).map((t) => t.fontSize)).toEqual([...TYPE_SCALE]);
+  });
+
+  it('tiene los seis roles con nombre propio, incluido el cuerpo', () => {
+    expect(Object.keys(type)).toEqual(['detail', 'support', 'body', 'heading', 'title', 'display']);
   });
 
   it('cada paso define línea y peso', () => {
@@ -137,6 +139,15 @@ describe('escala tipográfica', () => {
       expect(token.lineHeight, role).toBeGreaterThan(token.fontSize);
       expect(token.fontWeight, role).toMatch(/^[4-9]00$/);
     }
+  });
+
+  it('los pesos y las líneas son los de la especificación v2', () => {
+    expect(type.display).toMatchObject({ fontSize: 34, lineHeight: 40, fontWeight: '700' });
+    expect(type.title).toMatchObject({ fontSize: 22, lineHeight: 28, fontWeight: '600' });
+    expect(type.heading).toMatchObject({ fontSize: 18, lineHeight: 24, fontWeight: '600' });
+    expect(type.body).toMatchObject({ fontSize: 16, lineHeight: 24, fontWeight: '400' });
+    expect(type.support).toMatchObject({ fontSize: 14, lineHeight: 20, fontWeight: '400' });
+    expect(type.detail).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: '500' });
   });
 
   it('en oscuro sube el interlineado y baja un escalón el peso', () => {
@@ -152,18 +163,20 @@ describe('escala tipográfica', () => {
 
     // Un paso por encima del cuerpo sí baja de verdad.
     expect(typeStyle('title', true).fontWeight).toBe('500');
-    expect(typeStyle('display', true).fontWeight).toBe('700');
+    expect(typeStyle('display', true).fontWeight).toBe('600');
   });
 });
 
 describe('ritmo de espaciado, radios, borde y movimiento', () => {
-  it('el espaciado sólo usa 4, 8, 16 y 36, ya serializados', () => {
-    expect(Object.values(space)).toEqual(['4px', '8px', '16px', '36px']);
+  it('el espaciado sólo usa 4, 8, 16, 24 y 36, ya serializados', () => {
+    expect(Object.values(space)).toEqual(['4px', '8px', '16px', '24px', '36px']);
   });
 
-  it('hay tres radios: chip, control y tarjeta', () => {
-    expect(Object.keys(radius)).toEqual(['chip', 'control', 'card']);
-    expect(radius.chip).toBe('999px');
+  it('hay tres radios: control, contenedor y píldora', () => {
+    expect(Object.keys(radius)).toEqual(['control', 'container', 'pill']);
+    expect(radius.control).toBe('8px');
+    expect(radius.container).toBe('12px');
+    expect(radius.pill).toBe('999px');
   });
 
   it('el borde es uno sólo, de 1px, y el área táctil mínima es 44', () => {
@@ -171,10 +184,17 @@ describe('ritmo de espaciado, radios, borde y movimiento', () => {
     expect(TOUCH_TARGET).toBe('44px');
   });
 
-  it('el movimiento tiene tres duraciones crecientes y una sola curva', () => {
+  it('el movimiento tiene duraciones crecientes y una sola curva', () => {
     expect(motion.fast).toBeLessThan(motion.base);
-    expect(motion.base).toBeLessThan(motion.slow);
     expect(motion.easing).toMatch(/^cubic-bezier\(/);
+  });
+
+  it('el estado pulsado baja la opacidad y encoge apenas, sin mover el layout', () => {
+    expect(motion.pressed.opacity).toBe(0.6);
+    expect(motion.pressed.scale).toBe(0.98);
+
+    expect(pressedStyle(true)).toEqual({ opacity: 0.6, transform: 'scale(0.98)' });
+    expect(pressedStyle(false)).toEqual({ opacity: 1, transform: 'scale(1)' });
   });
 });
 

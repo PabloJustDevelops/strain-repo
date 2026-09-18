@@ -78,3 +78,31 @@ export const fontSize = {
   xxl: 28,
   display: 36,
 };
+
+/**
+ * El mismo color con alfa, como `rgba(...)`.
+ *
+ * El tema guarda hex de 6 dígitos y el CSS de Lynx no acepta el hex de 8 (`#rrggbbaa`)
+ * que usa la app Expo: acá se pasa a `rgba` explícito. Si el hex no se entiende,
+ * devuelve el original en vez de un color roto.
+ */
+export function withAlpha(hex: string, alpha: number): string {
+  const clean = hex.startsWith('#') ? hex.slice(1) : hex;
+  const full =
+    clean.length === 3
+      ? clean
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : clean;
+
+  if (full.length !== 6) return hex;
+
+  const r = Number.parseInt(full.slice(0, 2), 16);
+  const g = Number.parseInt(full.slice(2, 4), 16);
+  const b = Number.parseInt(full.slice(4, 6), 16);
+
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return hex;
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}

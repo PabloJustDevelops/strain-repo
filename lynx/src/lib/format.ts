@@ -86,3 +86,37 @@ export function startOfDay(date: Date): Date {
 
   return d;
 }
+
+/** Clave de día local `YYYY-MM-DD`. Es la que usan los agregados diarios. */
+export function dayKey(date: Date): string {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+/** Mes abreviado en español a partir del índice 0-11. */
+export function shortMonth(monthIndex: number): string {
+  return MONTHS_ES[monthIndex] ?? '';
+}
+
+/**
+ * Número con separador de miles español (`.`), sin `Intl`.
+ *
+ * Reemplaza a `toLocaleString('es-ES')`, que en Lynx tira en runtime por la
+ * misma razón que las fechas (la API de internacionalización no está
+ * implementada). Los decimales se separan con coma, como en es-ES.
+ */
+export function formatNumber(value: number, decimals = 0): string {
+  const rounded = decimals > 0 ? value.toFixed(decimals) : String(Math.round(value));
+  const negative = rounded.startsWith('-');
+  const [intPart = '0', decPart] = (negative ? rounded.slice(1) : rounded).split('.');
+
+  let grouped = '';
+
+  for (let i = 0; i < intPart.length; i++) {
+    if (i > 0 && (intPart.length - i) % 3 === 0) grouped += '.';
+    grouped += intPart[i];
+  }
+
+  const sign = negative ? '-' : '';
+
+  return decPart ? `${sign}${grouped},${decPart}` : `${sign}${grouped}`;
+}

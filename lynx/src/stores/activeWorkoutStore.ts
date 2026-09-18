@@ -2,6 +2,8 @@
 import { getRepos } from '@db';
 import { toActiveSessionView, type ActiveSessionView, type SetView } from '@db/shapes';
 import { sessionTotals } from '@lib/metrics';
+import { restEndsAt, restRemainingSeconds } from '@lib/rest';
+import { buildWorkoutSummary, type WorkoutSummary } from '@lib/sessionSummary';
 import { supersetRestOwner } from '@lib/supersets';
 import { usePreferences } from '@stores/preferencesStore';
 
@@ -19,7 +21,10 @@ interface ActiveWorkoutState {
   isLoading: boolean;
   restRemaining: number;          // segundos restantes del descanso actual
   isResting: boolean;
-  restStartedAt: number | null;   // timestamp del Ãºltimo descanso iniciado
+  restEndsAt: number | null;      // instante (ms) en que termina el descanso
+  /** Resumen de la última sesión cerrada. La pantalla de cierre no puede leer
+   * `session` porque al finalizar se limpia, así que el store lo conserva acá. */
+  lastFinished: WorkoutSummary | null;
 
   // Acciones
   loadActive: () => Promise<void>;
@@ -44,7 +49,8 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   isLoading: false,
   restRemaining: 0,
   isResting: false,
-  restStartedAt: null,
+  restEndsAt: null,
+  lastFinished: null,
 
   async loadActive() {
     set({ isLoading: true });
@@ -210,23 +216,24 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   },
 
   startRest(seconds) {
+    const safe = Math.max(0, seconds);
+
     set({
-      isResting: true,
-      restRemaining: seconds,
-      restStartedAt: Date.now(),
+      isResting: safe > 0,
+      restRemaining: safe,
+      restEndsAt: restEndsAt(safe, Date.now()),
     });
   },
 
   skipRest() {
-    set({ isResting: false, restRemaining: 0, restStartedAt: null });
+    set({ isResting: false, restRemaining: 0, restEndsAt: null });
   },
 
   tickRest() {
-    const { restStartedAt, restRemaining } = get();
+    const { restEndsAt: endsAt } = get();
 
-    if (!restStartedAt) return;
-    const elapsed = Math.floor((Date.now() - restStartedAt) / 1000);
-    const remaining = Math.max(0, restRemaining - elapsed);
+    if (endsAt === null) return;
+    const remaining = restRemainingSeconds(endsAt, Date.now());
     set({
       restRemaining: remaining,
       isResting: remaining > 0,
@@ -237,7 +244,14 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     const { session } = get();
 
     if (!session) return;
-    await getRepos().sessions.finish(session.id);
+    const endedAt = new Date();
+    await getRepos().sessions.finish(session.id, { endedAt });
+
+    // Los PRs los escribe `finish()`, así que recién ahora reflejan esta sesión.
+    // El resumen se arma antes de limpiar `session`: la pantalla de cierre lee
+    // `lastFinished`, no la sesión activa.
+    const records = await getRepos().analytics.personalRecords();
+    const summary = buildWorkoutSummary(session, endedAt, records);
 
     // Sincronizar con Health Connect (best effort, no bloquea la UX).
     try {
@@ -263,10 +277,11 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     }
 
     set({
+      lastFinished: summary,
       session: null,
       isResting: false,
       restRemaining: 0,
-      restStartedAt: null,
+      restEndsAt: null,
     });
   },
 
@@ -279,7 +294,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
       session: null,
       isResting: false,
       restRemaining: 0,
-      restStartedAt: null,
+      restEndsAt: null,
     });
   },
 }));

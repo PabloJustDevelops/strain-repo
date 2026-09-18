@@ -61,21 +61,32 @@ describe('registro de rutas (Lynx)', () => {
     }
   });
 
-  it('cubre las 7 pestañas, las 5 rutas de pila y el contenedor (tabs)', () => {
+  it('cubre las 7 pestañas, las rutas de pila y el contenedor (tabs)', () => {
     expect(TAB_ROUTES).toHaveLength(7);
-    expect(STACK_ROUTES).toHaveLength(5);
-    expect(ROUTE_NAMES).toHaveLength(13);
+    expect(STACK_ROUTES).toHaveLength(7);
+    expect(ROUTE_NAMES).toHaveLength(15);
     expect(ROUTE_NAMES).toContain(TABS_ROUTE);
   });
 
-  it('el flujo de entrenamiento ya no resuelve a los stubs', () => {
-    const stub = resolveRoute('routines/[id]');
+  it('el editor de rutinas tiene sus tres rutas registradas y con título humano', () => {
+    const editorRoutes = ['routines/new', 'routines/[id]', 'routines/[id]/add-exercise'];
 
-    for (const name of ['workout/active', 'workout/finish', 'exercises/[id]', 'history/[id]']) {
-      expect(resolveRoute(name)).not.toBe(stub);
+    for (const name of editorRoutes) {
+      expect(STACK_ROUTES).toContain(name);
+      expect(resolveRoute(name)).toBeTypeOf('function');
+      expect(routeTitle(name)).not.toBe(name);
+    }
+  });
+
+  it('cada ruta de pila resuelve a una pantalla propia', () => {
+    const components = STACK_ROUTES.map((name) => resolveRoute(name));
+
+    for (const component of components) {
+      expect(component).toBeTypeOf('function');
     }
 
-    expect(resolveRoute('history/[id]')).toBeTypeOf('function');
+    // Sin stubs compartidos: dos rutas no pueden caer en el mismo componente.
+    expect(new Set(components).size).toBe(components.length);
   });
 
   it('ninguna pestaña queda sin etiqueta ni sin componente', () => {

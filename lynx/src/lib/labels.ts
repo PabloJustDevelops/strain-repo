@@ -16,3 +16,31 @@ export function equipmentLabel(value: string): string {
   // SAFETY: la columna equipment solo contiene valores de Equipment.
   return EQUIPMENT_LABELS[value as Equipment];
 }
+
+/** Grupo del filtro: un grupo real o el comodín "todos". */
+export type MuscleFilter = MuscleGroup | 'all';
+
+/** Los filtros de la biblioteca, en el orden en que se muestran los chips. */
+export const MUSCLE_FILTERS: readonly MuscleFilter[] = [
+  'all',
+  'chest',
+  'back',
+  'legs',
+  'shoulders',
+  'arms',
+  'core',
+  'other',
+];
+
+/**
+ * Traduce un filtro a lo que necesita `MuscleChip`.
+ *
+ * El chip "Todos" no corresponde a ningún `MuscleGroup`, así que se apoya en uno
+ * cualquiera (`chest`) que el componente ignora cuando recibe `label`; el grupo
+ * real sólo importa para los filtros concretos.
+ */
+export function muscleFilterChip(filter: MuscleFilter): { group: MuscleGroup; label: string } {
+  if (filter === 'all') return { group: 'chest', label: 'Todos' };
+
+  return { group: filter, label: MUSCLE_GROUP_LABELS[filter] };
+}

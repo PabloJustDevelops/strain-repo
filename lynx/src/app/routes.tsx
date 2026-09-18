@@ -1,16 +1,18 @@
 import type { ComponentType } from '@lynx-js/react';
 
 import { Shell } from '@components/Shell';
+import { AddExerciseScreen } from '@/screens/AddExerciseScreen';
 import { ExercisesScreen } from '@/screens/ExercisesScreen';
 import { ExerciseDetailScreen } from '@/screens/ExerciseDetailScreen';
 import { HealthScreen } from '@/screens/HealthScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ProgressScreen } from '@/screens/ProgressScreen';
+import { RoutineDetailScreen } from '@/screens/RoutineDetailScreen';
+import { RoutineNewScreen } from '@/screens/RoutineNewScreen';
 import { RoutinesScreen } from '@/screens/RoutinesScreen';
 import { SessionDetailScreen } from '@/screens/SessionDetailScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
-import { RoutineDetailScreen } from '@/screens/StubScreens';
 import { WorkoutActiveScreen } from '@/screens/WorkoutActiveScreen';
 import { WorkoutFinishScreen } from '@/screens/WorkoutFinishScreen';
 
@@ -75,7 +77,9 @@ export const TAB_COMPONENTS: Record<TabRoute, ComponentType<RouteProps>> = {
 
 /** Rutas de pila: viven por encima de las pestañas. */
 export const STACK_ROUTES = [
+  'routines/new',
   'routines/[id]',
+  'routines/[id]/add-exercise',
   'exercises/[id]',
   'history/[id]',
   'workout/active',
@@ -85,7 +89,9 @@ export const STACK_ROUTES = [
 export type StackRoute = (typeof STACK_ROUTES)[number];
 
 export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
+  'routines/new': RoutineNewScreen,
   'routines/[id]': RoutineDetailScreen,
+  'routines/[id]/add-exercise': AddExerciseScreen,
   'exercises/[id]': ExerciseDetailScreen,
   'history/[id]': SessionDetailScreen,
   'workout/active': WorkoutActiveScreen,
@@ -101,7 +107,9 @@ export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
  * se quede sin título.
  */
 export const STACK_TITLES: Record<StackRoute, string> = {
+  'routines/new': 'Nueva rutina',
   'routines/[id]': 'Detalle de la rutina',
+  'routines/[id]/add-exercise': 'Añadir ejercicio',
   'exercises/[id]': 'Detalle del ejercicio',
   'history/[id]': 'Detalle de la sesión',
   'workout/active': 'Entrenamiento activo',

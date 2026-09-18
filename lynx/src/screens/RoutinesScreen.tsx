@@ -25,6 +25,10 @@ export function RoutinesScreen() {
 
   const routines = useLoad<Routine[]>([], () => getRepos().routines.list());
 
+  function handleCreate() {
+    router.push('routines/new');
+  }
+
   async function handleStart(routine: Routine) {
     await startFromRoutine(routine.id);
     router.push('workout/active', { id: routine.id });
@@ -39,6 +43,7 @@ export function RoutinesScreen() {
         <EmptyState
           title="No tienes rutinas todavía"
           body="Crea la primera para empezar a entrenar desde una plantilla."
+          action={<Button title="Nueva rutina" onPress={handleCreate} />}
         />
       ) : null}
 
@@ -79,6 +84,10 @@ export function RoutinesScreen() {
           </view>
         </view>
       ))}
+
+      {routines.data.length > 0 ? (
+        <Button title="Nueva rutina" variant="secondary" fullWidth onPress={handleCreate} />
+      ) : null}
     </Screen>
   );
 }

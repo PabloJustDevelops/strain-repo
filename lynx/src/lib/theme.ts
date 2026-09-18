@@ -19,9 +19,26 @@
  *   superficie (`bg` < `surface` < `surfaceRaised`).
  * - **Espaciado y radios cerrados.** Sólo múltiplos de 4/8/16/36 y tres radios
  *   (chip, control, tarjeta). No hay valores sueltos tipo 10 o 14.
+ * - **Toda longitud lleva unidad.** El motor de Lynx rechaza cualquier longitud
+ *   distinta de 0 sin unidad (`CSS length need units (except 0)`), también en los
+ *   estilos inline. Por eso ningún token de longitud se exporta como número
+ *   suelto: lo serializa `px()` de una vez, y `type` (la escala tipográfica) es
+ *   la única medida cruda porque ahí sí hay aritmética — su salida al motor pasa
+ *   siempre por `typeStyle()`.
  * - **Contraste medido.** Texto ≥4.5:1 e iconos/bordes ≥3:1 en ambos temas; los
  *   números están en `lynx/README.md` y los comprueba `src/lib/contrast.test.ts`.
  */
+
+/**
+ * Serializa una longitud para el motor de Lynx.
+ *
+ * Es el único camino de un número a un estilo: Lynx exige unidad en toda
+ * longitud distinta de 0, y acepta `0` desnudo. Devolver el número tal cual
+ * rompe el render con `CSS length need units (except 0)`.
+ */
+export function px(value: number): string {
+  return value === 0 ? '0' : `${value}px`;
+}
 
 /** Tokens de color por rol. Los consumidores usan el rol, nunca el hex. */
 export interface ThemeColors {
@@ -101,16 +118,17 @@ export const darkTheme: ThemeColors = {
  *
  * Cuatro pasos bastan para separar dentro de un bloque, entre bloques y entre
  * secciones. Cualquier otro valor es una decisión suelta que no debe existir.
+ * Salen ya serializados con `px`, listos para el motor.
  */
 export const space = {
   /** Dentro de un bloque (icono ↔ texto, chips). */
-  xs: 4,
+  xs: px(4),
   /** Separación corta (filas, elementos de un grupo). */
-  sm: 8,
+  sm: px(8),
   /** Separación estándar (padding de tarjeta, entre bloques). */
-  md: 16,
+  md: px(16),
   /** Salto de sección. */
-  lg: 36,
+  lg: px(36),
 } as const;
 
 export type SpaceToken = keyof typeof space;
@@ -123,6 +141,13 @@ export type TypeRole = 'detail' | 'support' | 'title' | 'heading' | 'display';
 /** Escalón de pesos disponible (el CSS de Lynx sólo acepta estos literales). */
 export type FontWeight = '400' | '500' | '600' | '700' | '800' | '900';
 
+/**
+ * Medida cruda de un paso tipográfico.
+ *
+ * Los números son a propósito: acá hay aritmética (compensación en oscuro,
+ * orden de la escala) que no se puede hacer sobre `'13px'`. Nunca va directo a
+ * un estilo: el borde al motor es `typeStyle()`, que serializa con `px()`.
+ */
 export interface TypeToken {
   fontSize: number;
   lineHeight: number;
@@ -158,6 +183,13 @@ function lighterWeight(weight: FontWeight): FontWeight {
   return index > 0 ? WEIGHT_LADDER[index - 1] : weight;
 }
 
+/** Estilo tipográfico listo para el motor: longitudes ya serializadas con `px`. */
+export interface TypeStyle {
+  fontSize: string;
+  lineHeight: string;
+  fontWeight: FontWeight;
+}
+
 /**
  * Estilo tipográfico de un rol, con la compensación del modo oscuro.
  *
@@ -166,33 +198,32 @@ function lighterWeight(weight: FontWeight): FontWeight {
  * cuerpo no adelgaza; un 300 sobre fondo oscuro se lee peor, no mejor). Sin
  * esto, el tema oscuro se ve más apretado y más pesado que el claro con los
  * mismos tokens.
+ *
+ * Es el borde por el que la escala tipográfica (números) llega al motor: acá
+ * `px()` serializa `fontSize` y `lineHeight`, así `Text` nunca recibe un número.
  */
-export function typeStyle(role: TypeRole, isDark: boolean): TypeToken {
+export function typeStyle(role: TypeRole, isDark: boolean): TypeStyle {
   const base = type[role];
+  const lineHeight = isDark ? base.lineHeight + 2 : base.lineHeight;
+  const fontWeight = isDark ? lighterWeight(base.fontWeight) : base.fontWeight;
 
-  if (!isDark) return base;
-
-  return {
-    fontSize: base.fontSize,
-    lineHeight: base.lineHeight + 2,
-    fontWeight: lighterWeight(base.fontWeight),
-  };
+  return { fontSize: px(base.fontSize), lineHeight: px(lineHeight), fontWeight };
 }
 
-/** Tres radios y sólo tres: chip (píldora), control, tarjeta. */
+/** Tres radios y sólo tres: chip (píldora), control, tarjeta. Ya en `px`. */
 export const radius = {
-  chip: 999,
-  control: 10,
-  card: 14,
+  chip: px(999),
+  control: px(10),
+  card: px(14),
 } as const;
 
 export type RadiusToken = keyof typeof radius;
 
 /** Un único grosor de borde en todo el sistema. */
-export const BORDER_WIDTH = 1;
+export const BORDER_WIDTH = px(1);
 
 /** Área táctil mínima (pt). Se aplica a todo lo que responde a un toque. */
-export const TOUCH_TARGET = 44;
+export const TOUCH_TARGET = px(44);
 
 /**
  * Movimiento: tres duraciones y una única curva de salida.

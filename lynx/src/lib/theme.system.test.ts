@@ -7,6 +7,7 @@ import {
   darkTheme,
   lightTheme,
   motion,
+  px,
   radius,
   space,
   type,
@@ -144,7 +145,7 @@ describe('escala tipográfica', () => {
       const dark = typeStyle(role, true);
 
       expect(dark.fontSize).toBe(light.fontSize);
-      expect(dark.lineHeight).toBe(light.lineHeight + 2);
+      expect(dark.lineHeight).toBe(px(type[role].lineHeight + 2));
       // El cuerpo ya está en el suelo del escalón (400): nunca adelgaza de ahí.
       expect(Number(dark.fontWeight)).toBeLessThanOrEqual(Number(light.fontWeight));
     }
@@ -156,23 +157,74 @@ describe('escala tipográfica', () => {
 });
 
 describe('ritmo de espaciado, radios, borde y movimiento', () => {
-  it('el espaciado sólo usa 4, 8, 16 y 36', () => {
-    expect(Object.values(space)).toEqual([4, 8, 16, 36]);
+  it('el espaciado sólo usa 4, 8, 16 y 36, ya serializados', () => {
+    expect(Object.values(space)).toEqual(['4px', '8px', '16px', '36px']);
   });
 
   it('hay tres radios: chip, control y tarjeta', () => {
     expect(Object.keys(radius)).toEqual(['chip', 'control', 'card']);
-    expect(radius.chip).toBe(999);
+    expect(radius.chip).toBe('999px');
   });
 
   it('el borde es uno sólo, de 1px, y el área táctil mínima es 44', () => {
-    expect(BORDER_WIDTH).toBe(1);
-    expect(TOUCH_TARGET).toBe(44);
+    expect(BORDER_WIDTH).toBe('1px');
+    expect(TOUCH_TARGET).toBe('44px');
   });
 
   it('el movimiento tiene tres duraciones crecientes y una sola curva', () => {
     expect(motion.fast).toBeLessThan(motion.base);
     expect(motion.base).toBeLessThan(motion.slow);
     expect(motion.easing).toMatch(/^cubic-bezier\(/);
+  });
+});
+
+/**
+ * Guarda contra la reincidencia del bug de Fase 4: el motor de Lynx rechaza
+ * cualquier longitud distinta de 0 sin unidad, también en los estilos inline
+ * (`CSS length need units (except 0)`). Todo token de longitud se exporta ya
+ * serializado y `typeStyle()` serializa la escala tipográfica, así que ningún
+ * número suelto puede llegar a un `style={{...}}`.
+ */
+describe('longitudes con unidad', () => {
+  /** Una longitud que el motor acepta: `0` desnudo o un número con `px`. */
+  const LENGTH = /^(?:0|-?\d+(?:\.\d+)?px)$/;
+
+  it('px serializa con unidad, salvo el cero', () => {
+    expect(px(0)).toBe('0');
+    expect(px(1)).toBe('1px');
+    expect(px(13)).toBe('13px');
+    expect(px(-4)).toBe('-4px');
+    expect(px(2.5)).toBe('2.5px');
+  });
+
+  it('ningún token de longitud sale como número suelto', () => {
+    const tokens = [
+      ...Object.entries(space),
+      ...Object.entries(radius),
+      ['BORDER_WIDTH', BORDER_WIDTH] as const,
+      ['TOUCH_TARGET', TOUCH_TARGET] as const,
+    ];
+
+    for (const [name, value] of tokens) {
+      expect(typeof value, name).toBe('string');
+      expect(value, name).toMatch(LENGTH);
+    }
+  });
+
+  it('la escala tipográfica son medidas crudas: el borde al motor es typeStyle', () => {
+    for (const token of Object.values(type)) {
+      expect(typeof token.fontSize).toBe('number');
+      expect(typeof token.lineHeight).toBe('number');
+    }
+
+    for (const role of Object.keys(type) as TypeRole[]) {
+      for (const isDark of [false, true]) {
+        const style = typeStyle(role, isDark);
+        const where = `${role} (${isDark ? 'oscuro' : 'claro'})`;
+
+        expect(style.fontSize, where).toMatch(LENGTH);
+        expect(style.lineHeight, where).toMatch(LENGTH);
+      }
+    }
   });
 });

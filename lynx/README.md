@@ -241,6 +241,11 @@ solo sitio.
 - **Espaciado**: sólo 4 / 8 / 16 / 36 (`space.xs|sm|md|lg`). No hay valores
   sueltos tipo 10 o 14.
 - **Radios**: tres y sólo tres — `chip` (999), `control` (10), `card` (14).
+- **Unidad obligatoria**: Lynx rechaza toda longitud distinta de 0 sin unidad,
+  también inline (`CSS length need units (except 0)`). Los tokens de longitud se
+  exportan ya como `'16px'` y todo número pasa por `px()` —incluida la escala
+  tipográfica, vía `typeStyle()`—, así que ningún `style={{...}}` recibe un número
+  suelto. Lo comprueba el test «longitudes con unidad».
 - **Borde**: un único tipo, 1px (`BORDER_WIDTH`); el color lo pone `line`. En
   oscuro no hay sombras decorativas: la jerarquía se resuelve con borde y con
   elevación de superficie (`bg` < `surface` < `surfaceRaised`).

@@ -19,6 +19,7 @@ import { useTheme } from '@lib/useTheme';
 import type { SetView } from '@db/shapes';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
+import { Text } from '@components/Text';
 
 /** El set que el keypad está editando, con el contexto que la UI necesita. */
 interface EditingSet {
@@ -89,7 +90,7 @@ export function WorkoutActiveScreen() {
 
   if (!session) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <EmptyState
           title="No hay workout activo"
           body="Empezá uno desde la pestaña Hoy o desde una rutina."
@@ -170,16 +171,16 @@ export function WorkoutActiveScreen() {
   }
 
   return (
-    <view className="Screen" style={{ backgroundColor: colors.background }}>
-      <view className="WorkoutHeader" style={{ borderColor: colors.border }}>
+    <view className="Screen" style={{ backgroundColor: colors.bg }}>
+      <view className="WorkoutHeader" style={{ borderColor: colors.line }}>
         <view className="WorkoutHeaderText">
-          <text className="WorkoutHeaderTitle" style={{ color: colors.text }}>
+          <Text role="title" tone="textPrimary">
             {session.name}
-          </text>
-          <text className="WorkoutHeaderMeta" style={{ color: colors.textMuted }}>
+          </Text>
+          <Text role="detail" tone="textSecondary">
             {session.completedSets} de {session.exercises.reduce((sum, ex) => sum + ex.sets.length, 0)}{' '}
             series · {formatDuration(elapsed)}
-          </text>
+          </Text>
         </view>
 
         <view
@@ -187,7 +188,7 @@ export function WorkoutActiveScreen() {
           style={{ backgroundColor: colors.success }}
           bindtap={handleFinish}
         >
-          <text className="WorkoutFinishLabel">Finalizar</text>
+          <Text role="support" tone="onAccent">Finalizar</Text>
         </view>
       </view>
 
@@ -196,7 +197,7 @@ export function WorkoutActiveScreen() {
           {session.exercises.length === 0 ? (
             <EmptyState
               title="Este workout no tiene ejercicios"
-              body="Añadí el primero con el botón + para empezar a registrar series."
+              body="Añade el primero con el botón + para empezar a registrar series."
             />
           ) : null}
 
@@ -217,30 +218,30 @@ export function WorkoutActiveScreen() {
                 {opensSuperset ? (
                   <view
                     className="SupersetBanner"
-                    style={{ backgroundColor: colors.primaryMuted }}
+                    style={{ backgroundColor: colors.accentSoft }}
                   >
-                    <text className="ListSubtitle" style={{ color: colors.primary }}>
+                    <Text role="support" tone="accent">
                       Superset {exercise.supersetGroup} · descansá al cerrar el grupo
-                    </text>
+                    </Text>
                   </view>
                 ) : null}
 
                 <Card>
                   <view className="ExerciseHeader">
                     <view className="RowFill">
-                      <text className="ListTitle" style={{ color: colors.text }}>
+                      <Text role="title" tone="textPrimary">
                         {exercise.name}
-                      </text>
-                      <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                      </Text>
+                      <Text role="support" tone="textSecondary">
                         {exercise.sets.filter((s) => s.isCompleted).length} / {exercise.sets.length}{' '}
                         series
-                      </text>
+                      </Text>
                     </view>
 
                     <view className="AddSetLink" bindtap={() => addSet(exercise.id)}>
-                      <text className="ListSubtitle" style={{ color: colors.primary }}>
+                      <Text role="support" tone="accent">
                         + Set
-                      </text>
+                      </Text>
                     </view>
                   </view>
 
@@ -287,14 +288,15 @@ export function WorkoutActiveScreen() {
                         )
                       }
                     >
-                      <text
-                        className="Meta"
-                        style={{ color: exercise.supersetGroup ? colors.primary : colors.textMuted }}
+                      <Text
+                        role="detail"
+                        tone={exercise.supersetGroup ? 'accent' : 'textSecondary'}
+
                       >
                         {exercise.supersetGroup
                           ? `En superset ${exercise.supersetGroup} (tocá para quitar)`
                           : 'Hacer superset con el siguiente'}
-                      </text>
+                      </Text>
                     </view>
                   ) : null}
                 </Card>
@@ -317,10 +319,10 @@ export function WorkoutActiveScreen() {
 
       <view
         className="Fab"
-        style={{ backgroundColor: colors.primary }}
+        style={{ backgroundColor: colors.accent }}
         bindtap={() => setPickerOpen(true)}
       >
-        <text className="FabLabel">+</text>
+        <Text role="display" tone="onAccent">+</Text>
       </view>
 
       <PlateCalculatorSheet result={platesFor} onClose={() => setPlatesFor(null)} />

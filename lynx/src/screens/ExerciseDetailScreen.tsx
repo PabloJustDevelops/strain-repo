@@ -6,11 +6,13 @@ import { ErrorNote, Loading } from '@components/Loading';
 import { formatDateShort, formatNumber, formatWeight } from '@lib/format';
 import { equipmentLabel, muscleGroupLabel } from '@lib/labels';
 import { remountKey } from '@lib/reactKeys';
+import { BORDER_WIDTH, px } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
 import { getRepos, type AnalyticsRepo } from '@db';
 import type { Exercise } from '@/types/domain';
 import { usePreferences } from '@stores/preferencesStore';
 import type { RouteProps } from '@/app/routes';
+import { Text } from '@components/Text';
 
 type TimelineRow = Awaited<ReturnType<AnalyticsRepo['exerciseTimeline']>>[number];
 type PrRow = Awaited<ReturnType<AnalyticsRepo['exercisePrHistory']>>[number];
@@ -100,7 +102,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
   if (loading) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <Loading />
       </view>
     );
@@ -108,7 +110,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
   if (error) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <ErrorNote message={error} />
       </view>
     );
@@ -116,7 +118,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
   if (!exercise) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <EmptyState
           title="Ejercicio no encontrado"
           body={`No hay ningún ejercicio con el id "${id}".`}
@@ -131,12 +133,12 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
   const latestPr = prs.find((pr) => pr.recordType === 'one_rm');
 
   return (
-    <view className="Screen" style={{ backgroundColor: colors.background }}>
+    <view className="Screen" style={{ backgroundColor: colors.bg }}>
       <scroll-view className="ScreenScroll" scroll-orientation="vertical">
         <view className="ScreenContent">
-          <text className="ScreenTitle" style={{ color: colors.text }}>
+          <Text role="heading" tone="textPrimary">
             {exercise.name}
-          </text>
+          </Text>
 
           <view className="TagRow">
             <Tag text={muscleGroupLabel(exercise.muscleGroup)} />
@@ -145,41 +147,41 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
           </view>
 
           <Card>
-            <text className="CardLabel" style={{ color: colors.textMuted }}>
+            <Text role="detail" tone="textSecondary">
               Estadísticas totales
-            </text>
+            </Text>
             <view className="StatRow">
               <view className="Stat">
-                <text className="StatLabel" style={{ color: colors.textMuted }}>
+                <Text role="detail" tone="textSecondary">
                   Sesiones
-                </text>
-                <text className="StatValue" style={{ color: colors.text }}>
+                </Text>
+                <Text role="display" tone="textPrimary">
                   {stats?.sessions ?? 0}
-                </text>
+                </Text>
               </view>
               <view className="Stat">
-                <text className="StatLabel" style={{ color: colors.textMuted }}>
+                <Text role="detail" tone="textSecondary">
                   Sets
-                </text>
-                <text className="StatValue" style={{ color: colors.text }}>
+                </Text>
+                <Text role="display" tone="textPrimary">
                   {stats?.totalSets ?? 0}
-                </text>
+                </Text>
               </view>
               <view className="Stat">
-                <text className="StatLabel" style={{ color: colors.textMuted }}>
+                <Text role="detail" tone="textSecondary">
                   Volumen
-                </text>
-                <text className="StatValue" style={{ color: colors.text }}>
+                </Text>
+                <Text role="display" tone="textPrimary">
                   {formatNumber(stats?.totalVolume ?? 0)} {units}
-                </text>
+                </Text>
               </view>
             </view>
           </Card>
 
           <Card>
-            <text className="CardTitle" style={{ color: colors.text }}>
+            <Text role="title" tone="textPrimary">
               Progresión
-            </text>
+            </Text>
 
             <view className="SegmentRow">
               {METRICS.map((option) => {
@@ -189,24 +191,25 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                   <view
                     className="SegmentItem"
                     key={remountKey('metric', option.value)}
-                    style={{ backgroundColor: active ? colors.primaryMuted : 'transparent' }}
+                    style={{ backgroundColor: active ? colors.accentSoft : 'transparent' }}
                     bindtap={() => setMetric(option.value)}
                   >
-                    <text
-                      className="SegmentLabel"
-                      style={{ color: active ? colors.primary : colors.textMuted }}
+                    <Text
+                      role="support"
+                      tone={active ? 'accent' : 'textSecondary'}
+
                     >
                       {option.label}
-                    </text>
+                    </Text>
                   </view>
                 );
               })}
             </view>
 
             {visible.length < 2 ? (
-              <text className="CardBody" style={{ color: colors.textMuted }}>
+              <Text role="support" tone="textSecondary">
                 Necesitás al menos 2 sesiones con este ejercicio para ver la progresión.
-              </text>
+              </Text>
             ) : (
               <view className="BarChart">
                 {visible.map((row, index) => {
@@ -218,7 +221,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                       className="BarColumn"
                       key={remountKey('bar', row.sessionId)}
                     >
-                      <view className="BarFill" style={{ height, backgroundColor: colors.primary }} />
+                      <view className="BarFill" style={{ height: px(height), backgroundColor: colors.accent }} />
                     </view>
                   );
                 })}
@@ -227,12 +230,12 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
             {visible.length >= 2 ? (
               <view className="RowBetween">
-                <text className="Meta" style={{ color: colors.textMuted }}>
+                <Text role="detail" tone="textSecondary">
                   {formatDateShort(new Date(visible[0].date))}
-                </text>
-                <text className="Meta" style={{ color: colors.textMuted }}>
+                </Text>
+                <Text role="detail" tone="textSecondary">
                   {formatDateShort(new Date(visible[visible.length - 1].date))}
-                </text>
+                </Text>
               </view>
             ) : null}
 
@@ -245,18 +248,19 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                     className="SegmentItem"
                     key={remountKey('range', option)}
                     style={{
-                      backgroundColor: active ? colors.primary : colors.surface,
-                      borderColor: active ? colors.primary : colors.border,
-                      borderWidth: 1,
+                      backgroundColor: active ? colors.accent : colors.surface,
+                      borderColor: active ? colors.accent : colors.line,
+                      borderWidth: BORDER_WIDTH,
                     }}
                     bindtap={() => setRange(option)}
                   >
-                    <text
-                      className="SegmentLabel"
-                      style={{ color: active ? '#ffffff' : colors.text }}
+                    <Text
+                      role="support"
+                      tone={active ? 'onAccent' : 'textPrimary'}
+
                     >
                       {option}
-                    </text>
+                    </Text>
                   </view>
                 );
               })}
@@ -265,37 +269,37 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
           {latestPr ? (
             <Card>
-              <text className="CardLabel" style={{ color: colors.textMuted }}>
+              <Text role="detail" tone="textSecondary">
                 Récord personal
-              </text>
-              <text className="StatValue" style={{ color: colors.primary }}>
+              </Text>
+              <Text role="display" tone="accent">
                 {latestPr.value.toFixed(1)} {units}
-              </text>
-              <text className="CardBody" style={{ color: colors.textMuted }}>
+              </Text>
+              <Text role="support" tone="textSecondary">
                 {formatWeight(latestPr.weight ?? 0, units)} × {latestPr.reps ?? '?'} reps ·{' '}
                 {formatDateShort(new Date(latestPr.achievedAt))}
-              </text>
+              </Text>
             </Card>
           ) : null}
 
           {prs.length > 0 ? (
             <Card>
-              <text className="CardTitle" style={{ color: colors.text }}>
+              <Text role="title" tone="textPrimary">
                 Historial de récords
-              </text>
+              </Text>
               {prs.map((pr) => (
                 <view className="RowBetween" key={remountKey('pr', pr.id)}>
                   <view>
-                    <text className="ListTitle" style={{ color: colors.text }}>
+                    <Text role="title" tone="textPrimary">
                       {pr.recordType === 'one_rm' ? '1RM estimado' : pr.recordType}
-                    </text>
-                    <text className="Meta" style={{ color: colors.textMuted }}>
+                    </Text>
+                    <Text role="detail" tone="textSecondary">
                       {formatDateShort(new Date(pr.achievedAt))}
-                    </text>
+                    </Text>
                   </view>
-                  <text className="ListTitle" style={{ color: colors.primary }}>
+                  <Text role="title" tone="accent">
                     {pr.value.toFixed(1)} {units}
-                  </text>
+                  </Text>
                 </view>
               ))}
             </Card>
@@ -303,12 +307,12 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
 
           {exercise.instructions ? (
             <Card>
-              <text className="CardTitle" style={{ color: colors.text }}>
+              <Text role="title" tone="textPrimary">
                 Instrucciones
-              </text>
-              <text className="CardBody" style={{ color: colors.text }}>
+              </Text>
+              <Text role="support" tone="textPrimary">
                 {exercise.instructions}
-              </text>
+              </Text>
             </Card>
           ) : null}
         </view>
@@ -329,10 +333,10 @@ function Tag({ text }: { text: string }) {
   const { colors } = useTheme();
 
   return (
-    <view className="Tag" style={{ backgroundColor: colors.primaryMuted }}>
-      <text className="TagText" style={{ color: colors.primary }}>
+    <view className="Tag" style={{ backgroundColor: colors.accentSoft }}>
+      <Text role="detail" tone="accent">
         {text}
-      </text>
+      </Text>
     </view>
   );
 }

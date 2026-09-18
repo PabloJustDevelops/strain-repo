@@ -7,6 +7,7 @@ import { useRouter, useTabs } from '@lib/router';
 import { useTheme } from '@lib/useTheme';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import { usePreferences } from '@stores/preferencesStore';
+import { Text } from '@components/Text';
 
 /**
  * Cierre del workout: resumen de lo que acaba de pasar.
@@ -29,9 +30,9 @@ export function WorkoutFinishScreen() {
 
   if (!summary) {
     return (
-      <view className="Screen" style={{ backgroundColor: colors.background }}>
+      <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <EmptyState
-          title="¡Buen trabajo!"
+          title="Buen trabajo"
           body="No hay un resumen reciente para mostrar."
           action={<Button title="Volver al inicio" onPress={() => goToTab('home')} />}
         />
@@ -40,92 +41,92 @@ export function WorkoutFinishScreen() {
   }
 
   return (
-    <view className="Screen" style={{ backgroundColor: colors.background }}>
+    <view className="Screen" style={{ backgroundColor: colors.bg }}>
       <scroll-view className="ScreenScroll" scroll-orientation="vertical">
         <view className="ScreenContent">
           <view className="FinishHero">
             <view className="FinishBadge" style={{ backgroundColor: colors.success }}>
-              <text className="FinishBadgeMark">✓</text>
+              <Text role="display" tone="onAccent">✓</Text>
             </view>
-            <text className="FinishTitle" style={{ color: colors.text }}>
-              ¡Workout completado!
-            </text>
-            <text className="FinishSubtitle" style={{ color: colors.textMuted }}>
+            <Text role="display" tone="textPrimary">
+              Workout completado
+            </Text>
+            <Text role="support" tone="textSecondary">
               {summary.name}
-            </text>
+            </Text>
           </view>
 
           <Card>
             <view className="RowBetween">
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <Text role="support" tone="textSecondary">
                 Duración
-              </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              </Text>
+              <Text role="title" tone="textPrimary">
                 {formatDuration(summary.durationSeconds)}
-              </text>
+              </Text>
             </view>
             <view className="RowBetween">
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <Text role="support" tone="textSecondary">
                 Volumen total
-              </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              </Text>
+              <Text role="title" tone="textPrimary">
                 {formatNumber(summary.totalVolume)} {units}
-              </text>
+              </Text>
             </view>
             <view className="RowBetween">
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <Text role="support" tone="textSecondary">
                 Series completadas
-              </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              </Text>
+              <Text role="title" tone="textPrimary">
                 {summary.completedSets} / {summary.totalSets}
-              </text>
+              </Text>
             </view>
             <view className="RowBetween">
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <Text role="support" tone="textSecondary">
                 Ejercicios
-              </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              </Text>
+              <Text role="title" tone="textPrimary">
                 {summary.exercises.length}
-              </text>
+              </Text>
             </view>
           </Card>
 
           {summary.prs.length > 0 ? (
             <Card>
-              <text className="CardTitle" style={{ color: colors.text }}>
+              <Text role="title" tone="textPrimary">
                 Récords de la sesión
-              </text>
+              </Text>
               {summary.prs.map((pr) => (
                 <view className="RowBetween" key={remountKey('pr', pr.exerciseId)}>
-                  <text className="ListTitle" style={{ color: colors.text }}>
+                  <Text role="title" tone="textPrimary">
                     {pr.exerciseName}
-                  </text>
-                  <text className="ListTitle" style={{ color: colors.primary }}>
+                  </Text>
+                  <Text role="title" tone="accent">
                     {pr.value.toFixed(1)} {units}
-                  </text>
+                  </Text>
                 </view>
               ))}
             </Card>
           ) : null}
 
           <Card>
-            <text className="CardTitle" style={{ color: colors.text }}>
+            <Text role="title" tone="textPrimary">
               Resumen por ejercicio
-            </text>
+            </Text>
             {summary.exercises.map((exercise) => (
               <view className="RowBetween" key={remountKey('summaryExercise', exercise.id)}>
                 <view className="RowFill">
-                  <text className="ListTitle" style={{ color: colors.text }}>
+                  <Text role="title" tone="textPrimary">
                     {exercise.name}
-                  </text>
-                  <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                  </Text>
+                  <Text role="support" tone="textSecondary">
                     {exercise.completedSets} series · {formatNumber(exercise.volume)} {units}
-                  </text>
+                  </Text>
                 </view>
                 {exercise.best ? (
-                  <text className="ListTitle" style={{ color: colors.primary }}>
+                  <Text role="title" tone="accent">
                     {formatWeight(exercise.best.weight, units)} × {exercise.best.reps}
-                  </text>
+                  </Text>
                 ) : null}
               </view>
             ))}

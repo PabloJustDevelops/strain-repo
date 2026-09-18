@@ -92,6 +92,39 @@ export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
   'workout/finish': WorkoutFinishScreen,
 };
 
+/**
+ * Título humano de cada ruta de pila, para la cabecera del `Shell`.
+ *
+ * El nombre de ruta (`workout/active`) es un identificador técnico: sirve para
+ * el registro y los `push`, no para leerlo en pantalla. Esta tabla es la
+ * traducción, en un solo sitio y con un test que exige que ninguna ruta de pila
+ * se quede sin título.
+ */
+export const STACK_TITLES: Record<StackRoute, string> = {
+  'routines/[id]': 'Detalle de la rutina',
+  'exercises/[id]': 'Detalle del ejercicio',
+  'history/[id]': 'Detalle de la sesión',
+  'workout/active': 'Entrenamiento activo',
+  'workout/finish': 'Resumen del entrenamiento',
+};
+
+/**
+ * Título a mostrar para un nombre de ruta.
+ *
+ * Las pestañas usan su etiqueta (`TAB_LABELS`), las rutas de pila su título, y
+ * lo que no esté en el registro cae al propio nombre: es preferible un
+ * identificador crudo a una cabecera vacía.
+ */
+export function routeTitle(name: string): string {
+  if (name === TABS_ROUTE) return TAB_LABELS[DEFAULT_TAB];
+
+  if (name in TAB_LABELS) return TAB_LABELS[name as TabRoute];
+
+  if (name in STACK_TITLES) return STACK_TITLES[name as StackRoute];
+
+  return name;
+}
+
 const REGISTRY: Record<string, ComponentType<RouteProps>> = {
   ...TAB_COMPONENTS,
   ...STACK_COMPONENTS,

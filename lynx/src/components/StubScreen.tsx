@@ -1,7 +1,7 @@
 import { Card } from '@components/Card';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { remountKey } from '@lib/reactKeys';
-import { useTheme } from '@lib/useTheme';
 
 /**
  * Pantalla de relleno para las rutas de pila que todavía no existen.
@@ -16,33 +16,32 @@ interface StubScreenProps {
 }
 
 export function StubScreen({ title, note, params }: StubScreenProps) {
-  const { colors } = useTheme();
   const keys = Object.keys(params);
 
   return (
     <Screen title={title} subtitle="Stub navegable">
       <Card>
-        <text className="CardTitle" style={{ color: colors.text }}>
+        <Text role="title" tone="textPrimary">
           Pantalla pendiente
-        </text>
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        </Text>
+        <Text role="support" tone="textSecondary">
           {note}
-        </text>
+        </Text>
       </Card>
 
       {keys.length > 0 ? (
         <Card>
-          <text className="CardLabel" style={{ color: colors.textMuted }}>
+          <Text role="detail" tone="textSecondary">
             Parámetros de la ruta
-          </text>
+          </Text>
           {keys.map((key) => (
             <view className="RowBetween" key={remountKey('param', key)}>
-              <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+              <Text role="support" tone="textSecondary">
                 {key}
-              </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              </Text>
+              <Text role="title" tone="textPrimary">
                 {params[key]}
-              </text>
+              </Text>
             </view>
           ))}
         </Card>

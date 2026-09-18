@@ -1,11 +1,12 @@
+import { Input } from '@lynx-js/lynx-ui';
 import { useState } from '@lynx-js/react';
 
 import { getRepos } from '@db';
-import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { MuscleChip } from '@components/MuscleChip';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { equipmentLabel, muscleGroupLabel } from '@lib/labels';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
@@ -51,11 +52,13 @@ export function ExercisesScreen() {
       title="Ejercicios"
       subtitle={exercises.loading ? undefined : `${filtered.length} de ${exercises.data.length}`}
     >
-      <input
+      <Input
         className="Input"
-        style={{ backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }}
+        style={{ backgroundColor: colors.surface, borderColor: colors.line, color: colors.textPrimary }}
         placeholder="Buscar ejercicio"
-        bindinput={(e) => setQuery(e.detail.value)}
+        confirmType="search"
+        value={query}
+        onInput={(value) => setQuery(value)}
       />
 
       <view className="ChipRow">
@@ -81,16 +84,19 @@ export function ExercisesScreen() {
       ) : null}
 
       {filtered.map((exercise) => (
-        <Card key={remountKey('exercise', exercise.id)}>
-          <view bindtap={() => router.push('exercises/[id]', { id: exercise.id })}>
-            <text className="ListTitle" style={{ color: colors.text }}>
-              {exercise.name}
-            </text>
-            <text className="ListSubtitle" style={{ color: colors.textMuted }}>
-              {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
-            </text>
-          </view>
-        </Card>
+        <view
+          className="ListRow"
+          key={remountKey('exercise', exercise.id)}
+          style={{ borderColor: colors.line }}
+          bindtap={() => router.push('exercises/[id]', { id: exercise.id })}
+        >
+          <Text role="title" tone="textPrimary">
+            {exercise.name}
+          </Text>
+          <Text role="support" tone="textSecondary">
+            {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
+          </Text>
+        </view>
       ))}
     </Screen>
   );

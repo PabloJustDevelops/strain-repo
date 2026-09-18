@@ -1,5 +1,8 @@
+import { Switch, SwitchThumb, SwitchTrack } from '@lynx-js/lynx-ui';
+
 import { Card } from '@components/Card';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { remountKey } from '@lib/reactKeys';
 import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
@@ -19,8 +22,8 @@ const UNIT_OPTIONS: { value: Units; label: string }[] = [
 /**
  * Ajustes sobre `preferencesStore` (persistido en la seam KV).
  *
- * Todo lo que la app Expo resolvía con native modules —notificaciones, háptics,
- * export/import, cuenta— queda fuera de esta fase: acá sólo viven las
+ * Todo lo que la app Expo resolvía con native modules (notificaciones, háptics,
+ * export/import, cuenta) queda fuera de esta fase: acá sólo viven las
  * preferencias reales y el cambio de tema, que sí funciona de punta a punta.
  */
 export function SettingsScreen() {
@@ -40,27 +43,27 @@ export function SettingsScreen() {
   return (
     <Screen title="Ajustes">
       <Card>
-        <text className="CardLabel" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           Apariencia
-        </text>
+        </Text>
         <Segmented options={THEME_OPTIONS} value={themeMode} onChange={setThemeMode} />
-        <text className="Meta" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           {isDark ? 'Tema oscuro activo' : 'Tema claro activo'}
           {themeMode === 'system' ? ' (el sistema cae a oscuro hasta que haya bridge)' : ''}
-        </text>
+        </Text>
       </Card>
 
       <Card>
-        <text className="CardLabel" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           Unidades
-        </text>
+        </Text>
         <Segmented options={UNIT_OPTIONS} value={units} onChange={setUnits} />
       </Card>
 
       <Card>
-        <text className="CardLabel" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           Entrenamiento
-        </text>
+        </Text>
         <Toggle
           label="Vibración háptica"
           value={hapticsEnabled}
@@ -72,9 +75,9 @@ export function SettingsScreen() {
           onChange={setKeepScreenAwake}
         />
         <view className="RowBetween">
-          <text className="ListTitle" style={{ color: colors.text }}>
+          <Text role="title" tone="textPrimary">
             Descanso por defecto
-          </text>
+          </Text>
           <view className="RowActions">
             {[60, 90, 120, 180].map((seconds) => (
               <SelectChip
@@ -89,29 +92,35 @@ export function SettingsScreen() {
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.text }}>
+        <Text role="title" tone="textPrimary">
           Nativo pendiente
-        </text>
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        </Text>
+        <Text role="support" tone="textSecondary">
           Recordatorios, export/import de datos, háptics reales y la cuenta con
           Supabase dependen de native modules que Lynx no trae. Sus seams existen
           (con driver nulo), pero no hay UI que las use todavía.
-        </text>
+        </Text>
       </Card>
 
       <Card>
-        <text className="CardLabel" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           Acerca de
-        </text>
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        </Text>
+        <Text role="support" tone="textSecondary">
           Strain en Lynx · Fase 2 (router + shell + pestañas) · datos sobre seam KV
-        </text>
+        </Text>
       </Card>
     </Screen>
   );
 }
 
-/** Fila con interruptor propio: Lynx no trae un `<Switch>`. */
+/**
+ * Fila con interruptor, sobre el `switch` headless de lynx-ui.
+ *
+ * El `Switch` aporta el estado (checked/active) y la accesibilidad del toque;
+ * el dibujo del track y el pulgar es nuestro, con los tokens del tema. Antes
+ * esto era un `bindtap` en la fila con un cuadrado que se movía a mano.
+ */
 function Toggle({
   label,
   value,
@@ -124,23 +133,17 @@ function Toggle({
   const { colors } = useTheme();
 
   return (
-    <view
-      className="RowBetween"
-      bindtap={() => onChange(!value)}
-    >
-      <text className="ListTitle" style={{ color: colors.text }}>
+    <Switch checked={value} onChange={onChange} className="Toggle">
+      <Text role="title" tone="textPrimary" className="RowFill">
         {label}
-      </text>
-      <view
+      </Text>
+      <SwitchTrack
         className="ToggleTrack"
-        style={{ backgroundColor: value ? colors.primary : colors.border }}
+        style={{ backgroundColor: value ? colors.accent : colors.line }}
       >
-        <view
-          className={value ? 'ToggleKnob ToggleKnobOn' : 'ToggleKnob'}
-          style={{ backgroundColor: '#ffffff' }}
-        />
-      </view>
-    </view>
+        <SwitchThumb className="ToggleKnob" style={{ backgroundColor: colors.surface }} />
+      </SwitchTrack>
+    </Switch>
   );
 }
 
@@ -159,14 +162,18 @@ function SelectChip({
     <view
       className="Chip"
       style={{
-        backgroundColor: active ? colors.primary : colors.surfaceElevated,
-        borderColor: active ? colors.primary : colors.border,
+        backgroundColor: active ? colors.accent : colors.surfaceRaised,
+        borderColor: active ? colors.accent : colors.line,
       }}
       bindtap={onPress}
     >
-      <text className="ChipText" style={{ color: active ? '#ffffff' : colors.text }}>
+      <Text
+        role="support"
+        tone={active ? 'onAccent' : 'textPrimary'}
+
+      >
         {label}
-      </text>
+      </Text>
     </view>
   );
 }
@@ -186,7 +193,7 @@ function Segmented<T extends string>({
   return (
     <view
       className="Segmented"
-      style={{ backgroundColor: colors.background, borderColor: colors.border }}
+      style={{ backgroundColor: colors.bg, borderColor: colors.line }}
     >
       {options.map((option) => {
         const active = option.value === value;
@@ -195,15 +202,15 @@ function Segmented<T extends string>({
           <view
             className="SegmentedItem"
             key={remountKey('theme', option.value)}
-            style={{ backgroundColor: active ? colors.primary : 'transparent' }}
+            style={{ backgroundColor: active ? colors.accent : 'transparent' }}
             bindtap={() => onChange(option.value)}
           >
-            <text
-              className="SegmentedLabel"
-              style={{ color: active ? '#ffffff' : colors.text }}
+            <Text
+              role="support"
+              tone={active ? 'onAccent' : 'textPrimary'}
             >
               {option.label}
-            </text>
+            </Text>
           </view>
         );
       })}

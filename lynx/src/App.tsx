@@ -14,7 +14,7 @@ export function App() {
   const { colors } = useTheme();
 
   return (
-    <page className="Page" style={{ backgroundColor: colors.background }}>
+    <page className="Page" style={{ backgroundColor: colors.bg }}>
       <Shell />
     </page>
   );

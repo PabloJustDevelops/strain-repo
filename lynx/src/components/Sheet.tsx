@@ -1,22 +1,27 @@
 import type { ReactNode } from '@lynx-js/react';
+import {
+  SheetBackdrop,
+  SheetContent,
+  SheetHandle,
+  SheetRoot,
+  SheetView,
+} from '@lynx-js/lynx-ui';
 
+import { Text } from '@components/Text';
+import { motion } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
 
 /**
- * Panel que sube desde el borde inferior, con telón de fondo.
+ * Panel que sube desde el borde inferior, sobre el `sheet` de `@lynx-js/lynx-ui`.
  *
- * Por qué no hay un `<Sheet>` nativo acá:
- * - `@lynx-js/types` no expone ningún elemento `sheet` ni `action-sheet`; el
- *   paquete que sí los trae (`@lynx-js/lynx-ui`) no está instalado y este run no
- *   suma dependencias.
- * - `<overlay>` sí existe, pero es un overlay *de ventana* del lado nativo: no
- *   deja controlar layout/estilos ni se puede testear sin dispositivo.
+ * Antes era un `<view>` posicionado en absoluto, sin gesto y con cierre sólo por
+ * botón. Ahora la librería aporta lo que faltaba y no se puede escribir a mano:
+ * arrastre para cerrar, animación de entrada/salida y snap al alto del contenido.
+ * El dibujo (color, borde, radio, cabecera) sigue siendo nuestro: la librería es
+ * headless.
  *
- * Así que el sheet es un `<view>` posicionado en absoluto dentro de la pantalla.
- * Sin gesto de arrastre (no hay `gesture-handler` ni `<Sheet>`), el cierre es
- * explícito: telón y botón "Cerrar". La política de arrastre ya portada en
- * `@lib/bottomSheet` queda sin consumidor hasta que existan esos gestos, y se
- * usará tal cual el día que se sumen.
+ * `@lib/bottomSheet` (la política de arrastre portada de la app Expo) sigue sin
+ * consumidor: la librería resuelve el gesto por su cuenta.
  */
 interface SheetProps {
   visible: boolean;
@@ -30,30 +35,46 @@ interface SheetProps {
 export function Sheet({ visible, title, onClose, children, footer }: SheetProps) {
   const { colors } = useTheme();
 
-  if (!visible) return null;
-
   return (
-    <view className="Sheet">
-      <view className="SheetBackdrop" bindtap={onClose} />
+    <SheetRoot
+      show={visible}
+      snapPoints={['fit']}
+      enableDragToClose
+      onShowChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <SheetView>
+        <SheetBackdrop
+          onClick={onClose}
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        />
 
-      <view
-        className="SheetPanel"
-        style={{ backgroundColor: colors.surfaceElevated, borderColor: colors.border }}
-      >
-        <view className="SheetHeader">
-          <text className="SheetTitle" style={{ color: colors.text }}>
-            {title}
-          </text>
-          <view className="SheetClose" bindtap={onClose}>
-            <text className="SheetCloseLabel" style={{ color: colors.textMuted }}>
-              Cerrar
-            </text>
+        <SheetContent
+          className="SheetPanel"
+          style={{ backgroundColor: colors.surfaceRaised, borderColor: colors.line }}
+          enterAnimation={{ type: 'tween', duration: motion.base }}
+          exitAnimation={{ type: 'tween', duration: motion.base }}
+        >
+          <view className="SheetHandleRow">
+            <SheetHandle className="SheetHandle" style={{ backgroundColor: colors.line }} />
           </view>
-        </view>
 
-        {children}
-        {footer ? <view className="SheetFooter">{footer}</view> : null}
-      </view>
-    </view>
+          <view className="SheetHeader">
+            <Text role="title" tone="textPrimary">
+              {title}
+            </Text>
+            <view className="SheetClose" bindtap={onClose}>
+              <Text role="support" tone="textSecondary">
+                Cerrar
+              </Text>
+            </view>
+          </view>
+
+          {children}
+          {footer ? <view className="SheetFooter">{footer}</view> : null}
+        </SheetContent>
+      </SheetView>
+    </SheetRoot>
   );
 }

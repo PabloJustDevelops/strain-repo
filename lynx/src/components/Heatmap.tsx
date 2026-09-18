@@ -2,8 +2,9 @@ import { useMemo } from '@lynx-js/react';
 
 import { buildHeatmapGrid, type HeatmapDay } from '@lib/heatmap';
 import { remountKey } from '@lib/reactKeys';
-import { withAlpha } from '@lib/theme';
+import { px, withAlpha } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
 
 export type { HeatmapDay };
 
@@ -37,39 +38,42 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
 
     const ratio = volume / grid.maxVolume;
 
-    if (ratio < 0.25) return withAlpha(colors.primary, 0.25);
+    if (ratio < 0.25) return withAlpha(colors.accent, 0.25);
 
-    if (ratio < 0.5) return withAlpha(colors.primary, 0.5);
+    if (ratio < 0.5) return withAlpha(colors.accent, 0.5);
 
-    if (ratio < 0.75) return withAlpha(colors.primary, 0.75);
+    if (ratio < 0.75) return withAlpha(colors.accent, 0.75);
 
-    return colors.primary;
+    return colors.accent;
   }
 
   return (
     <view>
       <view className="HeatmapMonths">
         {grid.monthMarkers.map((marker) => (
-          <text
+          <Text
+            role="detail"
+            tone="textSecondary"
             className="HeatmapMonth"
             key={remountKey('month', `${marker.col}-${marker.label}`)}
-            style={{ color: colors.textMuted, left: marker.col * (cellSize + 3) }}
+            style={{ left: px(marker.col * (cellSize + 3)) }}
           >
             {marker.label}
-          </text>
+          </Text>
         ))}
       </view>
 
       <view className="HeatmapBody">
         <view className="HeatmapDayLabels">
           {DAY_LABELS.map((label) => (
-            <text
-              className="HeatmapDayLabel"
+            <Text
+              role="detail"
+              tone="textSecondary"
               key={remountKey('day', label)}
-              style={{ color: colors.textMuted, height: cellSize + 3, lineHeight: cellSize + 3 }}
+              style={{ height: px(cellSize + 3), lineHeight: px(cellSize + 3) }}
             >
               {label}
-            </text>
+            </Text>
           ))}
         </view>
 
@@ -82,8 +86,8 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
                     className="HeatmapCell"
                     key={remountKey('cell', day.date)}
                     style={{
-                      width: cellSize,
-                      height: cellSize,
+                      width: px(cellSize),
+                      height: px(cellSize),
                       backgroundColor: intensity(day.volume),
                     }}
                     bindtap={onDayPress ? () => onDayPress(day) : undefined}
@@ -92,7 +96,7 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
                   <view
                     className="HeatmapCell HeatmapCellEmpty"
                     key={remountKey('future', `${weekIndex}-${dayIndex}`)}
-                    style={{ width: cellSize, height: cellSize }}
+                    style={{ width: px(cellSize), height: px(cellSize) }}
                   />
                 )
               )}
@@ -102,21 +106,21 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
       </view>
 
       <view className="HeatmapLegend">
-        <text className="HeatmapDayLabel" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           Menos
-        </text>
+        </Text>
         {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
           <view
             className="HeatmapLegendCell"
             key={remountKey('legend', ratio)}
             style={{
-              backgroundColor: ratio === 0 ? colors.surface : withAlpha(colors.primary, ratio * 0.8),
+              backgroundColor: ratio === 0 ? colors.surface : withAlpha(colors.accent, ratio * 0.8),
             }}
           />
         ))}
-        <text className="HeatmapDayLabel" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           Más
-        </text>
+        </Text>
       </view>
     </view>
   );

@@ -15,6 +15,7 @@ import {
 } from '@lib/keypad';
 import { oneRmPreview } from '@lib/metrics';
 import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
 
 /**
  * Teclado numérico para introducir peso o reps en el workout activo.
@@ -79,24 +80,24 @@ export function NumericKeypad({
             style={{ backgroundColor: colors.success }}
             bindtap={() => onConfirm(keypadValue(state))}
           >
-            <text className="KeypadConfirmLabel">Confirmar</text>
+            <Text role="title" tone="onAccent">Confirmar</Text>
           </view>
         </view>
       }
     >
       <view className="KeypadDisplay">
-        <text className="KeypadValue" style={{ color: colors.text }}>
+        <Text role="display" tone="textPrimary">
           {display}
-        </text>
+        </Text>
         {field === 'weight' ? (
-          <text className="KeypadUnit" style={{ color: colors.textMuted }}>
+          <Text role="title" tone="textSecondary">
             {units}
-          </text>
+          </Text>
         ) : null}
         {oneRm !== null ? (
-          <text className="KeypadOneRm" style={{ color: colors.textMuted }}>
+          <Text role="detail" tone="textSecondary">
             1RM estimado {formatWeight(oneRm, units)}
-          </text>
+          </Text>
         ) : null}
       </view>
 
@@ -120,12 +121,12 @@ export function NumericKeypad({
       {previousValue != null && previousValue > 0 ? (
         <view
           className="KeypadQuickPick"
-          style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+          style={{ backgroundColor: colors.surface, borderColor: colors.line }}
           bindtap={() => setState(quickPickState(previousValue, field))}
         >
-          <text className="KeypadQuickLabel" style={{ color: colors.textMuted }}>
+          <Text role="detail" tone="textSecondary">
             Anterior: {previousValue}
-          </text>
+          </Text>
         </view>
       ) : null}
 
@@ -178,14 +179,14 @@ function Key({
     <view
       className="KeypadKey"
       style={{
-        backgroundColor: muted ? colors.surface : colors.background,
-        borderColor: colors.border,
+        backgroundColor: muted ? colors.surface : colors.bg,
+        borderColor: colors.line,
       }}
       bindtap={onPress}
     >
-      <text className="KeypadKeyLabel" style={{ color: colors.text }}>
+      <Text role="heading" tone="textPrimary">
         {label}
-      </text>
+      </Text>
     </view>
   );
 }
@@ -196,12 +197,12 @@ function StepButton({ label, onPress }: { label: string; onPress: () => void }) 
   return (
     <view
       className="KeypadStep"
-      style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      style={{ backgroundColor: colors.surface, borderColor: colors.line }}
       bindtap={onPress}
     >
-      <text className="KeypadStepLabel" style={{ color: colors.text }}>
+      <Text role="support" tone="textPrimary">
         {label}
-      </text>
+      </Text>
     </view>
   );
 }

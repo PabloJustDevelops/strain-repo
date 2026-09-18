@@ -9,6 +9,7 @@ import { useRouter, useTabs } from '@lib/router';
 import { useLoad } from '@lib/useLoad';
 import { useTheme } from '@lib/useTheme';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
+import { Text } from '@components/Text';
 
 /**
  * Pantalla "Hoy": punto de entrada de la app.
@@ -44,23 +45,23 @@ export function HomeScreen() {
       {session ? (
         <view
           className="Hero"
-          style={{ backgroundColor: colors.primary }}
+          style={{ backgroundColor: colors.accent }}
           bindtap={() => router.push('workout/active')}
         >
-          <text className="HeroLabel">Workout en curso</text>
-          <text className="HeroTitle">{session.name}</text>
-          <text className="HeroBody">
+          <Text role="detail" tone="onAccent">Workout en curso</Text>
+          <Text role="title" tone="onAccent">{session.name}</Text>
+          <Text role="support" tone="onAccent">
             {session.completedSets} series · {formatDuration(session.elapsedSeconds)}
-          </text>
+          </Text>
         </view>
       ) : (
         <Card>
-          <text className="CardTitle" style={{ color: colors.text }}>
+          <Text role="title" tone="textPrimary">
             Empieza un workout
-          </text>
-          <text className="CardBody" style={{ color: colors.textMuted }}>
+          </Text>
+          <Text role="support" tone="textSecondary">
             Comienza uno vacío o elige una de tus rutinas.
-          </text>
+          </Text>
           <view className="RowActions">
             <Button title="Vacío" onPress={handleStartEmpty} />
             <Button
@@ -73,21 +74,21 @@ export function HomeScreen() {
       )}
 
       <Card>
-        <text className="CardLabel" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           Racha actual
-        </text>
-        <text className="StatValue" style={{ color: colors.text }}>
+        </Text>
+        <Text role="display" tone="textPrimary">
           {streak.loading ? '—' : streak.data}
-        </text>
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        </Text>
+        <Text role="support" tone="textSecondary">
           {streak.data === 1 ? 'día seguido entrenando' : 'días seguidos entrenando'}
-        </text>
+        </Text>
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.text }}>
+        <Text role="title" tone="textPrimary">
           Acciones rápidas
-        </text>
+        </Text>
         <view className="RowActions">
           <Button
             title="Biblioteca"

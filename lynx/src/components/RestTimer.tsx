@@ -3,6 +3,7 @@ import { useEffect } from '@lynx-js/react';
 import { formatDuration } from '@lib/format';
 import { useTheme } from '@lib/useTheme';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
+import { Text } from '@components/Text';
 
 /**
  * Barra flotante del descanso entre series.
@@ -39,18 +40,15 @@ export function RestTimer() {
   return (
     <view
       className="RestTimer"
-      style={{ backgroundColor: colors.surfaceElevated, borderColor: colors.border }}
+      style={{ backgroundColor: colors.surfaceRaised, borderColor: colors.line }}
     >
       <view className="RowFill">
-        <text className="RestLabel" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           DESCANSO
-        </text>
-        <text
-          className="RestClock"
-          style={{ color: almostDone ? colors.warning : colors.text }}
-        >
+        </Text>
+        <Text role="display" tone={almostDone ? 'warning' : 'textPrimary'}>
           {formatDuration(restRemaining)}
-        </text>
+        </Text>
       </view>
 
       <view
@@ -58,9 +56,9 @@ export function RestTimer() {
         style={{ backgroundColor: colors.surface }}
         bindtap={() => startRest(restRemaining - 15)}
       >
-        <text className="RestSmallLabel" style={{ color: colors.text }}>
+        <Text role="support" tone="textPrimary">
           −15
-        </text>
+        </Text>
       </view>
 
       <view
@@ -68,17 +66,17 @@ export function RestTimer() {
         style={{ backgroundColor: colors.surface }}
         bindtap={() => startRest(restRemaining + 15)}
       >
-        <text className="RestSmallLabel" style={{ color: colors.text }}>
+        <Text role="support" tone="textPrimary">
           +15
-        </text>
+        </Text>
       </view>
 
       <view
         className="RestSkip"
-        style={{ backgroundColor: colors.primary }}
+        style={{ backgroundColor: colors.accent }}
         bindtap={skipRest}
       >
-        <text className="RestSkipLabel">Saltar</text>
+        <Text role="support" tone="onAccent">Saltar</Text>
       </view>
     </view>
   );

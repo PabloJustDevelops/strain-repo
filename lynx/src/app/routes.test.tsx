@@ -1,16 +1,33 @@
 import { describe, expect, it, vi } from 'vitest';
 
 /**
- * `@lynx-js/react` no se puede importar en Node (`__LEPUS__ is not defined`) y
- * este test sólo recorre el registro: no renderiza nada. Se reemplazan los hooks
- * y el runtime de JSX por stubs para poder importar las pantallas.
+ * `@lynx-js/react` no se puede cargar en Node: su runtime pide el global `lynx`
+ * (backend nativo) al evaluarse. Este test sólo recorre el registro de rutas y
+ * no renderiza nada, así que se reemplazan el runtime y los hooks por stubs.
+ *
+ * El stub tiene que cubrir también lo que usan al evaluarse los componentes de
+ * `@lynx-js/lynx-ui` (`createContext` para los contextos de Button y Switch),
+ * no sólo lo que usa nuestro código.
  */
 vi.mock('@lynx-js/react', () => ({
+  createContext: (defaultValue: unknown) => ({
+    defaultValue,
+    Provider: () => null,
+    Consumer: () => null,
+  }),
+  useContext: () => ({}),
   useState: (initial: unknown) => [initial, () => {}],
   useEffect: () => {},
+  useLayoutEffect: () => {},
   useCallback: (fn: unknown) => fn,
   useMemo: (fn: () => unknown) => fn(),
   useRef: (initial: unknown) => ({ current: initial }),
+  useReducer: (_reducer: unknown, initial: unknown) => [initial, () => {}],
+  useImperativeHandle: () => {},
+  useSyncExternalStore: (subscribe: unknown) => subscribe,
+  memo: (component: unknown) => component,
+  forwardRef: (component: unknown) => component,
+  createRef: () => ({ current: null }),
 }));
 
 vi.mock('@lynx-js/react/jsx-runtime', () => ({
@@ -27,11 +44,13 @@ vi.mock('@lynx-js/react/jsx-dev-runtime', () => ({
 import {
   ROUTE_NAMES,
   STACK_ROUTES,
+  STACK_TITLES,
   TAB_COMPONENTS,
   TAB_LABELS,
   TAB_ROUTES,
   TABS_ROUTE,
   resolveRoute,
+  routeTitle,
   tabFromParams,
 } from './routes';
 
@@ -80,5 +99,37 @@ describe('registro de rutas (Lynx)', () => {
 
   it('una ruta desconocida no resuelve a nada', () => {
     expect(resolveRoute('no/existe')).toBeUndefined();
+  });
+});
+
+describe('título humano de la cabecera', () => {
+  it('cada ruta de pila tiene título propio y no muestra su identificador', () => {
+    for (const name of STACK_ROUTES) {
+      const title = routeTitle(name);
+
+      expect(title).toBe(STACK_TITLES[name]);
+      expect(title.length).toBeGreaterThan(0);
+      expect(title).not.toBe(name);
+      expect(title).not.toContain('/');
+      expect(title).not.toContain('[');
+    }
+  });
+
+  it('las pestañas usan su etiqueta y (tabs) cae a la pestaña por defecto', () => {
+    for (const tab of TAB_ROUTES) {
+      expect(routeTitle(tab)).toBe(TAB_LABELS[tab]);
+    }
+
+    expect(routeTitle(TABS_ROUTE)).toBe(TAB_LABELS.home);
+  });
+
+  it('un nombre fuera del registro cae al propio nombre, no a vacío', () => {
+    expect(routeTitle('no/existe')).toBe('no/existe');
+  });
+
+  it('no hay títulos repetidos entre rutas de pila', () => {
+    const titles = STACK_ROUTES.map((name) => routeTitle(name));
+
+    expect(new Set(titles).size).toBe(titles.length);
   });
 });

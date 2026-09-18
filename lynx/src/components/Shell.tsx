@@ -2,12 +2,14 @@ import { EmptyState } from '@components/EmptyState';
 import { remountKey } from '@lib/reactKeys';
 import { useCurrentRoute, useRouter, useTabs } from '@lib/router';
 import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
 import {
   TAB_COMPONENTS,
   TAB_LABELS,
   TAB_ROUTES,
   TABS_ROUTE,
   resolveRoute,
+  routeTitle,
   tabFromParams,
   type TabRoute,
 } from '@/app/routes';
@@ -44,15 +46,18 @@ export function Shell() {
 
   return (
     <view className="Shell">
-      <view className="ShellHeader" style={{ backgroundColor: colors.surface }}>
+      <view
+        className="ShellHeader"
+        style={{ backgroundColor: colors.surface, borderColor: colors.line }}
+      >
         <view className="BackButton" bindtap={router.back}>
-          <text className="BackLabel" style={{ color: colors.primary }}>
+          <Text role="title" tone="accent">
             ‹ Atrás
-          </text>
+          </Text>
         </view>
-        <text className="ShellRoute" style={{ color: colors.textMuted }}>
-          {route.name}
-        </text>
+        <Text role="title" tone="textPrimary">
+          {routeTitle(route.name)}
+        </Text>
       </view>
 
       <view className="ShellBody">
@@ -76,7 +81,7 @@ function TabBar({ active, onSelect }: { active: TabRoute; onSelect: (tab: string
   return (
     <view
       className="TabBar"
-      style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      style={{ backgroundColor: colors.surface, borderColor: colors.line }}
     >
       {TAB_ROUTES.map((tab) => {
         const isActive = tab === active;
@@ -87,15 +92,15 @@ function TabBar({ active, onSelect }: { active: TabRoute; onSelect: (tab: string
             key={remountKey('tab', tab)}
             bindtap={() => onSelect(tab)}
           >
-            <text
-              className="TabLabel"
-              style={{ color: isActive ? colors.primary : colors.textMuted }}
+            <Text
+              role="detail"
+              tone={isActive ? 'accent' : 'textSecondary'}
             >
               {TAB_LABELS[tab]}
-            </text>
+            </Text>
             <view
               className="TabMarker"
-              style={{ backgroundColor: isActive ? colors.primary : 'transparent' }}
+              style={{ backgroundColor: isActive ? colors.accent : 'transparent' }}
             />
           </view>
         );

@@ -1,9 +1,9 @@
 import { getRepos } from '@db';
 import { Button } from '@components/Button';
-import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { formatDateTime } from '@lib/format';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
@@ -43,27 +43,31 @@ export function RoutinesScreen() {
       ) : null}
 
       {routines.data.map((routine) => (
-        <Card key={remountKey('routine', routine.id)}>
+        <view
+          className="ListRow"
+          key={remountKey('routine', routine.id)}
+          style={{ borderColor: colors.line }}
+        >
           <view className="RowBetween">
             <view className="RowFill">
-              <text className="ListTitle" style={{ color: colors.text }}>
+              <Text role="title" tone="textPrimary">
                 {routine.name}
-              </text>
+              </Text>
               {routine.description ? (
-                <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                <Text role="support" tone="textSecondary">
                   {routine.description}
-                </text>
+                </Text>
               ) : null}
             </view>
             <view
               className="ColorSwatch"
-              style={{ backgroundColor: routine.color ?? colors.primary }}
+              style={{ backgroundColor: routine.color ?? colors.accent }}
             />
           </view>
 
-          <text className="Meta" style={{ color: colors.textMuted }}>
+          <Text role="detail" tone="textSecondary">
             Actualizada {formatDateTime(new Date(routine.updatedAt))}
-          </text>
+          </Text>
 
           <view className="RowActions">
             <Button title="Empezar" onPress={() => handleStart(routine)} />
@@ -73,7 +77,7 @@ export function RoutinesScreen() {
               onPress={() => router.push('routines/[id]', { id: routine.id })}
             />
           </view>
-        </Card>
+        </view>
       ))}
     </Screen>
   );

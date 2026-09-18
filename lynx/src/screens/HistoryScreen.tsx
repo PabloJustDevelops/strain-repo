@@ -1,8 +1,8 @@
 import { getRepos } from '@db';
-import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { formatDateTime, formatDuration } from '@lib/format';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
@@ -41,40 +41,41 @@ export function HistoryScreen() {
       ) : null}
 
       {sessions.data.map((session) => (
-        <Card key={remountKey('session', session.id)}>
-          <view bindtap={() => router.push('history/[id]', { id: session.id })}>
-            <view className="RowBetween">
-              <text className="ListTitle" style={{ color: colors.text }}>
-                {session.name}
-              </text>
-              <text className="Meta" style={{ color: colors.textMuted }}>
-                {formatDateTime(new Date(session.startedAt))}
-              </text>
-            </view>
-
-            <view className="StatRow">
-              <Stat label="Volumen" value={`${Math.round(session.totalVolume)} ${units}`} />
-              <Stat label="Series" value={String(session.totalSets)} />
-              <Stat label="Duración" value={formatDuration(session.durationSeconds ?? 0)} />
-            </view>
+        <view
+          className="ListRow"
+          key={remountKey('session', session.id)}
+          style={{ borderColor: colors.line }}
+          bindtap={() => router.push('history/[id]', { id: session.id })}
+        >
+          <view className="RowBetween">
+            <Text role="title" tone="textPrimary">
+              {session.name}
+            </Text>
+            <Text role="detail" tone="textSecondary">
+              {formatDateTime(new Date(session.startedAt))}
+            </Text>
           </view>
-        </Card>
+
+          <view className="StatRow">
+            <Stat label="Volumen" value={`${Math.round(session.totalVolume)} ${units}`} />
+            <Stat label="Series" value={String(session.totalSets)} />
+            <Stat label="Duración" value={formatDuration(session.durationSeconds ?? 0)} />
+          </view>
+        </view>
       ))}
     </Screen>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
-  const { colors } = useTheme();
-
   return (
     <view className="Stat">
-      <text className="StatLabel" style={{ color: colors.textMuted }}>
+      <Text role="detail" tone="textSecondary">
         {label}
-      </text>
-      <text className="StatText" style={{ color: colors.text }}>
+      </Text>
+      <Text role="support" tone="textPrimary">
         {value}
-      </text>
+      </Text>
     </view>
   );
 }

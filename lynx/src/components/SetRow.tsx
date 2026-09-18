@@ -1,6 +1,7 @@
 import { useTheme } from '@lib/useTheme';
 import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
 import type { SetView } from '@db/shapes';
+import { Text } from '@components/Text';
 
 /**
  * Fila de un set dentro del workout activo.
@@ -62,68 +63,68 @@ export function SetRow({
   return (
     <view
       className="WorkoutSet"
-      style={{ borderColor: colors.border, backgroundColor: colors.surface }}
+      style={{ borderColor: colors.line, backgroundColor: colors.surface }}
       bindlongpress={onOpenDetails}
     >
       <view className="WorkoutSetRow">
-        <text className="SetIndex" style={{ color: colors.textMuted }}>
+        <Text role="detail" tone="textSecondary">
           {set.setIndex}
-        </text>
+        </Text>
 
         <view className="SetPrev">
           {previous ? (
-            <text className="SetPrevText" style={{ color: colors.textMuted }}>
+            <Text role="detail" tone="textSecondary">
               ant. {previous.reps}×{previous.weight}
-            </text>
+            </Text>
           ) : null}
         </view>
 
         <view className="SetCell" bindtap={handleWeightTap}>
-          <text className="SetValue" style={{ color: colors.text }}>
+          <Text role="heading" tone="textPrimary">
             {set.weight || '—'}
-          </text>
-          <text className="SetUnit" style={{ color: colors.textMuted }}>
+          </Text>
+          <Text role="detail" tone="textSecondary">
             {units}
-          </text>
+          </Text>
         </view>
 
-        <view className="SetDivider" style={{ backgroundColor: colors.border }} />
+        <view className="SetDivider" style={{ backgroundColor: colors.line }} />
 
         <view className="SetCell" bindtap={onEditReps}>
-          <text className="SetValue" style={{ color: colors.text }}>
+          <Text role="heading" tone="textPrimary">
             {set.reps || '—'}
-          </text>
-          <text className="SetUnit" style={{ color: colors.textMuted }}>
+          </Text>
+          <Text role="detail" tone="textSecondary">
             reps
-          </text>
+          </Text>
         </view>
 
         <view
           className="SetToggle"
           style={{
-            backgroundColor: set.isCompleted ? colors.completed : 'transparent',
-            borderColor: set.isCompleted ? colors.completed : colors.border,
+            backgroundColor: set.isCompleted ? colors.success : 'transparent',
+            borderColor: set.isCompleted ? colors.success : colors.line,
           }}
           bindtap={set.isCompleted ? onUncomplete : onComplete}
         >
           {set.isCompleted ? (
-            <text className="SetToggleLabel" style={{ color: '#ffffff' }}>
+            <Text role="support" tone="onAccent">
               ✓
-            </text>
+            </Text>
           ) : null}
         </view>
 
         <view className="SetIconButton" bindtap={onDelete}>
-          <text className="SetIconLabel" style={{ color: colors.danger }}>
+          <Text role="title" tone="danger">
             ✕
-          </text>
+          </Text>
         </view>
 
         {onOpenDetails ? (
           <view className="SetIconButton" bindtap={onOpenDetails}>
-            <text className="SetIconLabel" style={{ color: colors.textMuted }}>
+            <Text role="title" tone="textSecondary">
               ⋯
-            </text>
+            </Text>
           </view>
         ) : null}
       </view>
@@ -131,14 +132,14 @@ export function SetRow({
       {hasDetails ? (
         <view className="SetDetailsLine">
           {set.rpe !== null ? (
-            <text className="SetDetailText" style={{ color: colors.textMuted }}>
+            <Text role="detail" tone="textSecondary">
               RPE {set.rpe}
-            </text>
+            </Text>
           ) : null}
           {set.notes ? (
-            <text className="SetDetailText" style={{ color: colors.textMuted }}>
+            <Text role="detail" tone="textSecondary">
               {set.notes}
-            </text>
+            </Text>
           ) : null}
         </view>
       ) : null}

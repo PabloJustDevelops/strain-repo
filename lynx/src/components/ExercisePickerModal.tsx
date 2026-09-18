@@ -1,7 +1,9 @@
+import { Input } from '@lynx-js/lynx-ui';
 import { useEffect, useState } from '@lynx-js/react';
 
 import { getRepos } from '@db';
 import { Sheet } from '@components/Sheet';
+import { Text } from '@components/Text';
 import { equipmentLabel, muscleGroupLabel } from '@lib/labels';
 import { remountKey } from '@lib/reactKeys';
 import { useTheme } from '@lib/useTheme';
@@ -13,8 +15,8 @@ import type { Exercise } from '@/types/domain';
  * Carga el catálogo al abrir (nunca durante el render) y devuelve el id del
  * elegido. Es la salida natural de un workout vacío.
  *
- * Igual que el resto de hojas: sin gestos, el cierre es explícito; y como no hay
- * `FlatList`, la lista larga va dentro de un `<scroll-view>` con alto máximo.
+ * La lista larga va dentro de un `<scroll-view>` con alto máximo: sigue sin
+ * haber `FlatList`, pero la hoja ya trae el gesto de arrastre de lynx-ui.
  */
 interface ExercisePickerModalProps {
   visible: boolean;
@@ -58,43 +60,45 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
         onClose();
       }}
     >
-      <input
+      <Input
         className="Input"
-        style={{ backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }}
+        style={{ backgroundColor: colors.surface, borderColor: colors.line, color: colors.textPrimary }}
         placeholder="Buscar ejercicio"
-        bindinput={(e) => setQuery(e.detail.value)}
+        confirmType="search"
+        value={query}
+        onInput={(value) => setQuery(value)}
       />
 
       <scroll-view className="SheetScroll" scroll-orientation="vertical">
         <view className="SheetScrollContent">
           {filtered.length === 0 ? (
-            <text className="CardBody" style={{ color: colors.textMuted }}>
+            <Text role="support" tone="textSecondary">
               Sin resultados.
-            </text>
+            </Text>
           ) : null}
 
           {filtered.map((exercise) => (
             <view
               className="PickerRow"
               key={remountKey('picker', exercise.id)}
-              style={{ backgroundColor: colors.background, borderColor: colors.border }}
+              style={{ backgroundColor: colors.bg, borderColor: colors.line }}
               bindtap={() => {
                 setQuery('');
                 onPick(exercise.id);
               }}
             >
-              <view className="PickerBadge" style={{ backgroundColor: colors.primaryMuted }}>
-                <text className="PickerBadgeLabel" style={{ color: colors.primary }}>
+              <view className="PickerBadge" style={{ backgroundColor: colors.accentSoft }}>
+                <Text role="heading" tone="accent">
                   +
-                </text>
+                </Text>
               </view>
               <view className="RowFill">
-                <text className="ListTitle" style={{ color: colors.text }}>
+                <Text role="title" tone="textPrimary">
                   {exercise.name}
-                </text>
-                <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                </Text>
+                <Text role="support" tone="textSecondary">
                   {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
-                </text>
+                </Text>
               </view>
             </view>
           ))}

@@ -3,12 +3,11 @@ import { useEffect } from '@lynx-js/react';
 import { Button } from '@components/Button';
 import { Card } from '@components/Card';
 import { Screen } from '@components/Screen';
-import { useTheme } from '@lib/useTheme';
+import { Text, type TextTone } from '@components/Text';
 import {
   useHealthConnect,
   type HealthConnectStatus,
 } from '@stores/healthConnectStore';
-import type { ThemeColors } from '@lib/theme';
 
 const STATUS_LABEL: Record<HealthConnectStatus, string> = {
   unknown: 'Comprobando…',
@@ -18,12 +17,12 @@ const STATUS_LABEL: Record<HealthConnectStatus, string> = {
   ready: 'Conectado a Health Connect',
 };
 
-function statusColor(status: HealthConnectStatus, colors: ThemeColors): string {
-  if (status === 'ready') return colors.success;
-  if (status === 'unavailable') return colors.danger;
-  if (status === 'needsInstall' || status === 'notAuthorized') return colors.warning;
+function statusTone(status: HealthConnectStatus): TextTone {
+  if (status === 'ready') return 'success';
+  if (status === 'unavailable') return 'danger';
+  if (status === 'needsInstall' || status === 'notAuthorized') return 'warning';
 
-  return colors.textMuted;
+  return 'textSecondary';
 }
 
 /**
@@ -35,8 +34,6 @@ function statusColor(status: HealthConnectStatus, colors: ThemeColors): string {
  * no un fallo de la pantalla.
  */
 export function HealthScreen() {
-  const { colors } = useTheme();
-
   const status = useHealthConnect((s) => s.status);
   const isLoading = useHealthConnect((s) => s.isLoading);
   const today = useHealthConnect((s) => s.today);
@@ -51,19 +48,19 @@ export function HealthScreen() {
     <Screen title="Salud" subtitle="Health Connect">
       <Card>
         <view className="RowBetween">
-          <text className="ListTitle" style={{ color: colors.text }}>
+          <Text role="title" tone="textPrimary">
             Health Connect
-          </text>
-          <text className="ListTitle" style={{ color: statusColor(status, colors) }}>
+          </Text>
+          <Text role="title" tone={statusTone(status)}>
             {isLoading ? '…' : STATUS_LABEL[status]}
-          </text>
+          </Text>
         </view>
 
-        <text className="CardBody" style={{ color: colors.textMuted }}>
+        <Text role="support" tone="textSecondary">
           El bridge nativo todavía no existe: en Lynx, Health Connect pide un native
           module propio expuesto con lynx.getJSModule. Sin él, el driver es nulo y todo
           esto reporta no disponible.
-        </text>
+        </Text>
 
         <view className="RowActions">
           <Button title="Volver a comprobar" variant="secondary" onPress={probe} />
@@ -72,9 +69,9 @@ export function HealthScreen() {
 
       {status === 'ready' && today ? (
         <Card>
-          <text className="CardTitle" style={{ color: colors.text }}>
+          <Text role="title" tone="textPrimary">
             Hoy
-          </text>
+          </Text>
           <view className="StatRow">
             <Metric label="Pasos" value={formatNumber(today.steps)} />
             <Metric label="Cal. activas" value={formatNumber(today.activeCalories)} />
@@ -88,9 +85,9 @@ export function HealthScreen() {
 
       {lastError ? (
         <Card>
-          <text className="CardBody" style={{ color: colors.danger }}>
+          <Text role="support" tone="danger">
             {lastError}
-          </text>
+          </Text>
         </Card>
       ) : null}
     </Screen>
@@ -98,16 +95,14 @@ export function HealthScreen() {
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
-  const { colors } = useTheme();
-
   return (
     <view className="Stat">
-      <text className="StatLabel" style={{ color: colors.textMuted }}>
+      <Text role="detail" tone="textSecondary">
         {label}
-      </text>
-      <text className="StatText" style={{ color: colors.text }}>
+      </Text>
+      <Text role="support" tone="textPrimary">
         {value}
-      </text>
+      </Text>
     </view>
   );
 }

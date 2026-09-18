@@ -1,8 +1,10 @@
 import { Sheet } from '@components/Sheet';
 import { formatWeight } from '@lib/format';
 import { plateShortfallMessage, type PlateResult } from '@lib/plateCalculator';
+import { px } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
+import { Text } from '@components/Text';
 
 /**
  * Distribución de discos para un peso objetivo.
@@ -33,33 +35,33 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
         <view>
           <view className="RowBetween">
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textMuted }}>
+              <Text role="detail" tone="textSecondary">
                 Objetivo
-              </text>
-              <text className="ListTitle" style={{ color: colors.text }}>
+              </Text>
+              <Text role="title" tone="textPrimary">
                 {formatWeight(result.totalWeight + result.remainder, units)}
-              </text>
+              </Text>
             </view>
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textMuted }}>
+              <Text role="detail" tone="textSecondary">
                 Alcanzable
-              </text>
-              <text
-                className="ListTitle"
-                style={{ color: result.achievable ? colors.success : colors.warning }}
+              </Text>
+              <Text
+                role="title"
+                tone={result.achievable ? 'success' : 'warning'}
               >
                 {formatWeight(result.totalWeight, units)}
-              </text>
+              </Text>
             </view>
           </view>
 
-          <view className="PlateBar" style={{ backgroundColor: colors.background }}>
+          <view className="PlateBar" style={{ backgroundColor: colors.bg }}>
             <view className="PlateSide">
               {[...perSide].reverse().map((kg, index) => (
                 <PlateDisk key={`L-${index}-${kg}`} kg={kg} />
               ))}
             </view>
-            <view className="PlateRod" style={{ backgroundColor: colors.text }} />
+            <view className="PlateRod" style={{ backgroundColor: colors.textPrimary }} />
             <view className="PlateSide">
               {perSide.map((kg, index) => (
                 <PlateDisk key={`R-${index}-${kg}`} kg={kg} />
@@ -68,26 +70,26 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
           </view>
 
           {result.platesPerSide.length === 0 ? (
-            <text className="CardBody" style={{ color: colors.textMuted }}>
+            <Text role="support" tone="textSecondary">
               Solo la barra ({formatWeight(result.barWeight, units)}).
-            </text>
+            </Text>
           ) : (
             result.platesPerSide.map((plate) => (
               <view className="RowBetween" key={`plate-${plate.plateKg}`}>
-                <text className="ListSubtitle" style={{ color: colors.text }}>
+                <Text role="support" tone="textPrimary">
                   {plate.plateKg} kg
-                </text>
-                <text className="ListSubtitle" style={{ color: colors.textMuted }}>
+                </Text>
+                <Text role="support" tone="textSecondary">
                   ×{plate.perSide} por lado
-                </text>
+                </Text>
               </view>
             ))
           )}
 
           {shortfall ? (
-            <text className="CardBody" style={{ color: colors.warning }}>
+            <Text role="support" tone="warning">
               {shortfall}
-            </text>
+            </Text>
           ) : null}
         </view>
       ) : null}
@@ -99,5 +101,5 @@ function PlateDisk({ kg }: { kg: number }) {
   const height = Math.min(60, 12 + kg * 1.8);
   const backgroundColor = kg >= 20 ? '#ef4444' : kg >= 10 ? '#3b82f6' : kg >= 5 ? '#22c55e' : '#a3a3a3';
 
-  return <view className="PlateDisk" style={{ height, backgroundColor }} />;
+  return <view className="PlateDisk" style={{ height: px(height), backgroundColor }} />;
 }

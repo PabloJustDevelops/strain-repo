@@ -1,1127 +1,269 @@
 /*
- * Estilos del prototipo Lynx.
+ * Layout del sistema de UI de Strain en Lynx.
  *
- * Layout y tipografía viven acá; los colores que dependen del tema se pasan
- * inline desde `useTheme()`, porque el CSS de Lynx es estático y el tema es
- * dinámico (mismo patrón que el placeholder de la Fase 1).
+ * Este fichero NO tiene tipografía ni color:
+ * - la tipografía vive en `Text` (`@lib/theme` → `type`/`typeStyle`), que es lo
+ *   que permite la compensación del modo oscuro;
+ * - el color vive en los tokens de `@lib/theme` y se pasa inline, porque el CSS
+ *   de Lynx es estático y el tema es dinámico.
+ *
+ * Reglas de los valores que sí aparecen acá:
+ * - Espaciado: sólo 4 / 8 / 16 / 36.
+ * - Radios: sólo chip (999), control (10) y tarjeta (14).
+ * - Bordes: siempre 1px (el color lo pone el token `line` inline).
+ * - Área táctil: nada interactivo mide menos de 44 en su lado corto.
  */
 
-.Page {
-  width: 100%;
-  height: 100%;
-}
+.Page { width: 100%; height: 100%; }
 
 /* --- Shell ---------------------------------------------------------------- */
 
-.Shell {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
+.Shell { display: flex; flex-direction: column; width: 100%; height: 100%; }
 
-.ShellBody {
-  flex: 1;
-  width: 100%;
-}
+.ShellBody { flex: 1; width: 100%; }
 
-.ShellHeader {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  height: 48px;
-  padding-left: 16px;
-  padding-right: 16px;
-}
+.ShellHeader { display: flex; flex-direction: row; align-items: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-bottom-width: 1px; }
 
-.BackButton {
-  padding-right: 12px;
-}
-
-.BackLabel {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.ShellRoute {
-  font-size: 12px;
-}
+.BackButton { display: flex; align-items: center; min-height: 44px; padding-right: 16px; }
 
 /* --- Tab bar -------------------------------------------------------------- */
 
-.TabBar {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  border-width: 1px;
-}
+.TabBar { display: flex; flex-direction: row; width: 100%; border-width: 1px; }
 
-.TabButton {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 44px;
-}
+.TabButton { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 44px; padding-top: 8px; padding-bottom: 8px; }
 
-.TabLabel {
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.TabMarker {
-  width: 18px;
-  height: 2px;
-  margin-top: 4px;
-  border-radius: 1px;
-}
+.TabMarker { width: 16px; height: 2px; margin-top: 4px; border-radius: 1px; }
 
 /* --- Pantalla ------------------------------------------------------------- */
 
-.Screen {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
+.Screen { display: flex; flex-direction: column; width: 100%; height: 100%; }
 
-.ScreenHeader {
-  padding-top: 16px;
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-bottom: 8px;
-}
+.ScreenHeader { padding-top: 16px; padding-left: 16px; padding-right: 16px; padding-bottom: 8px; }
 
-.ScreenHeaderRow {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  justify-content: space-between;
-}
+.ScreenHeaderRow { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; }
 
-.ScreenTitle {
-  font-size: 28px;
-  font-weight: 800;
-}
+.ScreenScroll { flex: 1; width: 100%; }
 
-.ScreenSubtitle {
-  font-size: 14px;
-  margin-top: 4px;
-}
+.ScreenContent { display: flex; flex-direction: column; padding-left: 16px; padding-right: 16px; padding-bottom: 36px; }
 
-.ScreenScroll {
-  flex: 1;
-  width: 100%;
-}
+/* --- Tarjeta -------------------------------------------------------------- */
 
-.ScreenContent {
-  display: flex;
-  flex-direction: column;
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-bottom: 24px;
-}
+.Card { display: flex; flex-direction: column; border-width: 1px; border-radius: 14px; margin-bottom: 8px; }
 
-/* --- Card ----------------------------------------------------------------- */
+.CardPadded { padding: 16px; }
 
-.Card {
-  display: flex;
-  flex-direction: column;
-  border-width: 1px;
-  border-radius: 14px;
-  margin-bottom: 12px;
-}
-
-.CardPadded {
-  padding: 16px;
-}
-
-.CardTitle {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.CardBody {
-  font-size: 14px;
-  margin-top: 4px;
-}
-
-.CardLabel {
-  font-size: 12px;
-  font-weight: 700;
-}
+/* Fila de lista: se separa con línea, no con caja. Una tarjeta por elemento es
+   justo lo que convertía las listas en un muro de cajas. */
+.ListRow { display: flex; flex-direction: column; padding-top: 16px; padding-bottom: 16px; border-bottom-width: 1px; }
 
 /* --- Botón ---------------------------------------------------------------- */
 
-.Button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding-left: 16px;
-  padding-right: 16px;
-  border-width: 1px;
-  border-radius: 10px;
-  margin-right: 8px;
-  margin-top: 8px;
-}
+.Button { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-width: 1px; border-radius: 10px; margin-top: 8px; margin-right: 8px; }
 
-.ButtonFull {
-  width: 100%;
-}
+.ButtonFull { width: 100%; }
 
-.ButtonText {
-  font-size: 16px;
-  font-weight: 700;
-}
+/* Estados que inyecta el `button` de lynx-ui: pulsado y deshabilitado. */
+.Button.ui-active { opacity: 0.8; }
 
-/* --- Estados vacíos y de carga -------------------------------------------- */
+.Button.ui-disabled { opacity: 0.5; }
 
-.Empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px 16px 32px 16px;
-}
+/* --- Estados vacíos ------------------------------------------------------- */
 
-.EmptyTitle {
-  font-size: 18px;
-  font-weight: 700;
-  text-align: center;
-}
+.Empty { display: flex; flex-direction: column; align-items: center; padding: 36px 16px 36px 16px; }
 
-.EmptyBody {
-  font-size: 14px;
-  text-align: center;
-  margin-top: 8px;
-}
-
-.EmptyAction {
-  margin-top: 16px;
-}
-
-.LoadingText {
-  font-size: 14px;
-  margin-top: 8px;
-}
-
-.ErrorText {
-  font-size: 14px;
-  margin-top: 8px;
-}
+.EmptyAction { margin-top: 16px; }
 
 /* --- Chips ---------------------------------------------------------------- */
 
-.ChipRow {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
+.ChipRow { display: flex; flex-direction: row; flex-wrap: wrap; margin-top: 8px; }
 
-.Chip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-left: 12px;
-  padding-right: 12px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  border-width: 1px;
-  border-radius: 999px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-}
-
-.ChipText {
-  font-size: 14px;
-  font-weight: 600;
-}
+.Chip { display: flex; flex-direction: row; align-items: center; justify-content: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-width: 1px; border-radius: 999px; margin-right: 8px; margin-bottom: 8px; }
 
 /* --- Filas y estadísticas -------------------------------------------------- */
 
-.RowBetween {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
+.RowBetween { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; padding-top: 4px; padding-bottom: 4px; }
 
-.RowFill {
-  flex: 1;
-}
+.RowFill { flex: 1; }
 
-.RowActions {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-top: 4px;
-}
+.RowActions { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 4px; }
 
-.StatRow {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
+.StatRow { display: flex; flex-direction: row; flex-wrap: wrap; margin-top: 8px; }
 
-.Stat {
-  display: flex;
-  flex-direction: column;
-  margin-right: 24px;
-  margin-top: 8px;
-}
+.Stat { display: flex; flex-direction: column; margin-right: 16px; margin-top: 8px; }
 
-.StatLabel {
-  font-size: 12px;
-  font-weight: 700;
-}
+.ColorSwatch { width: 4px; height: 36px; border-radius: 4px; }
 
-.StatText {
-  font-size: 16px;
-  font-weight: 700;
-}
+/* --- Hero ----------------------------------------------------------------- */
 
-.StatValue {
-  font-size: 28px;
-  font-weight: 800;
-}
-
-.ListTitle {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.ListSubtitle {
-  font-size: 14px;
-}
-
-.Meta {
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-.ColorSwatch {
-  width: 8px;
-  height: 32px;
-  border-radius: 4px;
-}
-
-/* --- Hero (workout en curso) ---------------------------------------------- */
-
-.Hero {
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  border-radius: 14px;
-  margin-bottom: 12px;
-}
-
-.HeroLabel {
-  font-size: 14px;
-  color: #ffffff;
-  opacity: 0.85;
-}
-
-.HeroTitle {
-  font-size: 22px;
-  font-weight: 700;
-  color: #ffffff;
-  margin-top: 4px;
-}
-
-.HeroBody {
-  font-size: 16px;
-  color: #ffffff;
-  margin-top: 4px;
-}
+.Hero { display: flex; flex-direction: column; padding: 16px; border-radius: 14px; margin-bottom: 8px; }
 
 /* --- Input ---------------------------------------------------------------- */
 
-.Input {
-  height: 44px;
-  padding-left: 12px;
-  padding-right: 12px;
-  border-width: 1px;
-  border-radius: 10px;
-  font-size: 16px;
-  margin-top: 4px;
-}
+.Input { min-height: 44px; padding-left: 16px; padding-right: 16px; border-width: 1px; border-radius: 10px; }
 
 /* --- Ajustes: segmentado y toggle ----------------------------------------- */
 
-.Segmented {
-  display: flex;
-  flex-direction: row;
-  border-width: 1px;
-  border-radius: 10px;
-  padding: 2px;
-  margin-top: 8px;
-}
+.Segmented { display: flex; flex-direction: row; border-width: 1px; border-radius: 10px; padding: 4px; margin-top: 8px; }
 
-.SegmentedItem {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  border-radius: 6px;
-}
+.SegmentedItem { flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; min-height: 44px; border-radius: 8px; }
 
-.SegmentedLabel {
-  font-size: 14px;
-  font-weight: 600;
-}
+.Toggle { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; }
 
-.ToggleTrack {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: 46px;
-  height: 26px;
-  border-radius: 13px;
-  padding: 3px;
-}
+.ToggleTrack { display: flex; flex-direction: row; align-items: center; width: 44px; height: 28px; border-radius: 999px; padding: 4px; }
 
-.ToggleKnob {
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
-}
+.ToggleKnob { width: 20px; height: 20px; border-radius: 999px; }
 
-.ToggleKnobOn {
-  margin-left: 20px;
-}
+/* `ui-checked` lo inyecta el switch de lynx-ui: mueve el pulgar, no lo dibuja. */
+.ToggleKnob.ui-checked { margin-left: 16px; }
 
-/* --- Hoja inferior (sin gestos: es un panel posicionado) ------------------- */
+/* --- Hoja inferior -------------------------------------------------------- */
 
-.Sheet {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
+.SheetPanel { position: relative; display: flex; flex-direction: column; max-height: 640px; border-width: 1px; border-top-left-radius: 14px; border-top-right-radius: 14px; padding: 16px; }
 
-.SheetBackdrop {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-}
+.SheetHandleRow { display: flex; flex-direction: row; justify-content: center; margin-bottom: 8px; }
 
-.SheetPanel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  max-height: 640px;
-  border-width: 1px;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  padding: 16px;
-}
+.SheetHandle { width: 36px; height: 4px; border-radius: 999px; }
 
-.SheetHeader {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
+.SheetHeader { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; margin-bottom: 8px; }
 
-.SheetTitle {
-  font-size: 18px;
-  font-weight: 700;
-}
+.SheetClose { display: flex; align-items: center; justify-content: center; min-height: 44px; padding-left: 16px; }
 
-.SheetCloseLabel {
-  font-size: 14px;
-  font-weight: 600;
-}
+.SheetFooter { margin-top: 8px; }
 
-.SheetFooter {
-  margin-top: 12px;
-}
+.SheetScroll { height: 300px; width: 100%; }
 
-.SheetScroll {
-  height: 300px;
-  width: 100%;
-}
-
-.SheetScrollContent {
-  display: flex;
-  flex-direction: column;
-}
+.SheetScrollContent { display: flex; flex-direction: column; }
 
 /* --- Fila de set ---------------------------------------------------------- */
 
-.WorkoutSet {
-  display: flex;
-  flex-direction: column;
-  border-width: 1px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
+.WorkoutSet { display: flex; flex-direction: column; border-width: 1px; border-radius: 10px; margin-bottom: 8px; padding-left: 8px; padding-right: 8px; }
 
-.WorkoutSetRow {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  min-height: 48px;
-}
+.WorkoutSetRow { display: flex; flex-direction: row; align-items: center; min-height: 44px; }
 
-.SetIndex {
-  font-size: 14px;
-  font-weight: 700;
-  width: 22px;
-}
+.SetPrev { width: 56px; }
 
-.SetPrev {
-  width: 72px;
-}
+.SetCell { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 44px; }
 
-.SetPrevText {
-  font-size: 12px;
-}
+.SetDivider { width: 1px; height: 36px; }
 
-.SetCell {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
+.SetToggle { width: 44px; height: 44px; border-radius: 999px; border-width: 1px; display: flex; align-items: center; justify-content: center; }
 
-.SetValue {
-  font-size: 22px;
-  font-weight: 700;
-}
+.SetIconButton { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
 
-.SetUnit {
-  font-size: 12px;
-}
-
-.SetDivider {
-  width: 1px;
-  height: 32px;
-}
-
-.SetToggle {
-  width: 36px;
-  height: 36px;
-  border-radius: 18px;
-  border-width: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.SetToggleLabel {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.SetIconButton {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.SetIconLabel {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.SetDetailsLine {
-  display: flex;
-  flex-direction: row;
-  padding-bottom: 4px;
-}
-
-.SetDetailText {
-  font-size: 12px;
-  margin-right: 12px;
-}
+.SetDetailsLine { display: flex; flex-direction: row; padding-bottom: 4px; }
 
 /* --- Temporizador de descanso --------------------------------------------- */
 
-.RestTimer {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 24px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  border-width: 1px;
-  border-radius: 20px;
-  padding: 16px;
-}
+.RestTimer { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; flex-direction: row; align-items: center; border-width: 1px; border-radius: 14px; padding: 8px 16px 8px 16px; }
 
-.RestLabel {
-  font-size: 12px;
-  font-weight: 700;
-}
+.RestSmallButton { width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-left: 8px; }
 
-.RestClock {
-  font-size: 36px;
-  font-weight: 900;
-}
-
-.RestSmallButton {
-  width: 44px;
-  height: 44px;
-  border-radius: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-}
-
-.RestSmallLabel {
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.RestSkip {
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-radius: 999px;
-  margin-left: 8px;
-}
-
-.RestSkipLabel {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-}
+.RestSkip { display: flex; align-items: center; justify-content: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-radius: 999px; margin-left: 8px; }
 
 /* --- Calculadora de discos ------------------------------------------------ */
 
-.PlateBar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  height: 80px;
-  border-radius: 10px;
-  padding-left: 16px;
-  padding-right: 16px;
-  margin-top: 12px;
-  margin-bottom: 12px;
-}
+.PlateBar { display: flex; flex-direction: row; align-items: center; justify-content: center; height: 72px; border-radius: 10px; padding-left: 16px; padding-right: 16px; margin-top: 16px; margin-bottom: 16px; }
 
-.PlateSide {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
+.PlateSide { display: flex; flex-direction: row; align-items: center; }
 
-.PlateRod {
-  flex: 1;
-  height: 8px;
-  border-radius: 2px;
-  margin-left: 8px;
-  margin-right: 8px;
-}
+.PlateRod { flex: 1; height: 8px; border-radius: 4px; margin-left: 8px; margin-right: 8px; }
 
-.PlateDisk {
-  width: 10px;
-  border-radius: 2px;
-  margin-right: 3px;
-}
+.PlateDisk { width: 8px; border-radius: 4px; margin-right: 4px; }
 
 /* --- Teclado numérico ----------------------------------------------------- */
 
-.KeypadDisplay {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
+.KeypadDisplay { display: flex; flex-direction: column; align-items: center; padding-top: 8px; padding-bottom: 8px; }
 
-.KeypadValue {
-  font-size: 64px;
-  font-weight: 900;
-}
+.KeypadSteps { display: flex; flex-direction: row; justify-content: center; margin-bottom: 8px; }
 
-.KeypadUnit {
-  font-size: 18px;
-  font-weight: 600;
-}
+.KeypadStep { display: flex; align-items: center; justify-content: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-radius: 999px; border-width: 1px; margin-right: 8px; }
 
-.KeypadOneRm {
-  font-size: 12px;
-  margin-top: 4px;
-}
+.KeypadQuickPick { display: flex; align-items: center; justify-content: center; min-height: 44px; border-width: 1px; border-radius: 10px; margin-bottom: 8px; }
 
-.KeypadSteps {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  margin-bottom: 8px;
-}
+.KeypadGrid { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; }
 
-.KeypadStep {
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  border-radius: 999px;
-  border-width: 1px;
-  margin-right: 8px;
-}
+.KeypadKey { width: 72px; height: 56px; border-width: 1px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 4px; }
 
-.KeypadStepLabel {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.KeypadQuickPick {
-  border-width: 1px;
-  border-radius: 10px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.KeypadQuickLabel {
-  font-size: 14px;
-}
-
-.KeypadGrid {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.KeypadKey {
-  width: 72px;
-  height: 56px;
-  border-width: 1px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 4px;
-}
-
-.KeypadKeyLabel {
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.KeypadConfirm {
-  flex: 1;
-  padding-top: 16px;
-  padding-bottom: 16px;
-  border-radius: 10px;
-  align-items: center;
-}
-
-.KeypadConfirmLabel {
-  font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
-}
+.KeypadConfirm { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 10px; }
 
 /* --- Notas del set -------------------------------------------------------- */
 
-.Notes {
-  width: 100%;
-  min-height: 80px;
-  border-width: 1px;
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 16px;
-  margin-top: 4px;
-}
+.Notes { width: 100%; min-height: 72px; border-width: 1px; border-radius: 10px; padding: 16px; margin-top: 4px; }
 
 /* --- Selector de ejercicio ------------------------------------------------ */
 
-.PickerRow {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  border-width: 1px;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
+.PickerRow { display: flex; flex-direction: row; align-items: center; min-height: 44px; border-width: 1px; border-radius: 10px; padding: 16px; margin-bottom: 8px; }
 
-.PickerBadge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 12px;
-}
-
-.PickerBadgeLabel {
-  font-size: 22px;
-  font-weight: 700;
-}
+.PickerBadge { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 16px; }
 
 /* --- Tarjeta de resumen de sesión ----------------------------------------- */
 
-.SummaryCard {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-width: 1px;
-  border-radius: 14px;
-  padding: 16px;
-}
+.SummaryCard { display: flex; flex-direction: column; justify-content: space-between; border-width: 1px; border-radius: 14px; padding: 16px; }
 
-.SummaryBrand {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 4px;
-}
+.SummaryBrand { display: flex; flex-direction: row; align-items: center; margin-bottom: 4px; }
 
-.SummaryBrandBadge {
-  width: 32px;
-  height: 32px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8px;
-}
+.SummaryBrandBadge { width: 36px; height: 36px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-right: 8px; }
 
-.SummaryBrandMark {
-  font-size: 18px;
-  font-weight: 800;
-  color: #ffffff;
-}
+.SummaryTop { display: flex; flex-direction: column; margin-top: 16px; }
 
-.SummaryBrandName {
-  font-size: 18px;
-  font-weight: 800;
-}
+/* --- Heatmap -------------------------------------------------------------- */
 
-.SummaryDate {
-  font-size: 12px;
-  font-weight: 700;
-}
+.HeatmapMonths { position: relative; display: flex; flex-direction: row; height: 16px; margin-left: 28px; margin-bottom: 4px; }
 
-.SummaryTitle {
-  font-size: 22px;
-  font-weight: 800;
-  margin-top: 4px;
-}
+.HeatmapMonth { position: absolute; }
 
-.SummaryTop {
-  display: flex;
-  flex-direction: column;
-  margin-top: 12px;
-}
+.HeatmapBody { display: flex; flex-direction: row; }
 
-.SummaryRank {
-  font-size: 16px;
-  font-weight: 800;
-  width: 18px;
-}
+.HeatmapDayLabels { display: flex; flex-direction: column; width: 28px; }
 
-.SummaryTopName {
-  flex: 1;
-  font-size: 16px;
-  font-weight: 600;
-}
+.HeatmapGrid { display: flex; flex-direction: row; }
 
-.SummaryFooter {
-  font-size: 12px;
-  text-align: center;
-}
+.HeatmapColumn { display: flex; flex-direction: column; margin-right: 4px; }
 
-/* --- Heatmap ------------------------------------------------------------- */
+.HeatmapCell { border-radius: 4px; margin-bottom: 4px; }
 
-.HeatmapMonths {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  height: 18px;
-  margin-left: 28px;
-  margin-bottom: 2px;
-}
+.HeatmapCellEmpty { background-color: transparent; }
 
-.HeatmapMonth {
-  position: absolute;
-  font-size: 12px;
-}
+.HeatmapLegend { display: flex; flex-direction: row; align-items: center; margin-top: 8px; margin-left: 28px; }
 
-.HeatmapBody {
-  display: flex;
-  flex-direction: row;
-}
-
-.HeatmapDayLabels {
-  display: flex;
-  flex-direction: column;
-  width: 28px;
-}
-
-.HeatmapDayLabel {
-  font-size: 12px;
-}
-
-.HeatmapGrid {
-  display: flex;
-  flex-direction: row;
-}
-
-.HeatmapColumn {
-  display: flex;
-  flex-direction: column;
-  margin-right: 3px;
-}
-
-.HeatmapCell {
-  border-radius: 3px;
-  margin-bottom: 3px;
-}
-
-.HeatmapCellEmpty {
-  background-color: transparent;
-}
-
-.HeatmapLegend {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-top: 8px;
-  margin-left: 28px;
-}
-
-.HeatmapLegendCell {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  margin-left: 4px;
-}
+.HeatmapLegendCell { width: 12px; height: 12px; border-radius: 4px; margin-left: 4px; }
 
 /* --- Pantalla del workout activo ------------------------------------------ */
 
-.WorkoutHeader {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 16px;
-  border-bottom-width: 1px;
-}
+.WorkoutHeader { display: flex; flex-direction: row; align-items: center; padding: 16px; border-bottom-width: 1px; }
 
-.WorkoutHeaderText {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding-left: 12px;
-  padding-right: 12px;
-}
+.WorkoutHeaderText { flex: 1; display: flex; flex-direction: column; padding-left: 4px; padding-right: 16px; }
 
-.WorkoutHeaderTitle {
-  font-size: 18px;
-  font-weight: 700;
-}
+.WorkoutFinish { display: flex; align-items: center; justify-content: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-radius: 999px; }
 
-.WorkoutHeaderMeta {
-  font-size: 14px;
-}
+.SupersetBanner { display: flex; flex-direction: row; align-items: center; border-radius: 10px; padding: 8px 16px 8px 16px; margin-bottom: 8px; }
 
-.WorkoutFinish {
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  border-radius: 999px;
-}
+.ExerciseHeader { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; }
 
-.WorkoutFinishLabel {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-}
+.AddSetLink { display: flex; align-items: center; justify-content: center; min-height: 44px; padding-left: 16px; padding-right: 16px; }
 
-.SupersetBanner {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  border-radius: 10px;
-  padding: 8px;
-  margin-bottom: 8px;
-}
+.SupersetToggle { display: flex; flex-direction: row; align-items: center; min-height: 44px; }
 
-.ExerciseHeader {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.AddSetLink {
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-.SupersetToggle {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.Fab {
-  position: absolute;
-  right: 16px;
-  bottom: 96px;
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.FabLabel {
-  font-size: 30px;
-  font-weight: 700;
-  color: #ffffff;
-}
+.Fab { position: absolute; right: 16px; bottom: 36px; width: 56px; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
 
 /* --- Pantalla de cierre del workout --------------------------------------- */
 
-.FinishHero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 32px;
-  padding-bottom: 16px;
-}
+.FinishHero { display: flex; flex-direction: column; align-items: center; padding-top: 36px; padding-bottom: 16px; }
 
-.FinishBadge {
-  width: 72px;
-  height: 72px;
-  border-radius: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.FinishBadgeMark {
-  font-size: 40px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.FinishTitle {
-  font-size: 28px;
-  font-weight: 900;
-  margin-top: 12px;
-}
-
-.FinishSubtitle {
-  font-size: 16px;
-}
+.FinishBadge { width: 72px; height: 72px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
 
 /* --- Detalle de ejercicio ------------------------------------------------- */
 
-.TagRow {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
+.TagRow { display: flex; flex-direction: row; flex-wrap: wrap; margin-top: 8px; }
 
-.Tag {
-  border-radius: 999px;
-  padding-left: 12px;
-  padding-right: 12px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-}
+.Tag { display: flex; align-items: center; border-radius: 999px; padding-left: 16px; padding-right: 16px; min-height: 36px; margin-right: 8px; margin-bottom: 8px; }
 
-.TagText {
-  font-size: 12px;
-  font-weight: 700;
-}
+.SegmentRow { display: flex; flex-direction: row; margin-top: 8px; }
 
-.SegmentRow {
-  display: flex;
-  flex-direction: row;
-  margin-top: 8px;
-}
+.SegmentItem { display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 8px; padding-left: 16px; padding-right: 16px; margin-right: 8px; }
 
-.SegmentItem {
-  border-radius: 6px;
-  padding-left: 12px;
-  padding-right: 12px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  margin-right: 8px;
-}
+.BarChart { display: flex; flex-direction: row; align-items: flex-end; height: 140px; margin-top: 16px; }
 
-.SegmentLabel {
-  font-size: 14px;
-  font-weight: 600;
-}
+.BarColumn { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; margin-right: 4px; }
 
-.BarChart {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  height: 140px;
-  margin-top: 12px;
-}
-
-.BarColumn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  margin-right: 4px;
-}
-
-.BarFill {
-  width: 100%;
-  max-width: 24px;
-  border-radius: 4px 4px 0 0;
-  min-height: 2px;
-}
-
-.BarEmpty {
-  font-size: 12px;
-}
+.BarFill { width: 100%; max-width: 24px; border-radius: 4px 4px 0 0; min-height: 2px; }

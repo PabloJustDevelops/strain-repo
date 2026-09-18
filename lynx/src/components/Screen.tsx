@@ -1,6 +1,7 @@
 import type { ReactNode } from '@lynx-js/react';
 
 import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
 
 /**
  * Andamiaje común de una pestaña: cabecera + cuerpo con scroll.
@@ -23,15 +24,15 @@ export function Screen({ title, subtitle, right, children }: ScreenProps) {
     <view className="Screen" style={{ backgroundColor: colors.bg }}>
       <view className="ScreenHeader" style={{ borderColor: colors.line }}>
         <view className="ScreenHeaderRow">
-          <text className="ScreenTitle" style={{ color: colors.textPrimary }}>
+          <Text role="heading" tone="textPrimary">
             {title}
-          </text>
+          </Text>
           {right}
         </view>
         {subtitle ? (
-          <text className="ScreenSubtitle" style={{ color: colors.textSecondary }}>
+          <Text role="support" tone="textSecondary">
             {subtitle}
-          </text>
+          </Text>
         ) : null}
       </view>
 

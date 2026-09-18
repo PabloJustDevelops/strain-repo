@@ -5,6 +5,7 @@ import { Sheet } from '@components/Sheet';
 import { Button } from '@components/Button';
 import { useTheme } from '@lib/useTheme';
 import type { SetView } from '@db/shapes';
+import { Text } from '@components/Text';
 
 /**
  * Detalles opcionales de un set: RPE (esfuerzo percibido) y notas.
@@ -54,38 +55,38 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
       <Card>
         <view className="StatRow">
           <view className="Stat">
-            <text className="StatLabel" style={{ color: colors.textSecondary }}>
+            <Text role="detail" tone="textSecondary">
               Peso
-            </text>
-            <text className="StatText" style={{ color: colors.textPrimary }}>
+            </Text>
+            <Text role="support" tone="textPrimary">
               {set.weight} {units}
-            </text>
+            </Text>
           </view>
           <view className="Stat">
-            <text className="StatLabel" style={{ color: colors.textSecondary }}>
+            <Text role="detail" tone="textSecondary">
               Reps
-            </text>
-            <text className="StatText" style={{ color: colors.textPrimary }}>
+            </Text>
+            <Text role="support" tone="textPrimary">
               {set.reps}
-            </text>
+            </Text>
           </view>
           <view className="Stat">
-            <text className="StatLabel" style={{ color: colors.textSecondary }}>
+            <Text role="detail" tone="textSecondary">
               Estado
-            </text>
-            <text
-              className="StatText"
-              style={{ color: set.isCompleted ? colors.success : colors.textSecondary }}
+            </Text>
+            <Text
+              role="support"
+              tone={set.isCompleted ? 'success' : 'textSecondary'}
             >
               {set.isCompleted ? 'Completado' : 'Pendiente'}
-            </text>
+            </Text>
           </view>
         </view>
       </Card>
 
-      <text className="CardLabel" style={{ color: colors.textPrimary }}>
+      <Text role="detail" tone="textPrimary">
         RPE
-      </text>
+      </Text>
       <view className="ChipRow">
         {RPE_OPTIONS.map((option) => {
           const selected = rpe === option;
@@ -100,17 +101,20 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
               }}
               bindtap={() => setRpe(selected ? null : option)}
             >
-              <text className="ChipText" style={{ color: selected ? '#ffffff' : colors.textPrimary }}>
+              <Text
+                role="support"
+                tone={selected ? 'onAccent' : 'textPrimary'}
+              >
                 {option}
-              </text>
+              </Text>
             </view>
           );
         })}
       </view>
 
-      <text className="CardLabel" style={{ color: colors.textPrimary }}>
+      <Text role="detail" tone="textPrimary">
         Notas (opcional)
-      </text>
+      </Text>
       <textarea
         className="Notes"
         style={{
@@ -122,9 +126,9 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
         maxlength={MAX_NOTES}
         bindinput={(e) => setNotes(e.detail.value)}
       />
-      <text className="Meta" style={{ color: colors.textSecondary }}>
+      <Text role="detail" tone="textSecondary">
         {notes.length}/{MAX_NOTES}
-      </text>
+      </Text>
     </Sheet>
   );
 }

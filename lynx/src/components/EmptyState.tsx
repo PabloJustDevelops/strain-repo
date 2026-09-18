@@ -1,6 +1,6 @@
 import type { ReactNode } from '@lynx-js/react';
 
-import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
 
 /**
  * Estado vacío explícito: sin esto, una lista sin datos es una pantalla en
@@ -14,17 +14,15 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ title, body, action }: EmptyStateProps) {
-  const { colors } = useTheme();
-
   return (
     <view className="Empty">
-      <text className="EmptyTitle" style={{ color: colors.textPrimary }}>
+      <Text role="title" tone="textPrimary">
         {title}
-      </text>
+      </Text>
       {body ? (
-        <text className="EmptyBody" style={{ color: colors.textSecondary }}>
+        <Text role="support" tone="textSecondary">
           {body}
-        </text>
+        </Text>
       ) : null}
       {action ? <view className="EmptyAction">{action}</view> : null}
     </view>

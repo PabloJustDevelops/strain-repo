@@ -3,6 +3,7 @@ import { formatWeight } from '@lib/format';
 import { plateShortfallMessage, type PlateResult } from '@lib/plateCalculator';
 import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
+import { Text } from '@components/Text';
 
 /**
  * Distribución de discos para un peso objetivo.
@@ -33,23 +34,23 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
         <view>
           <view className="RowBetween">
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textSecondary }}>
+              <Text role="detail" tone="textSecondary">
                 Objetivo
-              </text>
-              <text className="ListTitle" style={{ color: colors.textPrimary }}>
+              </Text>
+              <Text role="title" tone="textPrimary">
                 {formatWeight(result.totalWeight + result.remainder, units)}
-              </text>
+              </Text>
             </view>
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textSecondary }}>
+              <Text role="detail" tone="textSecondary">
                 Alcanzable
-              </text>
-              <text
-                className="ListTitle"
-                style={{ color: result.achievable ? colors.success : colors.warning }}
+              </Text>
+              <Text
+                role="title"
+                tone={result.achievable ? 'success' : 'warning'}
               >
                 {formatWeight(result.totalWeight, units)}
-              </text>
+              </Text>
             </view>
           </view>
 
@@ -68,26 +69,26 @@ export function PlateCalculatorSheet({ result, onClose }: PlateCalculatorSheetPr
           </view>
 
           {result.platesPerSide.length === 0 ? (
-            <text className="CardBody" style={{ color: colors.textSecondary }}>
+            <Text role="support" tone="textSecondary">
               Solo la barra ({formatWeight(result.barWeight, units)}).
-            </text>
+            </Text>
           ) : (
             result.platesPerSide.map((plate) => (
               <view className="RowBetween" key={`plate-${plate.plateKg}`}>
-                <text className="ListSubtitle" style={{ color: colors.textPrimary }}>
+                <Text role="support" tone="textPrimary">
                   {plate.plateKg} kg
-                </text>
-                <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
+                </Text>
+                <Text role="support" tone="textSecondary">
                   ×{plate.perSide} por lado
-                </text>
+                </Text>
               </view>
             ))
           )}
 
           {shortfall ? (
-            <text className="CardBody" style={{ color: colors.warning }}>
+            <Text role="support" tone="warning">
               {shortfall}
-            </text>
+            </Text>
           ) : null}
         </view>
       ) : null}

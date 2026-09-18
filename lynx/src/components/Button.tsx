@@ -1,3 +1,4 @@
+import { Text, type TextTone } from '@components/Text';
 import { useTheme } from '@lib/useTheme';
 import type { ThemeColors } from '@lib/theme';
 
@@ -8,7 +9,8 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
  *
  * Lynx no trae `Pressable`: el área táctil es un `<view>` con `bindtap` y el
  * estado deshabilitado se resuelve sin registrar el handler (en vez de un
- * `disabled` que el engine no tiene).
+ * `disabled` que el engine no tiene). El alto mínimo sale del área táctil del
+ * sistema (44).
  */
 interface ButtonProps {
   title: string;
@@ -22,19 +24,24 @@ interface ButtonProps {
 interface VariantStyle {
   background: string;
   border: string;
-  text: string;
+  tone: TextTone;
 }
 
+/**
+ * Sólo `primary` y `danger` son rellenos; `secondary` y `ghost` no pintan
+ * fondo. El acento queda para la acción primaria de la pantalla, que es lo que
+ * sostiene la regla 60-30-10.
+ */
 function variantStyle(variant: ButtonVariant, colors: ThemeColors): VariantStyle {
   switch (variant) {
     case 'secondary':
-      return { background: colors.surfaceRaised, border: colors.line, text: colors.textPrimary };
+      return { background: colors.surfaceRaised, border: colors.line, tone: 'textPrimary' };
     case 'ghost':
-      return { background: 'transparent', border: 'transparent', text: colors.accent };
+      return { background: 'transparent', border: 'transparent', tone: 'accent' };
     case 'danger':
-      return { background: colors.danger, border: colors.danger, text: '#ffffff' };
+      return { background: colors.danger, border: colors.danger, tone: 'textInverse' };
     case 'primary':
-      return { background: colors.accent, border: colors.accent, text: '#ffffff' };
+      return { background: colors.accent, border: colors.accent, tone: 'onAccent' };
   }
 }
 
@@ -58,9 +65,9 @@ export function Button({
       }}
       bindtap={disabled ? undefined : onPress}
     >
-      <text className="ButtonText" style={{ color: style.text }}>
+      <Text role="title" tone={style.tone}>
         {title}
-      </text>
+      </Text>
     </view>
   );
 }

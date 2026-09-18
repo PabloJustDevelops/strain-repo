@@ -4,6 +4,7 @@ import { buildHeatmapGrid, type HeatmapDay } from '@lib/heatmap';
 import { remountKey } from '@lib/reactKeys';
 import { withAlpha } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
 
 export type { HeatmapDay };
 
@@ -50,26 +51,29 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
     <view>
       <view className="HeatmapMonths">
         {grid.monthMarkers.map((marker) => (
-          <text
+          <Text
+            role="detail"
+            tone="textSecondary"
             className="HeatmapMonth"
             key={remountKey('month', `${marker.col}-${marker.label}`)}
-            style={{ color: colors.textSecondary, left: marker.col * (cellSize + 3) }}
+            style={{ left: marker.col * (cellSize + 3) }}
           >
             {marker.label}
-          </text>
+          </Text>
         ))}
       </view>
 
       <view className="HeatmapBody">
         <view className="HeatmapDayLabels">
           {DAY_LABELS.map((label) => (
-            <text
-              className="HeatmapDayLabel"
+            <Text
+              role="detail"
+              tone="textSecondary"
               key={remountKey('day', label)}
-              style={{ color: colors.textSecondary, height: cellSize + 3, lineHeight: cellSize + 3 }}
+              style={{ height: cellSize + 3, lineHeight: cellSize + 3 }}
             >
               {label}
-            </text>
+            </Text>
           ))}
         </view>
 
@@ -102,9 +106,9 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
       </view>
 
       <view className="HeatmapLegend">
-        <text className="HeatmapDayLabel" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           Menos
-        </text>
+        </Text>
         {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
           <view
             className="HeatmapLegendCell"
@@ -114,9 +118,9 @@ export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: Heatmap
             }}
           />
         ))}
-        <text className="HeatmapDayLabel" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           Más
-        </text>
+        </Text>
       </view>
     </view>
   );

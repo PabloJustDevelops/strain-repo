@@ -6,6 +6,7 @@ import { equipmentLabel, muscleGroupLabel } from '@lib/labels';
 import { remountKey } from '@lib/reactKeys';
 import { useTheme } from '@lib/useTheme';
 import type { Exercise } from '@/types/domain';
+import { Text } from '@components/Text';
 
 /**
  * Selector de ejercicio para el workout activo.
@@ -68,9 +69,9 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
       <scroll-view className="SheetScroll" scroll-orientation="vertical">
         <view className="SheetScrollContent">
           {filtered.length === 0 ? (
-            <text className="CardBody" style={{ color: colors.textSecondary }}>
+            <Text role="support" tone="textSecondary">
               Sin resultados.
-            </text>
+            </Text>
           ) : null}
 
           {filtered.map((exercise) => (
@@ -84,17 +85,17 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
               }}
             >
               <view className="PickerBadge" style={{ backgroundColor: colors.accentSoft }}>
-                <text className="PickerBadgeLabel" style={{ color: colors.accent }}>
+                <Text role="heading" tone="accent">
                   +
-                </text>
+                </Text>
               </view>
               <view className="RowFill">
-                <text className="ListTitle" style={{ color: colors.textPrimary }}>
+                <Text role="title" tone="textPrimary">
                   {exercise.name}
-                </text>
-                <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
+                </Text>
+                <Text role="support" tone="textSecondary">
                   {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
-                </text>
+                </Text>
               </view>
             </view>
           ))}

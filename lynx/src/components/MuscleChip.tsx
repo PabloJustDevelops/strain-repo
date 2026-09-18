@@ -1,5 +1,6 @@
 import { useTheme } from '@lib/useTheme';
 import type { MuscleGroup } from '@/types/domain';
+import { Text } from '@components/Text';
 
 /**
  * Pill seleccionable para filtrar por grupo muscular.
@@ -26,12 +27,13 @@ export function MuscleChip({ group, active = false, label, onPress }: MuscleChip
       }}
       bindtap={onPress}
     >
-      <text
-        className="ChipText"
-        style={{ color: active ? '#ffffff' : colors.textPrimary }}
+      <Text
+        role="support"
+        tone={active ? 'onAccent' : 'textPrimary'}
+       
       >
         {label ?? group}
-      </text>
+      </Text>
     </view>
   );
 }

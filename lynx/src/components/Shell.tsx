@@ -2,6 +2,7 @@ import { EmptyState } from '@components/EmptyState';
 import { remountKey } from '@lib/reactKeys';
 import { useCurrentRoute, useRouter, useTabs } from '@lib/router';
 import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
 import {
   TAB_COMPONENTS,
   TAB_LABELS,
@@ -46,13 +47,13 @@ export function Shell() {
     <view className="Shell">
       <view className="ShellHeader" style={{ backgroundColor: colors.surface }}>
         <view className="BackButton" bindtap={router.back}>
-          <text className="BackLabel" style={{ color: colors.accent }}>
+          <Text role="title" tone="accent">
             ‹ Atrás
-          </text>
+          </Text>
         </view>
-        <text className="ShellRoute" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           {route.name}
-        </text>
+        </Text>
       </view>
 
       <view className="ShellBody">
@@ -87,12 +88,12 @@ function TabBar({ active, onSelect }: { active: TabRoute; onSelect: (tab: string
             key={remountKey('tab', tab)}
             bindtap={() => onSelect(tab)}
           >
-            <text
-              className="TabLabel"
-              style={{ color: isActive ? colors.accent : colors.textSecondary }}
+            <Text
+              role="detail"
+              tone={isActive ? 'accent' : 'textSecondary'}
             >
               {TAB_LABELS[tab]}
-            </text>
+            </Text>
             <view
               className="TabMarker"
               style={{ backgroundColor: isActive ? colors.accent : 'transparent' }}

@@ -3,6 +3,7 @@ import { topByVolume } from '@lib/metrics';
 import { useTheme } from '@lib/useTheme';
 import type { SessionExerciseSummary } from '@db/shapes';
 import type { WorkoutSession } from '@/types/domain';
+import { Text } from '@components/Text';
 
 /**
  * Tarjeta resumen de un workout finalizado, pensada para verse y compartirse.
@@ -43,19 +44,19 @@ export function WorkoutSummaryCard({ session, width = 360, height = 540 }: Worko
       <view>
         <view className="SummaryBrand">
           <view className="SummaryBrandBadge" style={{ backgroundColor: colors.accent }}>
-            <text className="SummaryBrandMark">S</text>
+            <Text role="title" tone="onAccent">S</Text>
           </view>
-          <text className="SummaryBrandName" style={{ color: colors.textPrimary }}>
+          <Text role="title" tone="textPrimary">
             STRAIN
-          </text>
+          </Text>
         </view>
 
-        <text className="SummaryDate" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           {formatDateShort(start)}
-        </text>
-        <text className="SummaryTitle" style={{ color: colors.textPrimary }}>
+        </Text>
+        <Text role="heading" tone="textPrimary">
           {session.name}
-        </text>
+        </Text>
       </view>
 
       <view>
@@ -67,29 +68,29 @@ export function WorkoutSummaryCard({ session, width = 360, height = 540 }: Worko
 
         {top.length > 0 ? (
           <view className="SummaryTop">
-            <text className="CardLabel" style={{ color: colors.textSecondary }}>
+            <Text role="detail" tone="textSecondary">
               Top ejercicios
-            </text>
+            </Text>
             {top.map((entry, index) => (
               <view className="RowBetween" key={`top-${index}-${entry.name}`}>
-                <text className="SummaryRank" style={{ color: colors.accent }}>
+                <Text role="support" tone="accent">
                   {index + 1}
-                </text>
-                <text className="SummaryTopName" style={{ color: colors.textPrimary }}>
+                </Text>
+                <Text role="support" tone="textPrimary">
                   {entry.name}
-                </text>
-                <text className="Meta" style={{ color: colors.textSecondary }}>
+                </Text>
+                <Text role="detail" tone="textSecondary">
                   {formatNumber(entry.volume)} kg
-                </text>
+                </Text>
               </view>
             ))}
           </view>
         ) : null}
       </view>
 
-      <text className="SummaryFooter" style={{ color: colors.textSecondary }}>
+      <Text role="detail" tone="textSecondary">
         strain.app · workout #{session.id.slice(-4)}
-      </text>
+      </Text>
     </view>
   );
 }
@@ -99,13 +100,13 @@ function Stat({ label, value, unit }: { label: string; value: string; unit?: str
 
   return (
     <view className="Stat">
-      <text className="StatLabel" style={{ color: colors.textSecondary }}>
+      <Text role="detail" tone="textSecondary">
         {label}
-      </text>
-      <text className="ListTitle" style={{ color: colors.textPrimary }}>
+      </Text>
+      <Text role="title" tone="textPrimary">
         {value}
         {unit ? ` ${unit}` : ''}
-      </text>
+      </Text>
     </view>
   );
 }

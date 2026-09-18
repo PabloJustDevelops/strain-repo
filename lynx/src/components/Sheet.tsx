@@ -1,6 +1,7 @@
 import type { ReactNode } from '@lynx-js/react';
 
 import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
 
 /**
  * Panel que sube desde el borde inferior, con telón de fondo.
@@ -41,13 +42,13 @@ export function Sheet({ visible, title, onClose, children, footer }: SheetProps)
         style={{ backgroundColor: colors.surfaceRaised, borderColor: colors.line }}
       >
         <view className="SheetHeader">
-          <text className="SheetTitle" style={{ color: colors.textPrimary }}>
+          <Text role="title" tone="textPrimary">
             {title}
-          </text>
+          </Text>
           <view className="SheetClose" bindtap={onClose}>
-            <text className="SheetCloseLabel" style={{ color: colors.textSecondary }}>
+            <Text role="support" tone="textSecondary">
               Cerrar
-            </text>
+            </Text>
           </view>
         </view>
 

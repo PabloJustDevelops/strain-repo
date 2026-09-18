@@ -197,7 +197,7 @@ export function WorkoutActiveScreen() {
           {session.exercises.length === 0 ? (
             <EmptyState
               title="Este workout no tiene ejercicios"
-              body="Añadí el primero con el botón + para empezar a registrar series."
+              body="Añade el primero con el botón + para empezar a registrar series."
             />
           ) : null}
 

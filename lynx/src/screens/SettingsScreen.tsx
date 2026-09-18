@@ -22,8 +22,8 @@ const UNIT_OPTIONS: { value: Units; label: string }[] = [
 /**
  * Ajustes sobre `preferencesStore` (persistido en la seam KV).
  *
- * Todo lo que la app Expo resolvía con native modules —notificaciones, háptics,
- * export/import, cuenta— queda fuera de esta fase: acá sólo viven las
+ * Todo lo que la app Expo resolvía con native modules (notificaciones, háptics,
+ * export/import, cuenta) queda fuera de esta fase: acá sólo viven las
  * preferencias reales y el cambio de tema, que sí funciona de punta a punta.
  */
 export function SettingsScreen() {

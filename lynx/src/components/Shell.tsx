@@ -9,6 +9,7 @@ import {
   TAB_ROUTES,
   TABS_ROUTE,
   resolveRoute,
+  routeTitle,
   tabFromParams,
   type TabRoute,
 } from '@/app/routes';
@@ -45,14 +46,17 @@ export function Shell() {
 
   return (
     <view className="Shell">
-      <view className="ShellHeader" style={{ backgroundColor: colors.surface }}>
+      <view
+        className="ShellHeader"
+        style={{ backgroundColor: colors.surface, borderColor: colors.line }}
+      >
         <view className="BackButton" bindtap={router.back}>
           <Text role="title" tone="accent">
             ‹ Atrás
           </Text>
         </view>
-        <Text role="detail" tone="textSecondary">
-          {route.name}
+        <Text role="title" tone="textPrimary">
+          {routeTitle(route.name)}
         </Text>
       </view>
 

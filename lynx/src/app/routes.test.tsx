@@ -44,11 +44,13 @@ vi.mock('@lynx-js/react/jsx-dev-runtime', () => ({
 import {
   ROUTE_NAMES,
   STACK_ROUTES,
+  STACK_TITLES,
   TAB_COMPONENTS,
   TAB_LABELS,
   TAB_ROUTES,
   TABS_ROUTE,
   resolveRoute,
+  routeTitle,
   tabFromParams,
 } from './routes';
 
@@ -97,5 +99,37 @@ describe('registro de rutas (Lynx)', () => {
 
   it('una ruta desconocida no resuelve a nada', () => {
     expect(resolveRoute('no/existe')).toBeUndefined();
+  });
+});
+
+describe('título humano de la cabecera', () => {
+  it('cada ruta de pila tiene título propio y no muestra su identificador', () => {
+    for (const name of STACK_ROUTES) {
+      const title = routeTitle(name);
+
+      expect(title).toBe(STACK_TITLES[name]);
+      expect(title.length).toBeGreaterThan(0);
+      expect(title).not.toBe(name);
+      expect(title).not.toContain('/');
+      expect(title).not.toContain('[');
+    }
+  });
+
+  it('las pestañas usan su etiqueta y (tabs) cae a la pestaña por defecto', () => {
+    for (const tab of TAB_ROUTES) {
+      expect(routeTitle(tab)).toBe(TAB_LABELS[tab]);
+    }
+
+    expect(routeTitle(TABS_ROUTE)).toBe(TAB_LABELS.home);
+  });
+
+  it('un nombre fuera del registro cae al propio nombre, no a vacío', () => {
+    expect(routeTitle('no/existe')).toBe('no/existe');
+  });
+
+  it('no hay títulos repetidos entre rutas de pila', () => {
+    const titles = STACK_ROUTES.map((name) => routeTitle(name));
+
+    expect(new Set(titles).size).toBe(titles.length);
   });
 });

@@ -22,7 +22,7 @@
 
 .ShellBody { flex: 1; width: 100%; }
 
-.ShellHeader { display: flex; flex-direction: row; align-items: center; min-height: 44px; padding-left: 16px; padding-right: 16px; }
+.ShellHeader { display: flex; flex-direction: row; align-items: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-bottom-width: 1px; }
 
 .BackButton { display: flex; align-items: center; min-height: 44px; padding-right: 16px; }
 

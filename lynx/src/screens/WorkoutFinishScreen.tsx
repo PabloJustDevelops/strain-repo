@@ -32,7 +32,7 @@ export function WorkoutFinishScreen() {
     return (
       <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <EmptyState
-          title="¡Buen trabajo!"
+          title="Buen trabajo"
           body="No hay un resumen reciente para mostrar."
           action={<Button title="Volver al inicio" onPress={() => goToTab('home')} />}
         />
@@ -49,7 +49,7 @@ export function WorkoutFinishScreen() {
               <Text role="display" tone="onAccent">✓</Text>
             </view>
             <Text role="display" tone="textPrimary">
-              ¡Workout completado!
+              Workout completado
             </Text>
             <Text role="support" tone="textSecondary">
               {summary.name}

@@ -63,9 +63,19 @@ describe('registro de rutas (Lynx)', () => {
 
   it('cubre las 7 pestañas, las rutas de pila y el contenedor (tabs)', () => {
     expect(TAB_ROUTES).toHaveLength(7);
-    expect(STACK_ROUTES).toHaveLength(6);
-    expect(ROUTE_NAMES).toHaveLength(14);
+    expect(STACK_ROUTES).toHaveLength(7);
+    expect(ROUTE_NAMES).toHaveLength(15);
     expect(ROUTE_NAMES).toContain(TABS_ROUTE);
+  });
+
+  it('el editor de rutinas tiene sus tres rutas registradas y con título humano', () => {
+    const editorRoutes = ['routines/new', 'routines/[id]', 'routines/[id]/add-exercise'];
+
+    for (const name of editorRoutes) {
+      expect(STACK_ROUTES).toContain(name);
+      expect(resolveRoute(name)).toBeTypeOf('function');
+      expect(routeTitle(name)).not.toBe(name);
+    }
   });
 
   it('cada ruta de pila resuelve a una pantalla propia', () => {

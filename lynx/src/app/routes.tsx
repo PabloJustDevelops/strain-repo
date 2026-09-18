@@ -1,6 +1,7 @@
 import type { ComponentType } from '@lynx-js/react';
 
 import { Shell } from '@components/Shell';
+import { AddExerciseScreen } from '@/screens/AddExerciseScreen';
 import { ExercisesScreen } from '@/screens/ExercisesScreen';
 import { ExerciseDetailScreen } from '@/screens/ExerciseDetailScreen';
 import { HealthScreen } from '@/screens/HealthScreen';
@@ -78,6 +79,7 @@ export const TAB_COMPONENTS: Record<TabRoute, ComponentType<RouteProps>> = {
 export const STACK_ROUTES = [
   'routines/new',
   'routines/[id]',
+  'routines/[id]/add-exercise',
   'exercises/[id]',
   'history/[id]',
   'workout/active',
@@ -89,6 +91,7 @@ export type StackRoute = (typeof STACK_ROUTES)[number];
 export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
   'routines/new': RoutineNewScreen,
   'routines/[id]': RoutineDetailScreen,
+  'routines/[id]/add-exercise': AddExerciseScreen,
   'exercises/[id]': ExerciseDetailScreen,
   'history/[id]': SessionDetailScreen,
   'workout/active': WorkoutActiveScreen,
@@ -106,6 +109,7 @@ export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
 export const STACK_TITLES: Record<StackRoute, string> = {
   'routines/new': 'Nueva rutina',
   'routines/[id]': 'Detalle de la rutina',
+  'routines/[id]/add-exercise': 'Añadir ejercicio',
   'exercises/[id]': 'Detalle del ejercicio',
   'history/[id]': 'Detalle de la sesión',
   'workout/active': 'Entrenamiento activo',

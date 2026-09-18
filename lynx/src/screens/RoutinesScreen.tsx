@@ -11,6 +11,7 @@ import { useLoad } from '@lib/useLoad';
 import { useTheme } from '@lib/useTheme';
 import { useActiveWorkout } from '@stores/activeWorkoutStore';
 import type { Routine } from '@/types/domain';
+import { Text } from '@components/Text';
 
 /**
  * Lista de rutinas (plantillas reutilizables).
@@ -46,13 +47,13 @@ export function RoutinesScreen() {
         <Card key={remountKey('routine', routine.id)}>
           <view className="RowBetween">
             <view className="RowFill">
-              <text className="ListTitle" style={{ color: colors.textPrimary }}>
+              <Text role="title" tone="textPrimary">
                 {routine.name}
-              </text>
+              </Text>
               {routine.description ? (
-                <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
+                <Text role="support" tone="textSecondary">
                   {routine.description}
-                </text>
+                </Text>
               ) : null}
             </view>
             <view
@@ -61,9 +62,9 @@ export function RoutinesScreen() {
             />
           </view>
 
-          <text className="Meta" style={{ color: colors.textSecondary }}>
+          <Text role="detail" tone="textSecondary">
             Actualizada {formatDateTime(new Date(routine.updatedAt))}
-          </text>
+          </Text>
 
           <view className="RowActions">
             <Button title="Empezar" onPress={() => handleStart(routine)} />

@@ -3,11 +3,11 @@ import { Card } from '@components/Card';
 import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { formatDateTime, formatDuration } from '@lib/format';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
 import { useLoad } from '@lib/useLoad';
-import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
 import type { WorkoutSession } from '@/types/domain';
 
@@ -19,7 +19,6 @@ import type { WorkoutSession } from '@/types/domain';
  * de la sesión (`history/[id]`) con su desglose de series.
  */
 export function HistoryScreen() {
-  const { colors } = useTheme();
   const router = useRouter();
   const units = usePreferences((s) => s.units);
 
@@ -44,12 +43,12 @@ export function HistoryScreen() {
         <Card key={remountKey('session', session.id)}>
           <view bindtap={() => router.push('history/[id]', { id: session.id })}>
             <view className="RowBetween">
-              <text className="ListTitle" style={{ color: colors.textPrimary }}>
+              <Text role="title" tone="textPrimary">
                 {session.name}
-              </text>
-              <text className="Meta" style={{ color: colors.textSecondary }}>
+              </Text>
+              <Text role="detail" tone="textSecondary">
                 {formatDateTime(new Date(session.startedAt))}
-              </text>
+              </Text>
             </view>
 
             <view className="StatRow">
@@ -65,16 +64,14 @@ export function HistoryScreen() {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
-  const { colors } = useTheme();
-
   return (
     <view className="Stat">
-      <text className="StatLabel" style={{ color: colors.textSecondary }}>
+      <Text role="detail" tone="textSecondary">
         {label}
-      </text>
-      <text className="StatText" style={{ color: colors.textPrimary }}>
+      </Text>
+      <Text role="support" tone="textPrimary">
         {value}
-      </text>
+      </Text>
     </view>
   );
 }

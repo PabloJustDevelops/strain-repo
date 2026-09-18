@@ -12,6 +12,7 @@ import { useRouter } from '@lib/router';
 import { useLoad } from '@lib/useLoad';
 import { useTheme } from '@lib/useTheme';
 import { MUSCLE_GROUP_LABELS, type Exercise, type MuscleGroup } from '@/types/domain';
+import { Text } from '@components/Text';
 
 const MUSCLE_FILTERS: readonly (MuscleGroup | 'all')[] = [
   'all',
@@ -83,12 +84,12 @@ export function ExercisesScreen() {
       {filtered.map((exercise) => (
         <Card key={remountKey('exercise', exercise.id)}>
           <view bindtap={() => router.push('exercises/[id]', { id: exercise.id })}>
-            <text className="ListTitle" style={{ color: colors.textPrimary }}>
+            <Text role="title" tone="textPrimary">
               {exercise.name}
-            </text>
-            <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
+            </Text>
+            <Text role="support" tone="textSecondary">
               {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
-            </text>
+            </Text>
           </view>
         </Card>
       ))}

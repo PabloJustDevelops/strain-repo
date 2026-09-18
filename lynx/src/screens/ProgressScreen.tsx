@@ -4,11 +4,11 @@ import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { Heatmap, type HeatmapDay } from '@components/Heatmap';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { formatDateShort } from '@lib/format';
 import { topPersonalRecords, type PersonalRecordSummary } from '@lib/personalRecords';
 import { remountKey } from '@lib/reactKeys';
 import { useLoad } from '@lib/useLoad';
-import { useTheme } from '@lib/useTheme';
 import { weekMonday } from '@lib/weeks';
 import { usePreferences } from '@stores/preferencesStore';
 
@@ -27,7 +27,6 @@ interface WeekVolume {
  * `@lib/weeks`.
  */
 export function ProgressScreen() {
-  const { colors } = useTheme();
   const units = usePreferences((s) => s.units);
 
   const volume = useLoad<WeekVolume[]>([], () => getRepos().analytics.volumePerWeek(12));
@@ -55,21 +54,21 @@ export function ProgressScreen() {
   return (
     <Screen title="Progreso">
       <Card>
-        <text className="CardLabel" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           Racha actual
-        </text>
-        <text className="StatValue" style={{ color: colors.textPrimary }}>
+        </Text>
+        <Text role="display" tone="textPrimary">
           {streak.loading ? '—' : `${streak.data} ${streak.data === 1 ? 'día' : 'días'}`}
-        </text>
+        </Text>
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.textPrimary }}>
+        <Text role="title" tone="textPrimary">
           Consistencia
-        </text>
-        <text className="CardBody" style={{ color: colors.textSecondary }}>
+        </Text>
+        <Text role="support" tone="textSecondary">
           Últimas 13 semanas, más oscuro = más volumen.
-        </text>
+        </Text>
 
         {days.error ? <ErrorNote message={days.error} /> : null}
 
@@ -77,54 +76,54 @@ export function ProgressScreen() {
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.textPrimary }}>
+        <Text role="title" tone="textPrimary">
           Volumen semanal
-        </text>
-        <text className="CardBody" style={{ color: colors.textSecondary }}>
+        </Text>
+        <Text role="support" tone="textSecondary">
           Últimas 12 semanas, en {units}.
-        </text>
+        </Text>
 
         {volume.error ? <ErrorNote message={volume.error} /> : null}
 
         {!volume.loading && volume.data.length === 0 ? (
-          <text className="CardBody" style={{ color: colors.textSecondary }}>
+          <Text role="support" tone="textSecondary">
             Aún no hay datos suficientes.
-          </text>
+          </Text>
         ) : null}
 
         {volume.data.map((week) => (
           <view className="RowBetween" key={remountKey('week', week.weekStart)}>
-            <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
+            <Text role="support" tone="textSecondary">
               {formatDateShort(weekMonday(week.weekStart))}
-            </text>
-            <text className="ListTitle" style={{ color: colors.textPrimary }}>
+            </Text>
+            <Text role="title" tone="textPrimary">
               {Math.round(week.volume)} {units}
-            </text>
+            </Text>
           </view>
         ))}
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.textPrimary }}>
+        <Text role="title" tone="textPrimary">
           Récords personales (1RM estimado)
-        </text>
+        </Text>
 
         {records.error ? <ErrorNote message={records.error} /> : null}
 
         {!records.loading && top.length === 0 ? (
-          <text className="CardBody" style={{ color: colors.textSecondary }}>
+          <Text role="support" tone="textSecondary">
             Completa tu primer workout para empezar a registrar PRs.
-          </text>
+          </Text>
         ) : null}
 
         {top.map((pr) => (
           <view className="RowBetween" key={remountKey('pr', pr.exerciseId)}>
-            <text className="ListTitle" style={{ color: colors.textPrimary }}>
+            <Text role="title" tone="textPrimary">
               {pr.exerciseName}
-            </text>
-            <text className="ListTitle" style={{ color: colors.accent }}>
+            </Text>
+            <Text role="title" tone="accent">
               {pr.oneRm.toFixed(1)} {units}
-            </text>
+            </Text>
           </view>
         ))}
       </Card>

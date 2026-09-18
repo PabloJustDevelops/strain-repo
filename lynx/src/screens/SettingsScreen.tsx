@@ -4,6 +4,7 @@ import { remountKey } from '@lib/reactKeys';
 import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
 import type { ThemeMode, Units } from '@/types/domain';
+import { Text } from '@components/Text';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'light', label: 'Claro' },
@@ -40,27 +41,27 @@ export function SettingsScreen() {
   return (
     <Screen title="Ajustes">
       <Card>
-        <text className="CardLabel" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           Apariencia
-        </text>
+        </Text>
         <Segmented options={THEME_OPTIONS} value={themeMode} onChange={setThemeMode} />
-        <text className="Meta" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           {isDark ? 'Tema oscuro activo' : 'Tema claro activo'}
           {themeMode === 'system' ? ' (el sistema cae a oscuro hasta que haya bridge)' : ''}
-        </text>
+        </Text>
       </Card>
 
       <Card>
-        <text className="CardLabel" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           Unidades
-        </text>
+        </Text>
         <Segmented options={UNIT_OPTIONS} value={units} onChange={setUnits} />
       </Card>
 
       <Card>
-        <text className="CardLabel" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           Entrenamiento
-        </text>
+        </Text>
         <Toggle
           label="Vibración háptica"
           value={hapticsEnabled}
@@ -72,9 +73,9 @@ export function SettingsScreen() {
           onChange={setKeepScreenAwake}
         />
         <view className="RowBetween">
-          <text className="ListTitle" style={{ color: colors.textPrimary }}>
+          <Text role="title" tone="textPrimary">
             Descanso por defecto
-          </text>
+          </Text>
           <view className="RowActions">
             {[60, 90, 120, 180].map((seconds) => (
               <SelectChip
@@ -89,23 +90,23 @@ export function SettingsScreen() {
       </Card>
 
       <Card>
-        <text className="CardTitle" style={{ color: colors.textPrimary }}>
+        <Text role="title" tone="textPrimary">
           Nativo pendiente
-        </text>
-        <text className="CardBody" style={{ color: colors.textSecondary }}>
+        </Text>
+        <Text role="support" tone="textSecondary">
           Recordatorios, export/import de datos, háptics reales y la cuenta con
           Supabase dependen de native modules que Lynx no trae. Sus seams existen
           (con driver nulo), pero no hay UI que las use todavía.
-        </text>
+        </Text>
       </Card>
 
       <Card>
-        <text className="CardLabel" style={{ color: colors.textSecondary }}>
+        <Text role="detail" tone="textSecondary">
           Acerca de
-        </text>
-        <text className="CardBody" style={{ color: colors.textSecondary }}>
+        </Text>
+        <Text role="support" tone="textSecondary">
           Strain en Lynx · Fase 2 (router + shell + pestañas) · datos sobre seam KV
-        </text>
+        </Text>
       </Card>
     </Screen>
   );
@@ -128,9 +129,9 @@ function Toggle({
       className="RowBetween"
       bindtap={() => onChange(!value)}
     >
-      <text className="ListTitle" style={{ color: colors.textPrimary }}>
+      <Text role="title" tone="textPrimary">
         {label}
-      </text>
+      </Text>
       <view
         className="ToggleTrack"
         style={{ backgroundColor: value ? colors.accent : colors.line }}
@@ -164,9 +165,13 @@ function SelectChip({
       }}
       bindtap={onPress}
     >
-      <text className="ChipText" style={{ color: active ? '#ffffff' : colors.textPrimary }}>
+      <Text
+        role="support"
+        tone={active ? 'onAccent' : 'textPrimary'}
+       
+      >
         {label}
-      </text>
+      </Text>
     </view>
   );
 }
@@ -198,12 +203,12 @@ function Segmented<T extends string>({
             style={{ backgroundColor: active ? colors.accent : 'transparent' }}
             bindtap={() => onChange(option.value)}
           >
-            <text
-              className="SegmentedLabel"
-              style={{ color: active ? '#ffffff' : colors.textPrimary }}
+            <Text
+              role="support"
+              tone={active ? 'onAccent' : 'textPrimary'}
             >
               {option.label}
-            </text>
+            </Text>
           </view>
         );
       })}

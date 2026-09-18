@@ -10,6 +10,7 @@ import { getRepos } from '@db';
 import { toExerciseSummaries, type FullSessionRow } from '@db/shapes';
 import { usePreferences } from '@stores/preferencesStore';
 import type { RouteProps } from '@/app/routes';
+import { Text } from '@components/Text';
 
 /**
  * Detalle de una sesión ya terminada.
@@ -61,37 +62,37 @@ export function SessionDetailScreen({ params }: RouteProps) {
     <view className="Screen" style={{ backgroundColor: colors.bg }}>
       <scroll-view className="ScreenScroll" scroll-orientation="vertical">
         <view className="ScreenContent">
-          <text className="CardLabel" style={{ color: colors.textSecondary }}>
+          <Text role="detail" tone="textSecondary">
             Resumen
-          </text>
-          <text className="ListSubtitle" style={{ color: colors.textSecondary }}>
+          </Text>
+          <Text role="support" tone="textSecondary">
             {formatDateTime(new Date(session.startedAt))}
-          </text>
+          </Text>
 
           <view className="StatRow">
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textSecondary }}>
+              <Text role="detail" tone="textSecondary">
                 Series
-              </text>
-              <text className="StatText" style={{ color: colors.textPrimary }}>
+              </Text>
+              <Text role="support" tone="textPrimary">
                 {session.totalSets}
-              </text>
+              </Text>
             </view>
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textSecondary }}>
+              <Text role="detail" tone="textSecondary">
                 Volumen
-              </text>
-              <text className="StatText" style={{ color: colors.textPrimary }}>
+              </Text>
+              <Text role="support" tone="textPrimary">
                 {formatNumber(session.totalVolume)} {units}
-              </text>
+              </Text>
             </view>
             <view className="Stat">
-              <text className="StatLabel" style={{ color: colors.textSecondary }}>
+              <Text role="detail" tone="textSecondary">
                 Duración
-              </text>
-              <text className="StatText" style={{ color: colors.textPrimary }}>
+              </Text>
+              <Text role="support" tone="textPrimary">
                 {formatDuration(session.durationSeconds ?? 0)}
-              </text>
+              </Text>
             </view>
           </view>
 
@@ -104,20 +105,20 @@ export function SessionDetailScreen({ params }: RouteProps) {
 
             return (
               <Card key={remountKey('sessionExercise', exercise.id)}>
-                <text className="ListTitle" style={{ color: colors.textPrimary }}>
+                <Text role="title" tone="textPrimary">
                   {exercise.name}
-                </text>
-                <text className="Meta" style={{ color: colors.textSecondary }}>
+                </Text>
+                <Text role="detail" tone="textSecondary">
                   {completed.length} series
-                </text>
+                </Text>
                 {completed.map((set, index) => (
-                  <text
-                    className="ListSubtitle"
+                  <Text
+                    role="support"
+                    tone="textPrimary"
                     key={remountKey('set', set.id)}
-                    style={{ color: colors.textPrimary }}
                   >
                     {index + 1}. {set.weight} {units} × {set.reps} reps
-                  </text>
+                  </Text>
                 ))}
               </Card>
             );

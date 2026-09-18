@@ -114,11 +114,11 @@
 
 /* --- Hoja inferior -------------------------------------------------------- */
 
-.Sheet { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: flex-end; }
-
-.SheetBackdrop { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); }
-
 .SheetPanel { position: relative; display: flex; flex-direction: column; max-height: 640px; border-width: 1px; border-top-left-radius: 14px; border-top-right-radius: 14px; padding: 16px; }
+
+.SheetHandleRow { display: flex; flex-direction: row; justify-content: center; margin-bottom: 8px; }
+
+.SheetHandle { width: 36px; height: 4px; border-radius: 999px; }
 
 .SheetHeader { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; margin-bottom: 8px; }
 

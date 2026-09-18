@@ -4,10 +4,9 @@ Reescritura de la app Expo/React Native de Strain sobre **Lynx + ReactLynx + Rsp
 La app original en la raíz del repo **sigue intacta**: esto vive en `lynx/` como
 migración incremental.
 
-> Estado: **Fase 4 (sistema de UI sobre `@lynx-js/lynx-ui`) en curso**. Quedan el
-> editor de rutinas, la auth real y los native modules. La app Expo sigue siendo
-> la de producción. El diseño y los tokens están en la sección
-> [Sistema de UI](#sistema-de-ui).
+> Estado: **Fase 5 (editor de rutinas) hecha**. Quedan la auth real y los native
+> modules. La app Expo sigue siendo la de producción. El diseño y los tokens
+> están en la sección [Sistema de UI](#sistema-de-ui).
 
 ## Por fases (decisión del dueño)
 
@@ -24,7 +23,7 @@ Lynx **no es React Native**. No trae out-of-the-box:
 | `expo-router` (19 pantallas, file-based) | ❌ Reescrito a un registro de rutas propio (`src/app/routes.tsx` + `src/lib/router.ts`) |
 | `react-native-health-connect` | ❌ Native module propio |
 | `expo-notifications`, `secure-store`, `sharing`, `haptics`, `document-picker`, `expo-font`... | ❌ Native modules propios |
-| `reanimated` + `gesture-handler` + `draggable-flatlist` | ⚠️ Parcial: `@lynx-js/lynx-ui` **sí está instalado** y aporta hoja con arrastre, botón, switch e inputs (ver [Sistema de UI](#sistema-de-ui)). El swipe de las series sigue siendo botones explícitos y el reordenar de rutinas (Sortable) entra con el editor |
+| `reanimated` + `gesture-handler` + `draggable-flatlist` | ⚠️ Parcial: `@lynx-js/lynx-ui` **sí está instalado** y aporta hoja con arrastre, botón, switch, inputs y **sortable** (el reordenar del editor de rutinas ya lo usa; ver [Sistema de UI](#sistema-de-ui)). El swipe de las series sigue siendo botones explícitos |
 | `victory-native` / `chart-kit` / `svg` (gráficos) | ❌ Sin equivalente directo; heatmap y barras se dibujan a mano con `<view>`/CSS |
 | `expo-haptics` + animaciones de `reanimated` | ❌ Native module / sin equivalente: el descanso avisa por color, no por háptica ni pulso |
 | `ViewShot` (capturar la tarjeta para compartir) | ❌ Native module: `WorkoutSummaryCard` se pinta, pero no se captura ni se comparte |
@@ -61,7 +60,7 @@ Lynx **no es React Native**. No trae out-of-the-box:
 - **`App.tsx`** deja de ser el placeholder: monta el shell y aplica `useTheme`.
   `index.tsx` bootstrapea la capa de datos antes del primer render.
 - **Primitivas Lynx** (`src/components/`): `Screen`, `Card`, `Button`, `EmptyState`,
-  `MuscleChip`, `StubScreen`, `Loading`/`ErrorNote` y `useLoad`. Sólo elementos Lynx
+  `MuscleChip`, `Loading`/`ErrorNote` y `useLoad`. Sólo elementos Lynx
   (`<page>/<view>/<text>/<scroll-view>/<input>`) y clases CSS en `App.css`.
 - **Siete pestañas funcionales** contra los repos/stores ya portados, cada una con
   estado de carga, vacío y error explícitos:
@@ -79,15 +78,11 @@ Lynx **no es React Native**. No trae out-of-the-box:
 
 ### Rutas que siguen siendo stub
 
-Son stubs **navegables** (título, nota de qué falta y los params recibidos), no
-pantallas en blanco.
-
-| Ruta | Qué falta |
-|---|---|
-| `routines/[id]` | Detalle editable: añadir ejercicios, supersets, reordenar |
-
-`routines/[id]/add-exercise` y `routines/new` no están en el registro todavía:
-entran con el editor de rutinas.
+**Ninguna ruta de pila queda en stub.** Con el editor de rutinas (Fase 5) las
+siete rutas de pila tienen pantalla propia, así que se retiraron el componente
+`StubScreen` y el registro `StubScreens` por quedar sin consumidor. Las pantallas
+de auth (Fase 6) todavía **no están registradas**: entrarán ya como pantallas
+reales, no como stubs.
 
 ### Gates Fase 2
 
@@ -165,7 +160,7 @@ descanso (idempotencia y sin negativos), grilla del heatmap, formateos sin `Intl
 que el flujo de entrenamiento ya no caiga en los stubs).
 
 
-## Sistema de UI (Fase 4, en curso)
+## Sistema de UI (Fase 4)
 
 El aspecto era lo que quedaba flojo: `App.css` tenía 1.127 líneas y ~160 clases a
 mano, y el theme era una copia literal del de Tailwind (grises puros + `#3b82f6`).
@@ -270,7 +265,7 @@ escala de arriba.
 | `Input` / `TextArea` | `<input>` / `<textarea>` con `bindinput` | ✅ adoptado (buscadores y notas del set) |
 | `SwipeAction` | botones explícitos en la fila | ⏳ pendiente (ver abajo) |
 | `List` | `.map()` dentro de `<scroll-view>` | ⏳ pendiente (ver abajo) |
-| `Sortable` | — | ⏳ entra con el editor de rutinas |
+| `Sortable` + `SortableItem` + `SortableItemArea` | — | ✅ adoptado en el editor de rutinas (`as="DraggableRoot"` con asa explícita) |
 | `InputOTP` | — | ⏳ entra con la auth |
 | `tab-group` | tab bar propia | ❌ **no existe** en `lynx-ui` 3.138.0 (el paquete está sin publicar), así que la tab bar sigue siendo propia |
 | `overlay` | — | ✅ en uso indirecto: `SheetBackdrop` lo usa por dentro; no se consume directo |
@@ -330,7 +325,69 @@ al panel propio sin tocar ninguna pantalla.
   cambia la experiencia; entra cuando haya listas largas de verdad (historial).
 - **Transiciones** (`Presence`): las hojas ya animan entrada/salida por su
   cuenta; falta el resto de transiciones.
-- Editor de rutinas (`Sortable`), auth (`InputOTP`) y los nativos.
+- Auth (`InputOTP`) y los nativos.
+
+
+## Fase 5 — hecha ✅
+
+El **editor de rutinas**: era la última ruta de pila que seguía siendo stub.
+
+### Pantallas
+
+- `routines/new`: nombre (obligatorio) y nota (opcional); al crear reemplaza la
+  entrada de la pila por el detalle, así "Atrás" vuelve a la lista. La validación
+  es local y muestra el motivo en pantalla (`validateRoutineName`), nunca un
+  `alert` (que además no existe en Lynx).
+- `routines/[id]`: lista de ejercicios de la rutina, **reordenar arrastrando**,
+  quitar (con confirmación en hoja), editar nombre y nota, y **empezar
+  entrenamiento** con los targets de la rutina (el mismo camino que la pestaña
+  Rutinas).
+- `routines/[id]/add-exercise`: búsqueda y filtro por grupo muscular con el mismo
+  vocabulario que la biblioteca, **selección múltiple** y confirmación. Sólo
+  ofrece lo que la rutina todavía no tiene, así que no se pueden crear duplicados.
+- La pestaña Rutinas gana la entrada a `routines/new`: acción en el estado vacío y
+  botón al final de la lista cuando ya hay rutinas.
+
+### Reordenar con `Sortable`
+
+Entró `Sortable` de `lynx-ui` con `as="ScrollView"`: el propio componente es el
+`<scroll-view>` (con auto-scroll al arrastrar), así la pantalla no anida scrolls.
+Las filas usan `as="DraggableRoot"` y el asa es un `SortableItemArea`: con el
+`Draggable` por defecto (todo el ítem arrastrable, `trigger` inmediato) el toque
+de "Quitar" habría arrancado el arrastre. El orden se persiste al soltar
+(`reorderExercises`) y la lista se actualiza en el acto.
+
+**Pendiente de verificar en dispositivo**: el gesto convive con el scroll de la
+pantalla y en este run no se pudo probar en Lynx Explorer (el bucle de
+dispositivo está pausado). El fallback si no encaja es subir/bajar con botones,
+que `@lib/routineEditor.moveBy` ya resuelve y prueba.
+
+### Datos
+
+La seam KV **no necesitó ninguna consulta nueva**: `getWithExercises`, `create`,
+`update`, `addExercise`, `reorderExercises` y `removeExercise` ya cubrían el
+editor con la misma interfaz pública que el repo Drizzle (no se tocó ni SQLite ni
+ningún módulo nativo). Sí se sumaron tests propios del repo: append con los
+targets por defecto, reordenar (y que ignore ids de otra rutina), quitar,
+`updatedAt` de `create`/`update`/`touch`, `list` con archivadas y `clone`.
+
+### Lógica pura
+
+`@lib/routineEditor`: validar el nombre, mover/recorrer, ordenar por ids, quitar,
+filtrar el catálogo por lo que la rutina ya tiene y alternar la selección
+múltiple. El filtro muscular que comparten biblioteca y selector pasó a
+`@lib/labels`, así la lista de chips y el caso "Todos" tienen una sola fuente.
+
+### Gates Fase 5
+
+- `tsc --noEmit` → exit 0
+- `vitest run` → 12 ficheros / **95 tests** (eran 69)
+- `rspeedy build` → `dist/main.lynx.bundle` **528.3 kB** (eran 452.2 kB)
+
+El `Sortable` arrastra el runtime de `draggable` (~76 kB). Es el precio del
+reordenar con gesto; la hoja ya había pagado el suyo en la Fase 4 y el criterio es
+el mismo: si un día pesa de más, el editor es un solo fichero y se vuelve a
+botones sin tocar los datos.
 
 
 ## Comandos
@@ -353,10 +410,10 @@ que muestra `rspeedy dev`.
 
 - **Fase 4.1 — Swipe y listas**: `SwipeAction` en la fila de serie y `List` en las
   pantallas de lista, más `Presence` donde aporte (ver "Lo que queda").
-- **Fase 5 — Editor de rutinas**: `routines/[id]`, `routines/[id]/add-exercise` y
-  `routines/new` sobre `routinesRepo` (añadir y quitar ejercicios, supersets,
-  reordenar con `Sortable`, targets de series/reps). Es la última ruta de pila que
-  sigue siendo stub.
+- **Fase 5 — Editor de rutinas**: ✅ hecha (ver arriba). `routines/new`,
+  `routines/[id]` y `routines/[id]/add-exercise` sobre `routinesRepo`. Quedan
+  fuera de este run los supersets y la edición de targets por ejercicio (la seam
+  ya los soporta; sólo falta la UI).
 - **Fase 6 — Auth real**: login/signup/forgot (`InputOTP` para el código).
   `src/lib/supabase.ts` ya está portado y solo faltan las pantallas de `app/auth`.
 - **Fase 7 — Nativo**: Health Connect, notificaciones, haptics, secure-store,

@@ -162,8 +162,10 @@ function lighterWeight(weight: FontWeight): FontWeight {
  * Estilo tipográfico de un rol, con la compensación del modo oscuro.
  *
  * En oscuro el texto claro sobre fondo oscuro "engorda" ópticamente: se suma
- * interlineado (+2) y se baja un escalón de peso. Sin esto, el tema oscuro se ve
- * más apretado y más pesado que el claro con los mismos tokens.
+ * interlineado (+2) y se baja un escalón de peso, nunca por debajo de 400 (el
+ * cuerpo no adelgaza; un 300 sobre fondo oscuro se lee peor, no mejor). Sin
+ * esto, el tema oscuro se ve más apretado y más pesado que el claro con los
+ * mismos tokens.
  */
 export function typeStyle(role: TypeRole, isDark: boolean): TypeToken {
   const base = type[role];

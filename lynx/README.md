@@ -4,9 +4,10 @@ Reescritura de la app Expo/React Native de Strain sobre **Lynx + ReactLynx + Rsp
 La app original en la raíz del repo **sigue intacta**: esto vive en `lynx/` como
 migración incremental.
 
-> Estado: **Fase 3 (flujo de entrenamiento) completada**. Quedan el editor de
-> rutinas, la auth real y los native modules. La app Expo sigue siendo la de
-> producción.
+> Estado: **Fase 4 (sistema de UI sobre `@lynx-js/lynx-ui`) en curso**. Quedan el
+> editor de rutinas, la auth real y los native modules. La app Expo sigue siendo
+> la de producción. El diseño y los tokens están en la sección
+> [Sistema de UI](#sistema-de-ui).
 
 ## Por fases (decisión del dueño)
 
@@ -23,7 +24,7 @@ Lynx **no es React Native**. No trae out-of-the-box:
 | `expo-router` (19 pantallas, file-based) | ❌ Reescrito a un registro de rutas propio (`src/app/routes.tsx` + `src/lib/router.ts`) |
 | `react-native-health-connect` | ❌ Native module propio |
 | `expo-notifications`, `secure-store`, `sharing`, `haptics`, `document-picker`, `expo-font`... | ❌ Native modules propios |
-| `reanimated` + `gesture-handler` + `draggable-flatlist` | ⚠️ Sin gestos: `@lynx-js/types` no expone `<SwipeAction>`/`<Sheet>`/`<Sortable>` y `@lynx-js/lynx-ui` no está instalado. El swipe pasó a botones explícitos y las hojas a un panel con cierre explícito |
+| `reanimated` + `gesture-handler` + `draggable-flatlist` | ⚠️ Parcial: `@lynx-js/lynx-ui` **sí está instalado** y aporta hoja con arrastre, botón, switch e inputs (ver [Sistema de UI](#sistema-de-ui)). El swipe de las series sigue siendo botones explícitos y el reordenar de rutinas (Sortable) entra con el editor |
 | `victory-native` / `chart-kit` / `svg` (gráficos) | ❌ Sin equivalente directo; heatmap y barras se dibujan a mano con `<view>`/CSS |
 | `expo-haptics` + animaciones de `reanimated` | ❌ Native module / sin equivalente: el descanso avisa por color, no por háptica ni pulso |
 | `ViewShot` (capturar la tarjeta para compartir) | ❌ Native module: `WorkoutSummaryCard` se pinta, pero no se captura ni se comparte |
@@ -164,6 +165,169 @@ descanso (idempotencia y sin negativos), grilla del heatmap, formateos sin `Intl
 que el flujo de entrenamiento ya no caiga en los stubs).
 
 
+## Sistema de UI (Fase 4, en curso)
+
+El aspecto era lo que quedaba flojo: `App.css` tenía 1.127 líneas y ~160 clases a
+mano, y el theme era una copia literal del de Tailwind (grises puros + `#3b82f6`).
+Esta fase sustituye eso por un sistema con tokens por rol y por los componentes
+headless de `@lynx-js/lynx-ui`.
+
+### Color por rol
+
+Los tokens se llaman por **rol**, no por apariencia (`accent`, no `blue`;
+`surfaceRaised`, no `#262626`): cambiar la marca es cambiar `theme.ts`, no cada
+pantalla. Los doce roles están en `src/lib/theme.ts`.
+
+| Rol | Para qué |
+|---|---|
+| `bg` | fondo de la app, detrás de todo |
+| `surface` | superficie base: tarjetas, barras |
+| `surfaceRaised` | un nivel por encima (hojas, controles, elementos activos) |
+| `line` | separadores y bordes (un único grosor, 1px) |
+| `textPrimary` / `textSecondary` | texto principal / de apoyo |
+| `textInverse` | texto sobre una superficie opuesta |
+| `accent` / `accentSoft` / `onAccent` | acción primaria, su relleno suave y su texto |
+| `success` / `warning` / `danger` | estados semánticos |
+
+Dos reglas que el sistema hace cumplir:
+
+- **El acento es una acción, no decoración.** Sólo la acción primaria de cada
+  pantalla lo usa (regla 60-30-10: nunca más del ~10% de la superficie). Los
+  valores numéricos y los enlaces secundarios que lo llevaban de adorno pasaron a
+  `textPrimary`. Único caso de relleno amplio: el hero del workout en curso.
+- **Los neutros oscuros están tintados hacia la marca** (hue ~215, croma bajo),
+  no son gris puro. El `#0a0a0a`/`#171717` plano es el look que esta fase
+  abandona. Hay un test que exige que el canal azul domine en `bg`, `surface` y
+  `surfaceRaised`.
+
+### Contraste medido
+
+Fórmula WCAG 2.1 sobre los pares texto/fondo que la app usa de verdad, en
+`src/lib/theme.system.test.ts`:
+
+| Tema | Texto (mín / máx) | Bordes (mín / máx) |
+|---|---|---|
+| Claro | **5.14:1** (`warning` sobre `surface`) · 17.96:1 | **3.34:1** (`line` sobre `surfaceRaised`) · 3.76:1 |
+| Oscuro | **5.26:1** (`accent` sobre `accentSoft`) · 16.98:1 | **3.32:1** (`line` sobre `surfaceRaised`) · 4.05:1 |
+
+Todo texto supera 4.5:1 y todo borde significativo supera 3:1. El azul de marca
+original (`#3b82f6`) no llegaba a 4.5:1 sobre blanco (3.68:1), así que el acento
+claro bajó a `#1d4ed8`.
+
+### Escala tipográfica
+
+Cinco pasos (13 / 15 / 17 / 22 / 28), cada uno con su línea y su peso. El
+consumidor elige el **rol**, nunca un `fontSize` suelto:
+
+| Rol | Tamaño | Línea | Peso (claro) | Uso |
+|---|---|---|---|---|
+| `detail` | 13 | 18 | 500 | metadatos, unidades, contadores |
+| `support` | 15 | 21 | 400 | cuerpo y descripciones |
+| `title` | 17 | 24 | 600 | cabecera de bloque o fila |
+| `heading` | 22 | 30 | 700 | título de pantalla |
+| `display` | 28 | 34 | 800 | cifra o titular protagonista |
+
+**Compensación en oscuro**: +2 de interlineado y un escalón menos de peso (nunca
+por debajo de 400). El texto claro sobre fondo oscuro engorda ópticamente; sin
+esto, el tema oscuro se ve más apretado y más pesado que el claro.
+
+La tipografía **no vive en CSS**: la aplica la primitiva `Text`
+(`src/components/Text.tsx`), que es la única puerta de entrada a `<text>` y la
+que recibe `role` + `tone`. Por eso la compensación en oscuro se aplica en un
+solo sitio.
+
+### Espaciado, radios, borde y movimiento
+
+- **Espaciado**: sólo 4 / 8 / 16 / 36 (`space.xs|sm|md|lg`). No hay valores
+  sueltos tipo 10 o 14.
+- **Radios**: tres y sólo tres — `chip` (999), `control` (10), `card` (14).
+- **Borde**: un único tipo, 1px (`BORDER_WIDTH`); el color lo pone `line`. En
+  oscuro no hay sombras decorativas: la jerarquía se resuelve con borde y con
+  elevación de superficie (`bg` < `surface` < `surfaceRaised`).
+- **Movimiento**: tres duraciones (120 / 200 / 320) y una sola curva
+  (`cubic-bezier(0.2, 0, 0, 1)`). Sólo se animan `transform` y `opacity`.
+- **Área táctil**: nada interactivo mide menos de 44 (`TOUCH_TARGET`).
+
+### `App.css`
+
+De 1.127 líneas y 160 clases a **256 líneas y ~100 clases, todas vivas** (hay una
+auditoría de "clases usadas vs definidas" que se corre a mano y da 0 muertas).
+El fichero no tiene ni tipografía ni color: sólo layout, con los valores de la
+escala de arriba.
+
+### Mapa de componentes de `@lynx-js/lynx-ui`
+
+| Ahora | Antes | Estado |
+|---|---|---|
+| `Button` | `<view bindtap>` propio | ✅ adoptado: separa pulsado / reposo / deshabilitado |
+| `Switch` + `SwitchTrack` + `SwitchThumb` | toggle a mano | ✅ adoptado en Ajustes |
+| `Sheet` + `SheetView` + `SheetBackdrop` + `SheetContent` + `SheetHandle` | panel absoluto sin gesto | ✅ adoptado: arrastre para cerrar, telón, animación de entrada/salida |
+| `Input` / `TextArea` | `<input>` / `<textarea>` con `bindinput` | ✅ adoptado (buscadores y notas del set) |
+| `SwipeAction` | botones explícitos en la fila | ⏳ pendiente (ver abajo) |
+| `List` | `.map()` dentro de `<scroll-view>` | ⏳ pendiente (ver abajo) |
+| `Sortable` | — | ⏳ entra con el editor de rutinas |
+| `InputOTP` | — | ⏳ entra con la auth |
+| `tab-group` | tab bar propia | ❌ **no existe** en `lynx-ui` 3.138.0 (el paquete está sin publicar), así que la tab bar sigue siendo propia |
+| `overlay` | — | ✅ en uso indirecto: `SheetBackdrop` lo usa por dentro; no se consume directo |
+
+`lynx.config.ts` activa `enableNewGesture`, que es lo que lynx-ui pide para sus
+componentes con gesto.
+
+### Reglas de diseño aplicadas
+
+1. **Jerarquía**: como mucho tres roles tipográficos por pantalla, y los
+   subtítulos no repiten el título (varios se eliminaron por redundantes).
+2. **Estados completos**: vacío, cargando y error siguen existiendo en todas las
+   pantallas de datos, con el mismo `EmptyState` / `Loading` / `ErrorNote`;
+   `Button` y `Switch` ahora tienen estado pulsado y deshabilitado.
+3. **Áreas táctiles ≥44**: incluidos los controles de la fila de serie, el
+   marcador de pestaña, la cabecera y el botón de cerrar de las hojas (que estaba
+   usado en el markup pero **no definido** en el CSS: era un bug).
+4. **Zona del pulgar**: la acción primaria de cada pantalla vive en la mitad
+   inferior o en un botón flotante (el FAB de añadir ejercicio y los botones al
+   pie del contenido).
+5. **Una tarjeta sólo si el contenido es una tarjeta**: en las pantallas de lista
+   se separa con líneas, no con cajas.
+6. **Copy**: frase normal, un verbo por botón, sin exclamaciones. Los estados
+   vacíos dicen qué hacer.
+7. **Cabeceras de pila**: muestran un título humano (`STACK_TITLES`), no el
+   identificador técnico de la ruta.
+
+### Tests de esta fase
+
+`src/lib/theme.system.test.ts` comprueba los invariantes medibles (contraste por
+tema, tintado de neutros, cinco pasos con línea y peso, compensación en oscuro,
+ritmo de espaciado, radios, borde y duraciones) y `src/app/routes.test.tsx`
+comprueba la tabla ruta → título.
+
+### Gates Fase 4
+
+- `node node_modules/typescript/bin/tsc --noEmit` → exit 0
+- `node node_modules/vitest/vitest.mjs run` → 10 ficheros / **66 tests** (eran 47)
+- `node node_modules/@lynx-js/rspeedy/bin/rspeedy.js build` →
+  `dist/main.lynx.bundle` **451.5 kB**
+
+El bundle sube respecto de los 331 kB del final de la Fase 3: la hoja de lynx-ui
+arrastra su runtime de gestos y de animación. Es el precio de tener arrastre para
+cerrar; si algún día pesa demasiado, la hoja es un solo fichero y se puede volver
+al panel propio sin tocar ninguna pantalla.
+
+### Lo que queda
+
+- **Swipe en las series** (`SwipeAction`): la fila hoy tiene botones explícitos
+  para completar / borrar / detalles. Volver a poner el gesto es aditivo, pero
+  necesita verificarse en dispositivo (convive con el tap del peso y de las reps)
+  y el run anterior quitó el swipe justamente porque los botones se descubren
+  mejor. Queda pendiente y justificado.
+- **Listas virtualizadas** (`List`): `List` es el `<list>` nativo y pide
+  `listId`/`listType`/`spanCount` y reestructurar el andamiaje de `Screen`, que
+  hoy es `<scroll-view>` + contenido. Con catálogos de decenas de ejercicios no
+  cambia la experiencia; entra cuando haya listas largas de verdad (historial).
+- **Transiciones** (`Presence`): las hojas ya animan entrada/salida por su
+  cuenta; falta el resto de transiciones.
+- Editor de rutinas (`Sortable`), auth (`InputOTP`) y los nativos.
+
+
 ## Comandos
 
 > Nota: en este host los shims de bun/npm en PowerShell dan guerra con stderr.
@@ -182,13 +346,15 @@ que muestra `rspeedy dev`.
 
 ## Próximas fases (propuesta)
 
-- **Fase 4 — Editor de rutinas**: `routines/[id]`, `routines/[id]/add-exercise` y
+- **Fase 4.1 — Swipe y listas**: `SwipeAction` en la fila de serie y `List` en las
+  pantallas de lista, más `Presence` donde aporte (ver "Lo que queda").
+- **Fase 5 — Editor de rutinas**: `routines/[id]`, `routines/[id]/add-exercise` y
   `routines/new` sobre `routinesRepo` (añadir y quitar ejercicios, supersets,
-  reordenar, targets de series/reps). Es la última ruta de pila que sigue siendo
-  stub.
-- **Fase 5 — Auth real**: login/signup/forgot. `src/lib/supabase.ts` ya está
-  portado y solo faltan las pantallas de `app/auth`.
-- **Fase 6 — Nativo**: Health Connect, notificaciones, haptics, secure-store,
+  reordenar con `Sortable`, targets de series/reps). Es la última ruta de pila que
+  sigue siendo stub.
+- **Fase 6 — Auth real**: login/signup/forgot (`InputOTP` para el código).
+  `src/lib/supabase.ts` ya está portado y solo faltan las pantallas de `app/auth`.
+- **Fase 7 — Nativo**: Health Connect, notificaciones, haptics, secure-store,
   compartir (captura de `WorkoutSummaryCard`) y la decisión de SQLite.
 
 ## Decisión pendiente (importante)

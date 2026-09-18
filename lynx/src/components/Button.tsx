@@ -1,3 +1,5 @@
+import { Button as LynxButton } from '@lynx-js/lynx-ui';
+
 import { Text, type TextTone } from '@components/Text';
 import { useTheme } from '@lib/useTheme';
 import type { ThemeColors } from '@lib/theme';
@@ -5,12 +7,13 @@ import type { ThemeColors } from '@lib/theme';
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 /**
- * Botón estándar de Strain en Lynx.
+ * Botón estándar de Strain, sobre el `button` headless de `@lynx-js/lynx-ui`.
  *
- * Lynx no trae `Pressable`: el área táctil es un `<view>` con `bindtap` y el
- * estado deshabilitado se resuelve sin registrar el handler (en vez de un
- * `disabled` que el engine no tiene). El alto mínimo sale del área táctil del
- * sistema (44).
+ * El `Button` de lynx-ui aporta lo que faltaba con un `bindtap` pelado: separa
+ * pulsado, reposo y deshabilitado (inyecta `ui-active` y `ui-disabled`), así que
+ * los estados del botón se pueden pintar de verdad. El aspecto sigue siendo
+ * nuestro: la librería es headless y sólo pinta lo que le dan `style` y
+ * `className`.
  */
 interface ButtonProps {
   title: string;
@@ -56,18 +59,15 @@ export function Button({
   const style = variantStyle(variant, colors);
 
   return (
-    <view
+    <LynxButton
       className={fullWidth ? 'Button ButtonFull' : 'Button'}
-      style={{
-        backgroundColor: style.background,
-        borderColor: style.border,
-        opacity: disabled ? 0.5 : 1,
-      }}
-      bindtap={disabled ? undefined : onPress}
+      style={{ backgroundColor: style.background, borderColor: style.border }}
+      disabled={disabled}
+      onClick={onPress}
     >
       <Text role="title" tone={style.tone}>
         {title}
       </Text>
-    </view>
+    </LynxButton>
   );
 }

@@ -58,6 +58,11 @@
 
 .ButtonFull { width: 100%; }
 
+/* Estados que inyecta el `button` de lynx-ui: pulsado y deshabilitado. */
+.Button.ui-active { opacity: 0.8; }
+
+.Button.ui-disabled { opacity: 0.5; }
+
 /* --- Estados vacíos ------------------------------------------------------- */
 
 .Empty { display: flex; flex-direction: column; align-items: center; padding: 36px 16px 36px 16px; }
@@ -98,11 +103,14 @@
 
 .SegmentedItem { flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; min-height: 44px; border-radius: 8px; }
 
-.ToggleTrack { display: flex; flex-direction: row; align-items: center; width: 44px; height: 44px; border-radius: 999px; padding: 8px; }
+.Toggle { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; }
 
-.ToggleKnob { width: 28px; height: 28px; border-radius: 999px; }
+.ToggleTrack { display: flex; flex-direction: row; align-items: center; width: 44px; height: 28px; border-radius: 999px; padding: 4px; }
 
-.ToggleKnobOn { margin-left: 8px; }
+.ToggleKnob { width: 20px; height: 20px; border-radius: 999px; }
+
+/* `ui-checked` lo inyecta el switch de lynx-ui: mueve el pulgar, no lo dibuja. */
+.ToggleKnob.ui-checked { margin-left: 16px; }
 
 /* --- Hoja inferior -------------------------------------------------------- */
 

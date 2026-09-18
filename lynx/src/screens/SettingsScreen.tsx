@@ -1,10 +1,12 @@
+import { Switch, SwitchThumb, SwitchTrack } from '@lynx-js/lynx-ui';
+
 import { Card } from '@components/Card';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { remountKey } from '@lib/reactKeys';
 import { useTheme } from '@lib/useTheme';
 import { usePreferences } from '@stores/preferencesStore';
 import type { ThemeMode, Units } from '@/types/domain';
-import { Text } from '@components/Text';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'light', label: 'Claro' },
@@ -112,7 +114,13 @@ export function SettingsScreen() {
   );
 }
 
-/** Fila con interruptor propio: Lynx no trae un `<Switch>`. */
+/**
+ * Fila con interruptor, sobre el `switch` headless de lynx-ui.
+ *
+ * El `Switch` aporta el estado (checked/active) y la accesibilidad del toque;
+ * el dibujo del track y el pulgar es nuestro, con los tokens del tema. Antes
+ * esto era un `bindtap` en la fila con un cuadrado que se movía a mano.
+ */
 function Toggle({
   label,
   value,
@@ -125,23 +133,17 @@ function Toggle({
   const { colors } = useTheme();
 
   return (
-    <view
-      className="RowBetween"
-      bindtap={() => onChange(!value)}
-    >
-      <Text role="title" tone="textPrimary">
+    <Switch checked={value} onChange={onChange} className="Toggle">
+      <Text role="title" tone="textPrimary" className="RowFill">
         {label}
       </Text>
-      <view
+      <SwitchTrack
         className="ToggleTrack"
         style={{ backgroundColor: value ? colors.accent : colors.line }}
       >
-        <view
-          className={value ? 'ToggleKnob ToggleKnobOn' : 'ToggleKnob'}
-          style={{ backgroundColor: '#ffffff' }}
-        />
-      </view>
-    </view>
+        <SwitchThumb className="ToggleKnob" style={{ backgroundColor: colors.surface }} />
+      </SwitchTrack>
+    </Switch>
   );
 }
 
@@ -168,7 +170,7 @@ function SelectChip({
       <Text
         role="support"
         tone={active ? 'onAccent' : 'textPrimary'}
-       
+
       >
         {label}
       </Text>

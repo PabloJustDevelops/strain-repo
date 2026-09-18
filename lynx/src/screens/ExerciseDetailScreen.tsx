@@ -196,7 +196,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                     <Text
                       role="support"
                       tone={active ? 'accent' : 'textSecondary'}
-                     
+
                     >
                       {option.label}
                     </Text>
@@ -256,7 +256,7 @@ export function ExerciseDetailScreen({ params }: RouteProps) {
                     <Text
                       role="support"
                       tone={active ? 'onAccent' : 'textPrimary'}
-                     
+
                     >
                       {option}
                     </Text>

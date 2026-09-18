@@ -1,16 +1,33 @@
 import { describe, expect, it, vi } from 'vitest';
 
 /**
- * `@lynx-js/react` no se puede importar en Node (`__LEPUS__ is not defined`) y
- * este test sólo recorre el registro: no renderiza nada. Se reemplazan los hooks
- * y el runtime de JSX por stubs para poder importar las pantallas.
+ * `@lynx-js/react` no se puede cargar en Node: su runtime pide el global `lynx`
+ * (backend nativo) al evaluarse. Este test sólo recorre el registro de rutas y
+ * no renderiza nada, así que se reemplazan el runtime y los hooks por stubs.
+ *
+ * El stub tiene que cubrir también lo que usan al evaluarse los componentes de
+ * `@lynx-js/lynx-ui` (`createContext` para los contextos de Button y Switch),
+ * no sólo lo que usa nuestro código.
  */
 vi.mock('@lynx-js/react', () => ({
+  createContext: (defaultValue: unknown) => ({
+    defaultValue,
+    Provider: () => null,
+    Consumer: () => null,
+  }),
+  useContext: () => ({}),
   useState: (initial: unknown) => [initial, () => {}],
   useEffect: () => {},
+  useLayoutEffect: () => {},
   useCallback: (fn: unknown) => fn,
   useMemo: (fn: () => unknown) => fn(),
   useRef: (initial: unknown) => ({ current: initial }),
+  useReducer: (_reducer: unknown, initial: unknown) => [initial, () => {}],
+  useImperativeHandle: () => {},
+  useSyncExternalStore: (subscribe: unknown) => subscribe,
+  memo: (component: unknown) => component,
+  forwardRef: (component: unknown) => component,
+  createRef: () => ({ current: null }),
 }));
 
 vi.mock('@lynx-js/react/jsx-runtime', () => ({

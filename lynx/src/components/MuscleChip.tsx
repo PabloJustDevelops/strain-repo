@@ -30,7 +30,7 @@ export function MuscleChip({ group, active = false, label, onPress }: MuscleChip
       <Text
         role="support"
         tone={active ? 'onAccent' : 'textPrimary'}
-       
+
       >
         {label ?? group}
       </Text>

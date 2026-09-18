@@ -291,7 +291,7 @@ export function WorkoutActiveScreen() {
                       <Text
                         role="detail"
                         tone={exercise.supersetGroup ? 'accent' : 'textSecondary'}
-                       
+
                       >
                         {exercise.supersetGroup
                           ? `En superset ${exercise.supersetGroup} (tocá para quitar)`

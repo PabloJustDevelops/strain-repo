@@ -1,11 +1,12 @@
+import { TextArea } from '@lynx-js/lynx-ui';
 import { useState } from '@lynx-js/react';
 
 import { Card } from '@components/Card';
 import { Sheet } from '@components/Sheet';
 import { Button } from '@components/Button';
+import { Text } from '@components/Text';
 import { useTheme } from '@lib/useTheme';
 import type { SetView } from '@db/shapes';
-import { Text } from '@components/Text';
 
 /**
  * Detalles opcionales de un set: RPE (esfuerzo percibido) y notas.
@@ -115,7 +116,7 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
       <Text role="detail" tone="textPrimary">
         Notas (opcional)
       </Text>
-      <textarea
+      <TextArea
         className="Notes"
         style={{
           backgroundColor: colors.bg,
@@ -123,8 +124,9 @@ export function SetDetailsSheet({ visible, set, units, onSave, onClose }: SetDet
           color: colors.textPrimary,
         }}
         placeholder="Técnica, sensaciones, cómo te sentiste…"
-        maxlength={MAX_NOTES}
-        bindinput={(e) => setNotes(e.detail.value)}
+        maxLength={MAX_NOTES}
+        value={notes}
+        onInput={(value) => setNotes(value)}
       />
       <Text role="detail" tone="textSecondary">
         {notes.length}/{MAX_NOTES}

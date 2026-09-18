@@ -1,3 +1,4 @@
+import { Input } from '@lynx-js/lynx-ui';
 import { useState } from '@lynx-js/react';
 
 import { getRepos } from '@db';
@@ -6,13 +7,13 @@ import { EmptyState } from '@components/EmptyState';
 import { ErrorNote, Loading } from '@components/Loading';
 import { MuscleChip } from '@components/MuscleChip';
 import { Screen } from '@components/Screen';
+import { Text } from '@components/Text';
 import { equipmentLabel, muscleGroupLabel } from '@lib/labels';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
 import { useLoad } from '@lib/useLoad';
 import { useTheme } from '@lib/useTheme';
 import { MUSCLE_GROUP_LABELS, type Exercise, type MuscleGroup } from '@/types/domain';
-import { Text } from '@components/Text';
 
 const MUSCLE_FILTERS: readonly (MuscleGroup | 'all')[] = [
   'all',
@@ -52,11 +53,13 @@ export function ExercisesScreen() {
       title="Ejercicios"
       subtitle={exercises.loading ? undefined : `${filtered.length} de ${exercises.data.length}`}
     >
-      <input
+      <Input
         className="Input"
         style={{ backgroundColor: colors.surface, borderColor: colors.line, color: colors.textPrimary }}
         placeholder="Buscar ejercicio"
-        bindinput={(e) => setQuery(e.detail.value)}
+        confirmType="search"
+        value={query}
+        onInput={(value) => setQuery(value)}
       />
 
       <view className="ChipRow">

@@ -16,7 +16,7 @@ import {
 } from '@lib/labels';
 import { remountKey } from '@lib/reactKeys';
 import { useRouter } from '@lib/router';
-import { toggleId, withoutExisting } from '@lib/routineEditor';
+import { selectorEmptyState, toggleId, withoutExisting } from '@lib/routineEditor';
 import { useTheme } from '@lib/useTheme';
 import type { RouteProps } from '@/app/routes';
 import type { Exercise } from '@/types/domain';
@@ -42,6 +42,7 @@ export function AddExerciseScreen({ params }: RouteProps) {
   const id = params.id ?? '';
 
   const [available, setAvailable] = useState<Exercise[]>([]);
+  const [catalogCount, setCatalogCount] = useState(0);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<MuscleFilter>('all');
   const [selected, setSelected] = useState<string[]>([]);
@@ -67,6 +68,7 @@ export function AddExerciseScreen({ params }: RouteProps) {
         if (cancelled) return;
 
         const existing = (routine?.exercises ?? []).map((row) => row.exerciseId);
+        setCatalogCount(catalog.length);
         setAvailable(withoutExisting(catalog, existing));
         setError(null);
         setLoading(false);
@@ -90,6 +92,11 @@ export function AddExerciseScreen({ params }: RouteProps) {
       (filter === 'all' || exercise.muscleGroup === filter) &&
       (needle.length === 0 || exercise.name.toLowerCase().includes(needle)),
   );
+
+  // Depende del catálogo (no de la lista filtrada): biblioteca vacía, todo ya
+  // añadido y filtro sin coincidencias son tres casos distintos.
+  const empty =
+    loading || error ? null : selectorEmptyState(catalogCount, available.length, filtered.length);
 
   async function handleConfirm() {
     if (!id || selected.length === 0 || saving) return;
@@ -154,19 +161,7 @@ export function AddExerciseScreen({ params }: RouteProps) {
           {loading ? <Loading /> : null}
           {error ? <ErrorNote message={error} /> : null}
 
-          {!loading && available.length === 0 ? (
-            <EmptyState
-              title="Ya tenés todos los ejercicios"
-              body="La rutina ya incluye todo el catálogo. Quitá alguno para poder volver a agregarlo."
-            />
-          ) : null}
-
-          {!loading && available.length > 0 && filtered.length === 0 ? (
-            <EmptyState
-              title="Sin resultados"
-              body="Ningún ejercicio coincide con la búsqueda y el filtro actuales."
-            />
-          ) : null}
+          {empty ? <EmptyState title={empty.title} body={empty.body} /> : null}
 
           {filtered.map((exercise) => {
             const isSelected = selected.includes(exercise.id);

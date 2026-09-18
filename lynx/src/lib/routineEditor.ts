@@ -110,6 +110,49 @@ export function toggleId(ids: readonly string[], id: string): string[] {
   return ids.includes(id) ? ids.filter((candidate) => candidate !== id) : [...ids, id];
 }
 
+/** Estado vacío del selector, con su copy. `null` = hay algo para mostrar. */
+export interface SelectorEmptyState {
+  title: string;
+  body: string;
+}
+
+/**
+ * Estado vacío del selector de ejercicios, decidido por el TAMAÑO DEL CATÁLOGO.
+ *
+ * Mirar sólo la lista filtrada confundía dos situaciones: una biblioteca vacía
+ * (no hay nada que agregar) y una rutina que ya incluye todo el catálogo. Por eso
+ * el catálogo vacío gana sobre "ya tenés todos": sin ejercicios no hay rutina
+ * posible, y el mensaje correcto es que la biblioteca está vacía.
+ */
+export function selectorEmptyState(
+  catalogCount: number,
+  availableCount: number,
+  filteredCount: number,
+): SelectorEmptyState | null {
+  if (catalogCount === 0) {
+    return {
+      title: 'Tu biblioteca está vacía',
+      body: 'Creá tu primer ejercicio en la pestaña Ejercicios para poder armar rutinas.',
+    };
+  }
+
+  if (availableCount === 0) {
+    return {
+      title: 'Ya tenés todos los ejercicios',
+      body: 'La rutina ya incluye todo el catálogo. Quitá alguno para poder volver a agregarlo.',
+    };
+  }
+
+  if (filteredCount === 0) {
+    return {
+      title: 'Sin resultados',
+      body: 'Ningún ejercicio coincide con la búsqueda y el filtro actuales.',
+    };
+  }
+
+  return null;
+}
+
 /** Resumen de la prescripción de un ejercicio de la rutina ("3 × 8-12 · 90s"). */
 export function prescriptionLabel(
   targetSets: number,

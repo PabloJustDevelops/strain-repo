@@ -61,10 +61,10 @@ describe('registro de rutas (Lynx)', () => {
     }
   });
 
-  it('cubre las 7 pestañas, las 5 rutas de pila y el contenedor (tabs)', () => {
+  it('cubre las 7 pestañas, las rutas de pila y el contenedor (tabs)', () => {
     expect(TAB_ROUTES).toHaveLength(7);
-    expect(STACK_ROUTES).toHaveLength(5);
-    expect(ROUTE_NAMES).toHaveLength(13);
+    expect(STACK_ROUTES).toHaveLength(6);
+    expect(ROUTE_NAMES).toHaveLength(14);
     expect(ROUTE_NAMES).toContain(TABS_ROUTE);
   });
 

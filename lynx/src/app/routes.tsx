@@ -7,6 +7,7 @@ import { HealthScreen } from '@/screens/HealthScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ProgressScreen } from '@/screens/ProgressScreen';
+import { RoutineNewScreen } from '@/screens/RoutineNewScreen';
 import { RoutinesScreen } from '@/screens/RoutinesScreen';
 import { SessionDetailScreen } from '@/screens/SessionDetailScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
@@ -75,6 +76,7 @@ export const TAB_COMPONENTS: Record<TabRoute, ComponentType<RouteProps>> = {
 
 /** Rutas de pila: viven por encima de las pestañas. */
 export const STACK_ROUTES = [
+  'routines/new',
   'routines/[id]',
   'exercises/[id]',
   'history/[id]',
@@ -85,6 +87,7 @@ export const STACK_ROUTES = [
 export type StackRoute = (typeof STACK_ROUTES)[number];
 
 export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
+  'routines/new': RoutineNewScreen,
   'routines/[id]': RoutineDetailScreen,
   'exercises/[id]': ExerciseDetailScreen,
   'history/[id]': SessionDetailScreen,
@@ -101,6 +104,7 @@ export const STACK_COMPONENTS: Record<StackRoute, ComponentType<RouteProps>> = {
  * se quede sin título.
  */
 export const STACK_TITLES: Record<StackRoute, string> = {
+  'routines/new': 'Nueva rutina',
   'routines/[id]': 'Detalle de la rutina',
   'exercises/[id]': 'Detalle del ejercicio',
   'history/[id]': 'Detalle de la sesión',

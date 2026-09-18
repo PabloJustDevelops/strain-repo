@@ -267,3 +267,31 @@
 .BarColumn { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; margin-right: 4px; }
 
 .BarFill { width: 100%; max-width: 24px; border-radius: 4px 4px 0 0; min-height: 2px; }
+
+/* --- Editor de rutinas ---------------------------------------------------- */
+
+/* Formulario: los campos se separan con margen (Lynx no lleva `gap`). */
+.Editor { display: flex; flex-direction: column; padding-top: 16px; }
+
+.Field { display: flex; flex-direction: column; margin-top: 16px; }
+
+.FieldControl { margin-top: 8px; }
+
+/* Cabecera y pie fijos de una pantalla cuyo cuerpo scrollea. */
+.PanelHeader { display: flex; flex-direction: column; padding: 16px 16px 8px 16px; border-bottom-width: 1px; }
+
+.FooterBar { display: flex; flex-direction: column; padding: 16px; border-top-width: 1px; }
+
+/* Fila ordenable: el asa arrastra, el cuerpo se lee y la acción quita. */
+.SortableItem { display: flex; flex-direction: column; }
+
+.RoutineRow { display: flex; flex-direction: row; align-items: stretch; width: 100%; border-bottom-width: 1px; }
+
+.DragHandle { display: flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; }
+
+.RoutineRowBody { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-top: 16px; padding-bottom: 16px; padding-right: 8px; }
+
+.RoutineRowAction { display: flex; align-items: center; justify-content: center; min-height: 44px; padding-left: 8px; padding-right: 8px; }
+
+/* Fila de selección múltiple del selector de ejercicios. */
+.SelectRow { display: flex; flex-direction: row; align-items: center; min-height: 44px; padding-top: 16px; padding-bottom: 16px; border-bottom-width: 1px; }

@@ -4,8 +4,9 @@ Reescritura de la app Expo/React Native de Strain sobre **Lynx + ReactLynx + Rsp
 La app original en la raíz del repo **sigue intacta**: esto vive en `lynx/` como
 migración incremental.
 
-> Estado: **Fase 2 (router + shell + pestañas) completada**. Fase 3 (UI core) en curso.
-> La app Expo sigue siendo la de producción.
+> Estado: **Fase 3 (flujo de entrenamiento) completada**. Quedan el editor de
+> rutinas, la auth real y los native modules. La app Expo sigue siendo la de
+> producción.
 
 ## Por fases (decisión del dueño)
 
@@ -22,9 +23,12 @@ Lynx **no es React Native**. No trae out-of-the-box:
 | `expo-router` (19 pantallas, file-based) | ❌ Reescrito a un registro de rutas propio (`src/app/routes.tsx` + `src/lib/router.ts`) |
 | `react-native-health-connect` | ❌ Native module propio |
 | `expo-notifications`, `secure-store`, `sharing`, `haptics`, `document-picker`, `expo-font`... | ❌ Native modules propios |
-| `reanimated` + `gesture-handler` + `draggable-flatlist` | ⚠️ Reescribir con Main Thread Script / `<Sortable>`/`<SwipeAction>` de Lynx UI |
-| `victory-native` / `chart-kit` / `svg` (gráficos) | ❌ Sin equivalente directo |
+| `reanimated` + `gesture-handler` + `draggable-flatlist` | ⚠️ Sin gestos: `@lynx-js/types` no expone `<SwipeAction>`/`<Sheet>`/`<Sortable>` y `@lynx-js/lynx-ui` no está instalado. El swipe pasó a botones explícitos y las hojas a un panel con cierre explícito |
+| `victory-native` / `chart-kit` / `svg` (gráficos) | ❌ Sin equivalente directo; heatmap y barras se dibujan a mano con `<view>`/CSS |
+| `expo-haptics` + animaciones de `reanimated` | ❌ Native module / sin equivalente: el descanso avisa por color, no por háptica ni pulso |
+| `ViewShot` (capturar la tarjeta para compartir) | ❌ Native module: `WorkoutSummaryCard` se pinta, pero no se captura ni se comparte |
 | `Intl` (`Intl.DateTimeFormat`, `toLocaleString`) | ❌ **No implementado** en Lynx; `src/lib/format.ts` formatea a mano |
+| `drizzle-orm` | ⚠️ Fuga de dependencia: `src/lib/metrics.ts` importa `drizzle-orm` (los helpers SQL, que Lynx no usa) y resuelve desde el `node_modules` de la **raíz**, no desde `lynx/`. El bundle lo tree-shakea (0 kB), pero `lynx` no compila si la raíz no tiene las deps instaladas |
 
 ## Fase 1 — hecho ✅
 
@@ -80,15 +84,85 @@ pantallas en blanco.
 | Ruta | Qué falta |
 |---|---|
 | `routines/[id]` | Detalle editable: añadir ejercicios, supersets, reordenar |
-| `exercises/[id]` | Ficha del ejercicio: historial, PRs, progresión |
-| `workout/active` | Modo activo completo: registrar series, descanso, supersets |
-| `workout/finish` | Resumen de cierre y sincronización con Health Connect |
+
+`routines/[id]/add-exercise` y `routines/new` no están en el registro todavía:
+entran con el editor de rutinas.
 
 ### Gates Fase 2
 
 - `tsc --noEmit` → exit 0
 - `vitest run` → 18/18 passed
 - `rspeedy build` → `dist/main.lynx.bundle` (250.3 kB)
+
+## Fase 3 — hecho ✅
+
+El **flujo de entrenamiento** completo: era lo único que seguía siendo stub y es
+el corazón de la app.
+
+### Componentes (`src/components/`)
+
+- `SetRow`, `RestTimer`, `PlateCalculatorSheet`, `NumericKeypad`,
+  `SetDetailsSheet`, `ExercisePickerModal`, `WorkoutSummaryCard`, `Heatmap` y
+  `Sheet` (el panel inferior compartido).
+- Reutilizan la lógica ya portada en `@lib`: `keypad` (el buffer es la única
+  fuente del valor, así no se puede repetir el known-issue K), `plateCalculator`,
+  `metrics` (1RM en vivo con `oneRmPreview`), `personalRecords`.
+- **Sin gestos**: `@lynx-js/types` no expone `<SwipeAction>`/`<Sheet>`/`<Sortable>`
+  y `@lynx-js/lynx-ui` no está instalado (este run no suma dependencias). Las
+  acciones de swipe son botones explícitos en la fila y las hojas cierran con
+  botón; `@lib/bottomSheet` y `@lib/swipeActions` quedan sin consumidor hasta que
+  esos gestos existan, listos para usarse ese día.
+- **Gráficos a mano**: heatmap y barras se dibujan con `<view>`/CSS, sin librería.
+- **Sin `Intl`**: se suman `formatNumber` (miles es-ES), `shortMonth` y `dayKey` a
+  `@lib/format`, que es lo que reemplaza a `toLocaleString('es-ES')`.
+
+### Pantallas
+
+- `workout/active`: cabecera con cronómetro y finalizar, series con
+  completar/descompletar/borrar/añadir, descanso automático, calculadora de discos,
+  teclado de peso y reps, hoja de RPE/notas, selector de ejercicio y cabecera por
+  superset. Sobre `@stores/activeWorkoutStore`.
+- `workout/finish`: duración, volumen, series, ejercicios, **PRs de la sesión** y
+  desglose por ejercicio.
+- `exercises/[id]`: totales históricos, progresión en barras, rangos 1M/3M/6M/1A,
+  PR actual e historial de récords.
+- `history/[id]`: **ruta nueva** (antes no existía): tarjeta de resumen y series
+  completadas.
+- El historial navega al detalle y Progreso gana el heatmap de consistencia sobre
+  `analytics.dailyVolume`.
+
+### Store y lógica nueva
+
+- `@lib/rest`: el descanso se cuenta contra un **instante de fin**. Antes se
+  restaba el tiempo transcurrido a un valor ya descontado, así que cada tick extra
+  descontaba de más.
+- `@lib/sessionSummary`: el resumen de la sesión (volumen, series, duración, mejor
+  set y PRs de la ventana) se calcula una sola vez. El store lo guarda en
+  `lastFinished` porque `finishWorkout()` limpia la sesión activa: sin eso, la
+  pantalla de cierre no tenía nada que leer.
+- `@lib/heatmap`: la grilla del heatmap, separada del pintado y con `today` como
+  parámetro para que sea determinista.
+- `@lib/theme`: `withAlpha`, porque el CSS de Lynx no acepta el hex de 8 dígitos
+  (`#rrggbbaa`) que usaba la app Expo.
+
+### Datos
+
+La seam KV **no necesitó ninguna consulta nueva**: `getFullSession`, `byId`,
+`exerciseTimeline`, `exerciseStats`, `exercisePrHistory`, `personalRecords`,
+`dailyVolume` y `list` ya cubrían todo. El único cambio en `src/db/` es unificar
+`dayKey` entre `analyticsRepo` y el heatmap, que ahora viven en `@lib/format`.
+
+### Gates Fase 3
+
+- `tsc --noEmit` → exit 0
+- `vitest run` → 9 ficheros / 47 tests passed (eran 18)
+- `rspeedy build` → `dist/main.lynx.bundle` (363.0 kB, eran 250.3 kB)
+
+Tests nuevos: resumen de sesión (sólo sets completados, duración, PRs por ventana),
+descanso (idempotencia y sin negativos), grilla del heatmap, formateos sin `Intl`,
+`withAlpha` y el registro de rutas (que cada ruta nueva resuelva a una pantalla y
+que el flujo de entrenamiento ya no caiga en los stubs).
+
 
 ## Comandos
 
@@ -108,13 +182,14 @@ que muestra `rspeedy dev`.
 
 ## Próximas fases (propuesta)
 
-- **Fase 3 — UI core**: portar `SetRow` (necesita gestos: Lynx UI `<SwipeAction>`,
-  no `reanimated`), las hojas de detalle, el keypad de peso/reps, y completar las
-  cuatro rutas de pila que hoy son stub.
-- **Fase 4 — Datos completos**: portar `routines`, `sessions`, `analytics` a la seam
-  KV, o decidir construir el native module SQLite y reutilizar los repos Drizzle.
-- **Fase 5 — Nativo**: Health Connect, notificaciones, haptics, secure-store como
-  native modules. Gráficos (decisión: custom element SVG/canvas o librería).
+- **Fase 4 — Editor de rutinas**: `routines/[id]`, `routines/[id]/add-exercise` y
+  `routines/new` sobre `routinesRepo` (añadir y quitar ejercicios, supersets,
+  reordenar, targets de series/reps). Es la última ruta de pila que sigue siendo
+  stub.
+- **Fase 5 — Auth real**: login/signup/forgot. `src/lib/supabase.ts` ya está
+  portado y solo faltan las pantallas de `app/auth`.
+- **Fase 6 — Nativo**: Health Connect, notificaciones, haptics, secure-store,
+  compartir (captura de `WorkoutSummaryCard`) y la decisión de SQLite.
 
 ## Decisión pendiente (importante)
 

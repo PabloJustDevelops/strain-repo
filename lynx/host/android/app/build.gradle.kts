@@ -39,6 +39,9 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+        // Prueba instrumentada del módulo de almacenamiento:
+        // `./gradlew connectedDebugAndroidTest` con un emulador o dispositivo.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -80,4 +83,10 @@ dependencies {
     // y los iconos no aparecen.
     implementation(libs.xelement.svg)
     implementation(libs.servalsvg)
+
+    // Prueba instrumentada: durabilidad y transacciones del módulo de
+    // almacenamiento, contra una base de verdad en el dispositivo.
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 }

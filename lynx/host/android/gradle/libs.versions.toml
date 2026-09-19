@@ -5,6 +5,11 @@ kotlin = "2.1.21"
 lynx = "4.1.0"
 primjs = "4.1.1"
 coreKtx = "1.16.0"
+# AndroidX Test: solo para la prueba instrumentada del módulo de almacenamiento,
+# que corre en un dispositivo/emulador con `connectedDebugAndroidTest`.
+androidxTestCore = "1.6.1"
+androidxTestRunner = "1.6.2"
+androidxTestExtJunit = "1.2.1"
 
 [libraries]
 # Lynx 4.1.0 usa `androidx.core.util.Consumer` en runtime pero no lo declara en
@@ -22,6 +27,11 @@ xelement-svg = { group = "org.lynxsdk.lynx", name = "xelement-svg", version.ref 
 # x86_64 (solo arm64/armv7/x86). Se sube a 0.2.4, que si lo trae, para poder
 # correr en el emulador x86_64.
 servalsvg = { group = "org.lynxsdk.lynx", name = "servalsvg", version = "0.2.4" }
+
+# Prueba instrumentada: `ApplicationProvider` (core), el runner y JUnit4.
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

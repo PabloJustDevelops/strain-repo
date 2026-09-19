@@ -6,6 +6,13 @@ export default defineConfig({
   // gesto (Sheet, SwipeAction, Sortable): sin esto, sus manejadores de arrastre
   // no se registran y el componente queda inerte.
   plugins: [pluginReactLynx({ enableNewGesture: true })],
+  // Los dos targets del proyecto: `lynx` (bundle nativo para Lynx Explorer y el
+  // emulador) y `web` (Lynx for Web, la página de desarrollo que sirve
+  // `rspeedy dev` y que permite inspeccionar el DOM/CSS en el navegador).
+  environments: {
+    web: {},
+    lynx: {},
+  },
   source: {
     entry: {
       main: './src/index.tsx',

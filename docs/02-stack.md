@@ -43,7 +43,7 @@
 
 | Herramienta | Uso |
 |-------------|-----|
-| **pnpm 11.5.1** | Package manager (migrado desde npm — ver [07](./07-decisions.md)) |
+| **bun 1.4.2** | Package manager y runtime de scripts (migrado desde pnpm — ver [07](./07-decisions.md#d12--gestor-de-paquetes-bun)) |
 | **drizzle-kit 0.28** | Generar SQL desde el schema TS |
 | **eas-cli 14** | Builds remotos y OTA |
 | **tsx** | Ejecutar scripts `.ts` (migrate, seed) |

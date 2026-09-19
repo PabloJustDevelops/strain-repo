@@ -2,11 +2,12 @@
   "name": "strain",
   "version": "0.1.0",
   "main": "expo-router/entry",
+  "packageManager": "bun@1.4.2",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "web": "expo start --web",
-    "lint": "eslint . --max-warnings 0 && pnpm lint:anti-slop",
+    "lint": "eslint . --max-warnings 0 && bun run lint:anti-slop",
     "lint:anti-slop": "oxlint -c .oxlintrc.json .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -76,5 +77,10 @@
     "typescript": "~6.0.3",
     "vitest": "^5.0.0"
   },
-  "private": true
+  "private": true,
+  "trustedDependencies": [
+    "better-sqlite3",
+    "esbuild",
+    "unrs-resolver"
+  ]
 }

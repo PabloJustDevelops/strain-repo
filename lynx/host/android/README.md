@@ -1,10 +1,12 @@
-# Host nativo Android (ticket 1 de `specs/001`)
+# Host nativo Android (`specs/001`)
 
 App Android propia que monta el bundle Lynx **sin Lynx Explorer y sin servidor
 de desarrollo**: el bundle viaja embebido en los assets del APK.
 
-Persistencia durable, notificaciones, Health Connect y auth **no** están aquí:
-son los tickets 2+.
+Lo que hay hecho aquí son los tickets 1 y 2 de `specs/001`: el host y el módulo
+nativo de almacenamiento. El adaptador durable que lo consume (ticket 3), las
+notificaciones y Health Connect (`specs/002`), la cuenta (`specs/003`) y la
+retirada de Expo (`specs/004`) **no** están aquí.
 
 ## Requisitos
 
@@ -43,9 +45,58 @@ instalación la sustituye (firma distinta): hay que desinstalar antes.
 
 | Fichero | Qué hace |
 |---|---|
-| `StrainApplication.kt` | `LynxEnv.init` una vez por proceso, antes de cualquier `LynxView` |
+| `StrainApplication.kt` | `LynxEnv.init` + registro de `StorageModule`, una vez por proceso |
 | `MainActivity.kt` | Monta el `LynxView` a pantalla completa y pide `main.lynx.bundle` |
 | `AssetsTemplateProvider.kt` | Sirve el bundle desde `assets/` (sin red) |
+| `storage/StorageModule.kt` | Módulo nativo: superficie Lynx, hilos y envelope de respuesta |
+| `storage/SqliteConnection.kt` | La conexión SQLite (WAL, sentencias, transacciones) |
+| `androidTest/.../StorageModuleTest.kt` | Prueba instrumentada de durabilidad y transacciones |
+
+## Almacenamiento (ticket 2 de `specs/001`)
+
+El host registra en `LynxEnv` un módulo nativo SQLite que el bundle resuelve por
+el nombre **`StorageModule`**. Su superficie es la del spec, toda parametrizada:
+
+| Método | Para qué | Llega en `data` |
+|---|---|---|
+| `open(dbName)` | Abre (o crea) la base en el directorio privado de la app | `null` |
+| `close()` | Cierra la conexión; idempotente | `null` |
+| `execute(sql, params)` | Sentencias de escritura | filas afectadas |
+| `query(sql, params)` | Sentencias de lectura | array de filas |
+| `transaction(operations)` | Array de `{ sql, params }`, en un solo bloque | filas afectadas, por operación |
+
+Los cinco son **asíncronos** (son `@LynxMethod`): no devuelven nada, contestan por
+un `callback` que se invoca **una sola vez**, con `{ ok: true, data }` o
+`{ ok: false, error: { code, message } }`.
+
+- **Motor**: `SQLiteOpenHelper`, no Room. Aquí solo hace falta SQL directo —el
+  esquema y las migraciones son del adaptador del ticket 3—, así que Room
+  costaría una dependencia, su procesador de anotaciones y su modelo de sesión a
+  cambio de nada.
+- **Hilos**: una única conexión de escritura, serializada en un executor de un
+  solo hilo (`strain-storage`). Ningún método bloquea el hilo de UI ni el de JS;
+  el cuerpo de cada método y el `callback` corren en ese hilo.
+- **WAL**: se activa antes de abrir la base y la prueba lo comprueba.
+- **Errores**: no se traga ninguno. Llegan con código estable (`DB_NOT_OPEN`,
+  `DB_ALREADY_OPEN`, `DB_OPEN_FAILED`, `SQLITE_CONSTRAINT`, `SQLITE_LOCKED`,
+  `SQLITE_DISK_IO`, `SQLITE_FULL`, `SQLITE_ERROR`, `INVALID_ARGUMENT`, `UNKNOWN`)
+  y el mensaje original.
+- **Límite conocido**: `query` apoya en `SQLiteDatabase.rawQuery`, que solo acepta
+  argumentos `String`. Los valores de `params` viajan como texto y SQLite los
+  convierte aplicando la afinidad de la columna, así que `WHERE id = ?` contra un
+  `INTEGER` sigue comparando contra un entero. `execute` sí ata los tipos reales.
+
+### Prueba instrumentada
+
+```bash
+./gradlew connectedDebugAndroidTest   # con un emulador o dispositivo conectado
+```
+
+Demuestra la durabilidad a nivel de módulo: crear tabla, insertar filas,
+**cerrar** la base, **volver a abrirla** y que sigan ahí; que una transacción
+revertida no deja rastro (ni la operación válida anterior a la que falla); que
+los errores llegan con código y mensaje; que la conexión está en WAL; y que el
+trabajo corre en el hilo del módulo y no en el del test.
 
 ## Dependencias que el ticket no listaba
 

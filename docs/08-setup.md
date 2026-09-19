@@ -2,102 +2,82 @@
 
 ## Requisitos
 
-- **Node 20.x** (recomendado LTS).
+- **Node 20.19+** (o 22.12+) — lo pide el tooling de Lynx.
 - **bun 1.4.2** ([bun.sh](https://bun.sh) — `npm install -g bun` o el instalador oficial).
-- **Android Studio + JDK 17** (solo para builds Android / testing de Health Connect).
-- **Expo CLI** (se invoca vía `bun` sin instalar global).
+- Para validar en **móvil real**: **Lynx Explorer** en el teléfono (ver
+  [12](./12-entorno-desarrollo-lynx.md)).
+- Para el **host Android** (a partir del [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md)):
+  Android Studio y **JDK 17**.
 
 ## Instalación
 
 ```bash
-# Clonar el repo
 git clone https://github.com/PabloJustDevelops/strain-repo.git
-cd strain-repo
-
-# Instalar dependencias
+cd strain-repo/lynx
 bun install
 ```
 
-> Si vienes de npm/pnpm/yarn: asegúrate de borrar `package-lock.json`, `pnpm-lock.yaml` o `yarn.lock` antes. El proyecto solo mantiene `bun.lock`.
+> La **raíz** del repositorio todavía contiene la app Expo (legado). Su instalación es aparte
+> (`bun install` en la raíz) y solo hace falta mientras exista; se retira por el
+> [`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md).
 
-## Scripts
+## Scripts (proyecto Lynx)
 
 | Comando | Qué hace |
 |---------|----------|
-| `bun run start` | Metro bundler en modo interactivo (elige plataforma) |
-| `bun run android` | Build debug Android (necesita emulador o device) |
-| `bun run web` | Build web (preview de desarrollo) |
-| `bun run lint` | ESLint sobre todo el código |
+| `bun run dev` | Dev server (puerto **3000**): compila los targets `web` y `lynx`, sirve la página de preview e imprime el QR para Lynx Explorer |
+| `bun run build` | Build de producción: `dist/main.lynx.bundle` y `dist/main.web.bundle` |
+| `bun run preview` | Preview del build |
 | `bun run typecheck` | `tsc --noEmit` |
-| `bun run db:generate` | Genera SQL desde el schema Drizzle |
-| `bun run db:migrate` | Aplica las migrations a la DB local |
-| `bun run db:seed` | Puebla con ejercicios base |
-| `bun run build:web` | Build de producción web (no soportado oficialmente, solo para preview) |
+| `bun run test` | `vitest run` |
 
-## Web (este dev session)
+## El bucle de trabajo (tres niveles)
 
-1. Asegúrate de tener `react-native-web` instalado:
+El detalle está en [12-entorno-desarrollo-lynx](./12-entorno-desarrollo-lynx.md). Resumen:
 
-   ```bash
-   bun add react-native-web@~0.19.13
-   ```
+1. **Navegador** — iterar en segundos. `bun run dev` y abrir la URL **∟ Preview** del dev server
+   (`/__web_preview?casename=main.web.bundle`). En `/` no hay HTML (da 404): la página es la del
+   preview. Sirve para composición, color y navegación; **no** para táctil ni rendimiento.
+2. **Móvil real** — validar de verdad. Móvil y PC en la misma Wi-Fi, escanear el QR de la terminal con
+   **Lynx Explorer**. Si el host no se anuncia solo: `bun run dev -- --host`.
+3. **Emulador Android** — automatizar y sacar evidencia. Único entorno donde corre `adb`/Maestro; se
+   expone el puerto con `adb reverse tcp:3000 tcp:3000`. Reservado a la comprobación final.
 
-2. Levanta el servidor:
+## Depuración
 
-   ```bash
-   bun run web
-   ```
+**Lynx DevTool Desktop** (`github.com/lynx-family/lynx-devtool/releases`) ofrece los paneles Elements,
+Console, Sources y Layers, más Trace. Se engancha activando **Lynx Debug** y **Lynx DevTool** en los
+ajustes de Lynx Explorer y conectándolo por cable. No se instala desde el repo.
 
-3. Abre `http://localhost:8081` en el navegador.
+La vía CLI/CDP existe como paquete (`@lynx-js/skill-lynx-devtool`) y **no está instalada** en este
+entorno; queda documentada y a cargo del usuario.
 
-> Nota: la web es solo para **preview de desarrollo**. La app real es Android. Algunos flujos (Health Connect, ViewShot) no funcionan en web.
+## Cuenta y backend (InsForge)
 
-## Android (build real)
+La sincronización es **opcional** y llega con el
+[`specs/003`](../specs/003-auth-y-cuenta-con-insforge.md). Sin configurar, la app funciona en modo
+local. Las variables de entorno concretas se fijan en ese spec; las de la app Expo (prefijo
+`EXPO_PUBLIC_*`) son legado y desaparecen con el `specs/004`.
 
-1. Instala Android Studio + un device/emulador con **Android 14+** (Health Connect requiere API 34).
-2. Conecta el device por USB con depuración activada.
-3. `bun run android` → Metro compila, instala y arranca en el device.
+## Estructura de datos y migraciones
 
-> Health Connect se testeable en device físico con la app "Health Connect" instalada (o el plugin en Pixel/Android 14+).
+No hay migraciones de SQL que ejecutar mientras la persistencia sea la *seam* no durable. Con el
+módulo nativo del [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md), el esquema y sus
+migraciones viven en el módulo nativo.
 
-## Variables de entorno
+## Tests
 
-Usa `docs/.env.example` como plantilla y crea `.env` en la raiz:
-
-- `EXPO_PUBLIC_SUPABASE_URL` — URL del proyecto Supabase.
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY` — Anon key pública.
-
-Sin estas variables, la app funciona en modo offline-only; el auth y el sync a la nube fallarán silenciosamente (UX controlada: banner de "no conectado").
-
-## Estructura de migrations
-
-Las migrations viven en `src/db/migrations.ts` como array numerado. Para añadir una nueva:
-
-```ts
-// src/db/migrations.ts
-{
-  id: '004_add_superset_to_routine_exercises',
-  sql: `ALTER TABLE routine_exercises ADD COLUMN superset_id TEXT;`,
-}
-```
-
-El runner las ejecuta en orden y registra las ya aplicadas en la tabla `_migrations`.
-
-## Tests (pendiente)
-
-Aún no hay suite configurada. Plan inmediato:
-
-- **Vitest** para lógica pura (`format.ts`, `plateCalculator.ts`, helpers de repositories).
-- **Playwright E2E** para el flow completo: signup → start workout → finish → ver en history → compartir.
-
-Ver [06-problemas](./06-known-issues.md) para más detalle.
+`bun run test` (Vitest). El arnés de JSX propio (`src/test/jsxCapture.ts`) captura el árbol en lugar de
+montarlo, porque el runtime de ReactLynx no carga en Node: los tests afirman sobre los nodos y las
+props que cada componente escribió.
 
 ## Troubleshooting rápido
 
 | Síntoma | Causa probable | Fix |
 |---------|----------------|-----|
-| `Unable to resolve module @babel/runtime/...` | Hoist incompleto (era un problema de pnpm con `node_modules` anidados) | Con bun la instalación es plana, así que ya no debería aparecer; si reaparece, comprobar que el paquete está instalado y correr `bun install` |
-| `Maximum call stack size exceeded` en Metro | `resolveRequest` recursivo en `metro.config.js` | Usar `context.resolveRequest(context, module, platform)`, nunca `config.resolver.resolveRequest` |
-| `It looks like you're trying to use web support...` | Falta `react-native-web` | `bun add react-native-web@~0.19.13` |
-| `Health Connect not available` en device | Device sin la app / Android < 14 | Instalar Health Connect desde Play Store o usar device Pixel |
-| Migraciones duplicadas | Re-editaste una ya aplicada | Borrar tabla `_migrations` o hacer downgrade manual |
+| `GET /` da **404** en el dev server | En `/` no hay página; la de desarrollo es la del preview | Abrir la URL **∟ Preview** (`/__web_preview?casename=main.web.bundle`) |
+| La longitud no se aplica | Longitud sin unidad | En Lynx toda longitud distinta de 0 necesita unidad; usa los tokens (`'16px'`) o `px()` |
+| `Intl is not defined` / fechas raras | Se usó `toLocaleString` | Formatea con `lynx/src/lib/format.ts` |
+| El proyecto Lynx no compila y la raíz no tiene dependencias | Fuga conocida de `drizzle-orm` | Instala la raíz mientras exista; se limpia con el [`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md) |
+| El QR no conecta | Móvil y PC en redes distintas | Misma Wi-Fi, o `bun run dev -- --host` |
+| Los datos desaparecen al cerrar | Persistencia no durable (known-issue 1) | Es el pendiente del [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md) |

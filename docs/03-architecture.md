@@ -3,155 +3,142 @@
 ## Vista por capas
 
 ```
-┌─────────────────────────────────────────────────┐
-│  app/                  → Pantallas (expo-router) │
-├─────────────────────────────────────────────────┤
-│  src/components/       → UI reusable             │
-├─────────────────────────────────────────────────┤
-│  src/stores/           → Estado global (Zustand) │
-├─────────────────────────────────────────────────┤
-│  src/lib/              → Wrappers SDK, utils     │
-├─────────────────────────────────────────────────┤
-│  src/db/repositories   → Acceso a datos          │
-├─────────────────────────────────────────────────┤
-│  src/db/               → Schema + migrations     │
-└─────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  screens/            → Pantallas                         │
+├──────────────────────────────────────────────────────────┤
+│  components/         → UI reutilizable                   │
+├──────────────────────────────────────────────────────────┤
+│  stores/             → Estado global (Zustand)           │
+├──────────────────────────────────────────────────────────┤
+│  lib/                → Lógica pura de dominio y formato  │
+├──────────────────────────────────────────────────────────┤
+│  db/*Repo            → Repositorios (interfaces)         │
+├──────────────────────────────────────────────────────────┤
+│  db/ storage + schema → Seam de almacenamiento           │
+└──────────────────────────────────────────────────────────┘
 ```
 
-## Estructura de carpetas
+La regla que sostiene todo: **la UI no habla con el almacenamiento, habla con repos**. Esa frontera es
+lo que permite sustituir la persistencia (hoy no durable) por el módulo nativo del
+[`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md) sin tocar ninguna pantalla.
+
+## Estructura de carpetas (proyecto Lynx)
 
 ```
-strain-repo/
-├── app/                        # Rutas (expo-router, file-based)
-│   ├── (tabs)/                 # Tabs principales
-│   │   ├── _layout.tsx
-│   │   ├── index.tsx           # Home / "Hoy"
-│   │   ├── exercises.tsx       # Catálogo de ejercicios
-│   │   ├── routines.tsx        # Plantillas de entrenamiento
-│   │   ├── history.tsx         # Histórico de workouts
-│   │   ├── progress.tsx        # Métricas, heatmap, PRs
-│   │   ├── health.tsx          # Health Connect dashboard
-│   │   └── settings.tsx        # Preferencias, cuenta
-│   ├── auth/                   # Login, signup, forgot
-│   ├── workout/
-│   │   ├── active.tsx          # Workout en curso
-│   │   └── finish.tsx          # Pantalla de resumen final
-│   ├── history/[id].tsx        # Detalle de workout + compartir
-│   ├── exercises/[id].tsx      # Detalle de ejercicio + gráfica
-│   └── routines/[id].tsx       # Detalle de rutina
-│
+lynx/
+├── lynx.config.ts              # Rspeedy: plugin ReactLynx, targets web + lynx, alias
 ├── src/
-│   ├── components/             # 11 componentes reutilizables
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Heatmap.tsx
-│   │   ├── MuscleChip.tsx
-│   │   ├── NumericKeypad.tsx
-│   │   ├── PlateCalculatorSheet.tsx
-│   │   ├── RestTimer.tsx
-│   │   ├── SetDetailsSheet.tsx
-│   │   ├── SetRow.tsx
-│   │   ├── Sidebar.tsx
-│   │   └── WorkoutSummaryCard.tsx
-│   │
-│   ├── stores/                 # 4 stores Zustand
-│   │   ├── activeWorkoutStore.ts   # Estado del workout en curso
-│   │   ├── authStore.ts            # Sesión Supabase
-│   │   ├── healthConnectStore.ts   # Status HC + cache métricas
-│   │   └── preferencesStore.ts     # Preferencias UI, unidades
-│   │
-│   ├── lib/                    # Wrappers SDK y utilidades
-│   │   ├── exportImport.ts     # Backup/restore JSON
-│   │   ├── format.ts           # Format de fechas, números, duraciones
-│   │   ├── healthConnect.ts    # Wrapper react-native-health-connect
-│   │   ├── notifications.ts    # Wrapper expo-notifications
-│   │   ├── plateCalculator.ts  # Cálculo de discos por barra
-│   │   ├── shareWorkout.ts     # Captura + compartir workout
-│   │   ├── supabase.ts         # Cliente Supabase
-│   │   └── theme.ts            # Tokens de color/espaciado/tipografía
-│   │
+│   ├── app/
+│   │   └── routes.tsx          # Registro de rutas (no hay file-based routing en Lynx)
+│   ├── screens/                # 14 pantallas: home, routines, exercises, progress,
+│   │                           #   settings, health, history/[id], exercises/[id],
+│   │                           #   routines/new, routines/[id], routines/[id]/add-exercise,
+│   │                           #   workout/active, workout/finish, session detail
+│   ├── components/             # Shell, Screen, Card, Button, Text, Icon, ListRow,
+│   │                           #   SectionHeader, StatBlock, PrimaryActionBar, Chip,
+│   │                           #   SegmentedControl, EmptyState, HistoryList, SetRow,
+│   │                           #   RestTimer, PlateCalculatorSheet, NumericKeypad,
+│   │                           #   SetDetailsSheet, ExercisePickerModal,
+│   │                           #   WorkoutSummaryCard, Heatmap, Sheet
+│   ├── stores/                 # activeWorkout, preferences, healthConnect, auth
+│   ├── lib/                    # theme, useTheme, format, metrics, weeks,
+│   │                           #   plateCalculator, supersets, personalRecords, labels,
+│   │                           #   keypad, rest, sessionSummary, heatmap, routineEditor,
+│   │                           #   router, reactKeys, id, useLoad, bottomSheet,
+│   │                           #   swipeActions, notifications*, healthConnect*, supabase*
 │   ├── db/
-│   │   ├── schema.ts           # Tablas Drizzle
-│   │   ├── migrations.ts       # Array de migraciones versionadas
-│   │   ├── seam.ts             # Las interfaces de la conexión (SqliteDb, RawSqlite)
-│   │   ├── bootstrap.ts        # Composition root: abre, migra, siembra y publica
-│   │   ├── registry.ts         # Locator getRepos()
+│   │   ├── storage.ts          # La seam (`Storage`). Hoy: memoria + session storage
+│   │   ├── kv.ts               # Utilidades sobre la seam
+│   │   ├── schema.ts           # Interfaces planas 1:1 con el modelo relacional
+│   │   ├── seed.ts             # Catálogo inicial (47 ejercicios)
+│   │   ├── exercisesRepo.ts    # Repos sobre la seam (mismas interfaces que antes)
+│   │   ├── routinesRepo.ts
+│   │   ├── sessionsRepo.ts
+│   │   ├── analyticsRepo.ts
 │   │   ├── shapes.ts           # Mapeo fila → DTO (única fuente)
-│   │   ├── repos/              # Una factory por repo: exercises, routines, sessions, analytics
-│   │   ├── testing/            # Adapter better-sqlite3 (tests y scripts)
-│   │   └── seed.ts             # Datos iniciales (ejercicios base)
-│   │
-│   └── types/
-│       └── domain.ts           # Tipos del dominio (User, Session, Set, Exercise…)
-│
-├── assets/                     # Iconos, splash, favicon
-├── scripts/                    # migrate.ts, seed.ts, generate-assets.ps1
-├── supabase/                   # Schema SQL y migrations
-├── docs/                       # Esta documentación
-└── config raíz
-    ├── app.json                # Expo config + permisos Android
-    ├── metro.config.js         # Alias + soporte web
-    ├── babel.config.js
-    ├── drizzle.config.ts
-    ├── eas.json
-    ├── .npmrc
-    ├── pnpm-workspace.yaml
-    └── tsconfig.json
+│   │   └── index.ts
+│   ├── types/                  # Tipos del dominio
+│   ├── test/                   # `jsxCapture.ts` (arnés de JSX) y setup
+│   ├── App.tsx / index.tsx     # Arranque: bootstrap de datos antes del primer render
+│   └── App.css                 # Solo layout: color y tipografía viven en los tokens
+├── package.json / bun.lock
+└── tsconfig.json / vitest.config.mts
 ```
+
+> `notifications*`, `healthConnect*` y `supabase*` son hoy **puentes** hacia APIs nativas que aún no
+> existen en un host propio; su implementación son los specs
+> [`002`](../specs/002-nativas-notificaciones-y-health-connect.md) y
+> [`003`](../specs/003-auth-y-cuenta-con-insforge.md).
+
+## Navegación: registro de rutas propio
+
+Lynx no trae enrutado por ficheros, así que hay un **registro de rutas** (`app/routes.tsx`) que mapea
+nombre de ruta → pantalla, y un `Shell` que pinta el tope de la pila.
+
+- **5 pestañas**: Hoy, Rutinas, Ejercicios, Progreso y Ajustes.
+- **Salud** es una ruta de pila que se abre desde Ajustes.
+- **Historial** ya no es pestaña: la lista de sesiones es un bloque dentro de Progreso, sobre el
+  componente compartido `HistoryList` (que también usa la pantalla de historial).
+- Las rutas de pila muestran un título humano, no el identificador técnico.
 
 ## Flujo de datos
 
-### Workout en curso
+### Entrenamiento en curso
 
 ```
-active.tsx
+WorkoutActiveScreen
    ↓ lee estado
-activeWorkoutStore (Zustand)
-   ↓ persiste en SQLite
-getRepos().sessions (repos/)         ← locator que publica bootstrap.ts
-   ↓ Drizzle query sobre la seam (seam.ts)
-expo-sqlite (adapter de bootstrap.ts)
+useActiveWorkout (Zustand)   ← único dueño del descanso
+   ↓ persiste
+sessionsRepo
+   ↓
+storage (seam)  →  hoy memoria + session storage  →  (specs/001) SQLite nativo
 ```
 
-### Health Connect
+### Mapeo fila → DTO
 
-```
-health.tsx (tab)
-   ↓ useEffect → probe()
-healthConnectStore
-   ↓ invoca
-healthConnect.ts (wrapper)
-   ↓ SDK nativo
-react-native-health-connect
-```
+El mapeo vive en un solo sitio (`db/shapes.ts`). Reglas que se respetan:
 
-## Path aliases
+- **no inventa nombres** ni valores: los *targets* de la sesión se copian al iniciar y se leen de la
+  fila; si no hay plan, son `null`, no un valor por defecto fabricado (ver `D11` en
+  [07-decisiones](./07-decisions.md));
+- **no descarta campos declarados**;
+- las funciones de mapeo son **puras** (reciben `now` como parámetro), así que se testean con reloj
+  fijo.
 
-Definidos en `tsconfig.json` (TS) y replicados en `metro.config.js` (Metro para web):
+## Alias de paths
+
+Definidos en `tsconfig.json` y replicados en `lynx.config.ts` para que Rspeedy resuelva lo mismo:
 
 | Alias | Apunta a |
 |-------|----------|
 | `@/*` | `src/*` |
-| `@db/*` | `src/db/*` |
+| `@db`, `@db/*` | `src/db*` |
 | `@components/*` | `src/components/*` |
 | `@stores/*` | `src/stores/*` |
 | `@lib/*` | `src/lib/*` |
 | `@types/*` | `src/types/*` |
-| `@assets/*` | `assets/*` |
-
-> ⚠️ `@types/*` solapa con el namespace de TypeScript. Migrado en bloque previo: el código del proyecto usa `@/types/domain` en lugar de `@types/domain`.
+| `@assets/*` | `src/assets/*` |
 
 ## Modelo de datos (resumen)
 
-Tablas principales en `src/db/schema.ts`:
+El vocabulario está en [`CONTEXT.md`](../CONTEXT.md). Las entidades:
 
-- `users` — Usuario local (id, email, created_at)
-- `exercises` — Catálogo (id, name, muscle_group, equipment, is_custom)
-- `routines` — Plantillas (id, name, user_id)
-- `routine_exercises` — Join routine ↔ exercise con orden
-- `sessions` — Workout finalizado (id, user_id, started_at, ended_at, notes)
-- `session_exercises` — Ejercicios dentro de una sesión (con orden)
-- `sets` — Series (peso, reps, RPE, notes, is_warmup, completed_at)
-- `personal_records` — PRs calculados por ejercicio
+- `Exercise` — catálogo (global del seed o custom del usuario).
+- `Routine` / `Routine Exercise` — la plantilla y sus *targets*.
+- `Session` / `Session Exercise` — la ejecución real, con **snapshot** de los targets y máquina de
+  estados `active → completed | discarded`.
+- `Set` — la serie, con tipo, peso, reps, RPE y notas.
+- `Personal Record` — PRs derivados (hoy, 1RM estimado).
 
-Migraciones en `src/db/migrations.ts` como array numerado; cada entry es un SQL idempotente.
+## Sistema de diseño
+
+Tokens **por rol** (no por apariencia): `bg`, `surface`, `surfaceRaised`, `border`, `textPrimary`,
+`textSecondary`, `accent`, `onAccent`, `success`, `warn`, `danger`. Seis pasos tipográficos, cuatro de
+espaciado (`4 / 8 / 16 / 24 / 36`), tres radios y dos duraciones. Dos reglas que el sistema hace
+cumplir y que están cubiertas por tests:
+
+- **Toda longitud lleva unidad** (`'16px'`): el motor Lynx rechaza longitudes sin unidad, también
+  inline.
+- **El acento es una acción, no decoración**: solo la acción primaria de cada pantalla y lo
+  seleccionado lo usan.

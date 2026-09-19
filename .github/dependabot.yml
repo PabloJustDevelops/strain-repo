@@ -1,8 +1,8 @@
 # Dependabot (specs/005, ticket 4).
 #
 # Ecosistemas que existen de verdad en el repo:
-#   - npm: la raíz (app Expo, legado) y `lynx/` (el producto).
-#   - gradle: el host Android (`lynx/host/android`).
+#   - npm: el proyecto (la raíz).
+#   - gradle: el host Android (`host/android`).
 #   - github-actions: las acciones de `.github/workflows/`.
 #
 # Los cambios menores y de parche se agrupan en una sola propuesta por
@@ -21,26 +21,12 @@ updates:
       prefix: chore
       include: scope
     groups:
-      root-minor-y-parche:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: npm
-    directory: "/lynx"
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: chore
-      include: scope
-    groups:
-      lynx-minor-y-parche:
+      npm-minor-y-parche:
         patterns: ["*"]
         update-types: ["minor", "patch"]
 
   - package-ecosystem: gradle
-    directory: "/lynx/host/android"
+    directory: "/host/android"
     schedule:
       interval: weekly
       day: monday

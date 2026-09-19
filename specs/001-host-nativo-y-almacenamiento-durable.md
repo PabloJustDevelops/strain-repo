@@ -109,12 +109,20 @@ carga el bundle; ciclo de vida alineado con el de la `Activity`.
 - El almacén actual **no es durable**, así que puede no haber nada que migrar; conviene no prometer
   continuidad de datos.
 
-## Preguntas abiertas (decisión de producto)
+## Preguntas abiertas (resueltas)
 
-- ¿Se reutiliza el `applicationId` existente (`com.strain.app`) o el host estrena identidad?
-- ¿`minSdk` objetivo? (Health Connect, del `specs/002`, condiciona el mínimo.)
-- Firma y distribución: ¿debug interno, o se prepara release firmada ya?
-- ¿El host se commitea desde el primer ticket, o al estabilizarse?
+Cerradas el 19 sep 2026 y registradas como **D15** en `docs/07-decisions.md`:
+
+- **`applicationId`**: se reutiliza **`com.strain.app`**. La app definitiva hereda la identidad del
+  legado, para no renombrar después (romper firma, rutas y hábitos). Consecuencia asumida: en un mismo
+  dispositivo, instalar el host **sustituye** a la app Expo; el APK del legado queda guardado y es
+  reinstalable.
+- **`minSdk`**: **26** (Android 8.0). Lo exige Health Connect (`specs/002`) y ya era el mínimo efectivo
+  del legado. `compileSdk`/`targetSdk`: **36**.
+- **Firma y distribución**: **debug interno** mientras el port está en construcción; release firmada
+  cuando haya paridad (persistencia + nativas + auth), con el *keystore* guardado **fuera del repo**.
+- **Versionado del host**: **sí, desde el ticket 1**, en **`lynx/host/android/`** (dentro del árbol del
+  proyecto Lynx, que el `specs/004` promueve a la raíz).
 
 ## Tickets
 

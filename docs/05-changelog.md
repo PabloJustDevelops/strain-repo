@@ -2,6 +2,25 @@
 
 Formato: cronológico inverso (más reciente arriba).
 
+> **Era Expo (hasta `2cd13f9` · etiqueta `expo-final`)**: las entradas anteriores al bloque siguiente
+> describen la app **Expo + React Native**, que es **legado** y se retira por el
+> [`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md). Se conservan **como pasado**,
+> sin reescribirlas.
+
+## Bloque 1 · SDD, documentación y skills — Lynx primero, Expo fuera
+
+- **`specs/001`–`005`**: host nativo y almacenamiento durable; nativas (notificaciones y Health
+  Connect); auth y cuenta con InsForge; reestructura del repo y retirada de Expo; y CI/CD. Cada spec
+  con problema, alcance, decisiones, superficie, criterios medibles, riesgos, preguntas abiertas y
+  tickets con bloqueos.
+- **Etiqueta `expo-final`**: red de seguridad en el último commit con la app Expo intacta.
+- **Skills**: fuera las seis de Expo, dentro las ocho oficiales de `lynx-community/skills` (rama
+  `release`, commit `715f740`), con *allowlist* en `.gitignore` y `skills-lock.json`.
+- **Documentación**: `docs/01`–`12`, índice, `CONTEXT.md`, `README.md` y `AGENTS.md` reescritos a la
+  realidad Lynx; decisiones **D13** (retirada de Expo, con criterio de borrado) y **D14** (host nativo
+  y almacenamiento durable).
+- **Sin código de producto nuevo**: este bloque no implementa los specs ni refactoriza.
+
 ## Expo SDK 57 · chore(deps): subir expo a sdk 57
 
 Subida de **Expo SDK 56 → 57** (React Native **0.85.3 → 0.86.3**) con el walkthrough oficial:

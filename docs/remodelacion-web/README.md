@@ -1,18 +1,19 @@
 # Remodelación Web
 
-Esta carpeta agrupa la definición funcional y el plan de implementación de la remodelación web de
-Strain.
+Esta carpeta agrupa la definición funcional y el plan de la **web de escritorio** de Strain, que es el
+**target `web` de Lynx** (mismo código que el móvil).
 
 ## Contenido
 
 - `01-requisitos-web.md`
-  - Documento consolidado con la definición funcional, visual y de producto de la web.
+  - Definición funcional, visual y de producto de la web, pantalla a pantalla.
 - `02-plan-implementacion-web-por-fases.md`
-  - Plan técnico por fases para implementar la web dentro del repo actual.
+  - Qué cambió respecto al plan anterior (Next.js/Tailwind/Vercel, descartado) y qué queda por hacer.
 
 ## Alcance actual
 
-Este bloque cubre únicamente la remodelación de la **web de escritorio**.
+Este bloque cubre únicamente la **web de escritorio**. La remodelación de la sección **mobile** se
+documenta aparte, en `docs/remodelacion-mobile/`.
 
-La remodelación de la sección **mobile** se deja para una fase posterior y deberá documentarse en
-otra carpeta o documento específico.
+La dirección de producto y la decisión de stack están en
+[`docs/09-remodelacion-web-dashboard.md`](../09-remodelacion-web-dashboard.md).

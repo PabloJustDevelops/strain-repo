@@ -1,8 +1,11 @@
-# 09 · Remodelación: App Web de Escritorio + Simplificación Mobile
+# 01 · Requisitos de la web de escritorio
 
-> **Estado**: Borrador de dirección de producto y diseño.
-> **Base visual**: Referencias de layout inspiradas en Hevy aportadas por el usuario.
-> **Importante**: La inspiración es estructural y visual. No se replica la capa social, premium ni de suscripciones.
+> **Estado**: requisitos de producto y diseño.
+> **Base visual**: referencias de layout inspiradas en Hevy aportadas por el usuario.
+> **Importante**: la inspiración es estructural y visual. No se replica la capa social, premium ni de
+> suscripciones.
+> **Stack**: la web **no es una app aparte**. Es el **target `web` de Lynx** sobre el mismo código
+> (ver [09](../09-remodelacion-web-dashboard.md)). No hay Next.js, ni Tailwind, ni Vercel.
 
 ---
 
@@ -1166,90 +1169,77 @@ La web se convierte en la capa de:
 
 El ecosistema debe funcionar así:
 
-1. El móvil registra primero en SQLite local.
+1. El dispositivo registra primero en local.
 2. Los cambios se preparan para sincronización.
-3. Supabase centraliza datos compartidos.
+3. **InsForge** centraliza los datos compartidos.
 4. La web consume esos datos autenticados.
 5. La web se actualiza sin depender de recarga manual constante.
 
 ### Principios de sincronización
 
 - El usuario no debe pensar en sincronizar.
-- El móvil debe seguir funcionando sin red.
+- El dispositivo debe seguir funcionando sin red.
 - La web prioriza consistencia visual y frescura suficiente.
-- No se necesita lógica de producto multiusuario ni conflictos sociales.
+- **El aislamiento por usuario es requisito**: cada cuenta ve solo lo suyo.
 
 ### Arquitectura conceptual
 
 ```
-Móvil (SQLite local) -> Cola de sync -> Supabase -> Web de escritorio
+Dispositivo (almacén local) -> Cola de sync -> InsForge -> Web de escritorio
 ```
 
-### Tablas de base esperadas
+### Entidades esperadas
 
-- `profiles`
-- `workout_sessions`
-- `session_exercises`
-- `sets`
-- `exercises`
-- `personal_records`
-- `routines`
-- `routine_exercises`
-- `sync_queue` en local
+Las del dominio (ver [`CONTEXT.md`](../../CONTEXT.md)): ejercicios, rutinas y sus ejercicios,
+sesiones, ejercicios de sesión, series y récords, más el perfil y una **cola de sincronización** en
+local.
 
 ### Implicación importante
 
-La web no necesita inventar un modelo nuevo. Debe apoyarse en las entidades ya existentes y en la
-sincronización entre móvil y Supabase.
+La web no inventa un modelo nuevo: se apoya en las entidades ya existentes y en la sincronización del
+[`specs/003`](../../specs/003-auth-y-cuenta-con-insforge.md). Dirección de producto en
+[`docs/09`](../09-remodelacion-web-dashboard.md).
 
 ---
 
-## 9. Stack recomendado para la web
+## 9. Stack de la web
 
-| Capa | Recomendación |
-|------|---------------|
-| Framework | `Next.js` con App Router |
-| UI | `Tailwind CSS` + componentes reutilizables |
-| Estado de datos | `supabase-js` + caché ligera |
-| Auth | `Supabase Auth` compartido con móvil |
-| Gráficas | `Recharts` o equivalente simple |
-| Deploy | `Vercel` |
+La web **no tiene stack propio**: es el **target `web` de Lynx**, compilado por Rspeedy desde el mismo
+código que el target nativo.
+
+| Capa | Cómo se resuelve |
+|------|------------------|
+| UI | ReactLynx (elementos `page` / `view` / `text`…) sobre Lynx for Web |
+| Build | Rspeedy, `environments.web` |
+| Estilos | El sistema de tokens por rol del proyecto |
+| Datos | Los mismos repos sobre la *seam* de almacenamiento |
+| Cuenta | InsForge ([`specs/003`](../../specs/003-auth-y-cuenta-con-insforge.md)) |
+| Preview | Dev server de Rspeedy (puerto 3000) |
 
 ### Motivos
 
-- `Next.js` encaja bien para app web moderna con rutas protegidas y mezcla de renderizado.
-- `Tailwind` facilita replicar rápido el lenguaje visual limpio y consistente.
-- `Supabase Auth` evita separar identidad entre móvil y web.
-- `Vercel` reduce fricción para desplegar el primer MVP.
+- Una sola base evita dos modelos de datos y dos interfaces que se desincronicen.
+- La web hereda el sistema de diseño: no se reimplementa el lenguaje visual.
+- **Descartado**: una app Next.js aparte, Tailwind, Supabase como backend y despliegue en Vercel.
+
+### Límite de fidelidad
+
+El target web **no reproduce el comportamiento nativo**. Sirve para composición, lectura y gestión; el
+táctil y el rendimiento se validan en móvil real o emulador
+([12](../12-entorno-desarrollo-lynx.md)).
 
 ---
 
-## 10. Estructura propuesta de la app web
+## 10. Estructura
+
+No hay carpeta `web/` ni aplicación separada. Las pantallas de escritorio son **las mismas** del
+proyecto Lynx, adaptadas con el sistema de diseño:
 
 ```
-web/
-├── app/
-│   ├── page.tsx                  → Inicio
-│   ├── rutinas/page.tsx          → Gestión de rutinas
-│   ├── ejercicios/page.tsx       → Biblioteca de ejercicios
-│   ├── historial/page.tsx        → Historial
-│   ├── estadisticas/page.tsx     → Analítica
-│   ├── ajustes/page.tsx          → Cuenta y preferencias
-│   ├── login/page.tsx            → Acceso
-│   └── api/
-├── components/
-│   ├── layout/
-│   ├── inicio/
-│   ├── rutinas/
-│   ├── ejercicios/
-│   ├── historial/
-│   ├── estadisticas/
-│   └── ui/
-├── lib/
-│   ├── supabase.ts
-│   ├── auth.ts
-│   └── calculations.ts
-└── middleware.ts
+lynx/src/
+├── screens/         → las pantallas (adaptadas a escritorio en la parte B del diseño)
+├── components/      → el shell y los componentes compartidos
+└── lib/theme.ts     → los tokens del sistema
 ```
 
 ---
@@ -1289,25 +1279,30 @@ Que el móvil se centre en rapidez de uso y captura de entrenamientos.
 
 ## 12. Fases propuestas
 
+La web no tiene fases propias: se apoya en las del proyecto Lynx
+([11](../11-plan-app-tipo-hevy.md)) y en los specs aprobados. Orden útil:
+
 ### Fase 1
 
-Definir shell visual de escritorio y navegación base.
+Definir el shell de escritorio y la navegación base (parte B del sistema de diseño).
 
 ### Fase 2
 
-Maquetar `Inicio`, `Rutinas` y `Ejercicios` con datos simulados.
+Adaptar `Inicio`, `Rutinas` y `Ejercicios` al layout de escritorio.
 
 ### Fase 3
 
-Conectar autenticación y datos reales desde Supabase.
+Conectar autenticación y datos reales desde **InsForge**
+([`specs/003`](../../specs/003-auth-y-cuenta-con-insforge.md)).
 
 ### Fase 4
 
-Añadir `Historial` y `Estadísticas`.
+Adaptar `Historial` y `Estadísticas`.
 
 ### Fase 5
 
-Pulir sincronización, estados vacíos, responsive y rendimiento.
+Estados vacíos, responsive de escritorio y rendimiento; previsualización web en CI
+([`specs/005`](../../specs/005-ci-cd.md)).
 
 ---
 

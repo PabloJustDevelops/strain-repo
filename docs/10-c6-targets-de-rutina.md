@@ -1,5 +1,9 @@
 # 10 · C6 — Targets de rutina en la sesión
 
+> **Documento histórico (era Expo)**: registra el cierre de C6 en la app Expo. Se conserva como
+> pasado. La paridad en el port Lynx ya está cubierta: la sesión copia el snapshot de targets al
+> iniciarla y el descanso tiene dueño único. Ver `D11` en [07-decisiones](./07-decisions.md).
+
 > **Estado**: decisiones resueltas (grilling) e implementadas — `f339c5a` (schema + persistencia),
 > `f1e1d0b` (mapeo + descanso), `5595e9e` (tests). La §9 es el registro de las decisiones.
 > **Issue**: [#1 · C6 · Targets de rutina en la sesión](https://github.com/PabloJustDevelops/strain-repo/issues/1)

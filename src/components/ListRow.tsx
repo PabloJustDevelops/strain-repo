@@ -23,16 +23,18 @@ interface ListRowProps {
   meta?: string;
   /** Flecha a la derecha, sólo para lo que navega a otra pantalla. */
   chevron?: boolean;
+  /** Variante compacta: menos aire vertical, sin bajar del área táctil mínima. */
+  dense?: boolean;
   onPress?: () => void;
 }
 
-export function ListRow({ leading, title, meta, chevron = false, onPress }: ListRowProps) {
+export function ListRow({ leading, title, meta, chevron = false, dense = false, onPress }: ListRowProps) {
   const { colors } = useTheme();
   const [pressed, setPressed] = useState(false);
 
   return (
     <view
-      className="ListRow"
+      className={dense ? 'ListRow ListRowDense' : 'ListRow'}
       style={{ ...pressedStyle(pressed), borderColor: colors.border }}
       bindtap={onPress}
       bindtouchstart={() => setPressed(true)}

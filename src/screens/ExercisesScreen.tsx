@@ -3,10 +3,11 @@ import { useState } from '@lynx-js/react';
 
 import { getRepos } from '@db';
 import { EmptyState } from '@components/EmptyState';
+import { Icon } from '@components/Icon';
+import { ListRow } from '@components/ListRow';
 import { ErrorNote, Loading } from '@components/Loading';
 import { MuscleChip } from '@components/MuscleChip';
 import { Screen } from '@components/Screen';
-import { Text } from '@components/Text';
 import {
   MUSCLE_FILTERS,
   equipmentLabel,
@@ -52,14 +53,20 @@ export function ExercisesScreen() {
           : exerciseCountLabel(filtered.length, exercises.data.length)
       }
     >
-      <Input
-        className="Input"
-        style={{ backgroundColor: colors.surface, borderColor: colors.line, color: colors.textPrimary }}
-        placeholder="Buscar ejercicio"
-        confirmType="search"
-        value={query}
-        onInput={(value) => setQuery(value)}
-      />
+      <view
+        className="SearchField"
+        style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      >
+        <Icon name="search" size={18} tone="textSecondary" className="SearchFieldIcon" />
+        <Input
+          className="SearchFieldInput"
+          style={{ color: colors.textPrimary }}
+          placeholder="Buscar ejercicio"
+          confirmType="search"
+          value={query}
+          onInput={(value) => setQuery(value)}
+        />
+      </view>
 
       <view className="ChipRow">
         {MUSCLE_FILTERS.map((group) => {
@@ -80,27 +87,31 @@ export function ExercisesScreen() {
       {exercises.loading ? <Loading /> : null}
       {exercises.error ? <ErrorNote message={exercises.error} /> : null}
 
-      {!exercises.loading && filtered.length === 0 ? (
+      {!exercises.loading && exercises.data.length === 0 ? (
         <EmptyState
-          title="Sin resultados"
-          body="Ningún ejercicio coincide con la búsqueda y el filtro actuales."
+          icon="dumbbell"
+          title="Biblioteca vacía"
+          body="Todavía no hay ejercicios en la biblioteca."
+        />
+      ) : null}
+
+      {!exercises.loading && exercises.data.length > 0 && filtered.length === 0 ? (
+        <EmptyState
+          icon="list"
+          title="Sin coincidencias"
+          body="Ningún ejercicio coincide con la búsqueda o el filtro activo."
         />
       ) : null}
 
       {filtered.map((exercise) => (
-        <view
-          className="ListRow"
+        <ListRow
           key={remountKey('exercise', exercise.id)}
-          style={{ borderColor: colors.line }}
-          bindtap={() => router.push('exercises/[id]', { id: exercise.id })}
-        >
-          <Text role="title" tone="textPrimary">
-            {exercise.name}
-          </Text>
-          <Text role="support" tone="textSecondary">
-            {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
-          </Text>
-        </view>
+          dense
+          chevron
+          title={exercise.name}
+          meta={`${muscleGroupLabel(exercise.muscleGroup)} · ${equipmentLabel(exercise.equipment)}`}
+          onPress={() => router.push('exercises/[id]', { id: exercise.id })}
+        />
       ))}
     </Screen>
   );

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { createExercisesRepo } from './exercisesRepo';
 import { createRoutinesRepo } from './routinesRepo';
-import { createSessionStorage, setStorageForTesting } from './storage';
+import { createPreviewStorage, setStorageForTesting } from './storage';
 
 const exerciseInput = (name: string, muscleGroup = 'chest') => ({
   name,
@@ -17,7 +17,7 @@ const exerciseInput = (name: string, muscleGroup = 'chest') => ({
 
 /** Repos nuevos sobre un storage limpio, para que un test no vea al anterior. */
 function setup() {
-  const storage = createSessionStorage();
+  const storage = createPreviewStorage();
   setStorageForTesting(storage);
 
   return {

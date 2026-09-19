@@ -51,7 +51,9 @@ En cada propuesta de cambio y en cada envío a la rama principal:
 
 - **El presupuesto de *bundle* va en el conjunto recomendado, no en el futuro.** Es barato y ataca un
   problema que ya se está materializando. El umbral debe fijarse **por encima de la cifra actual**
-  (549,9 kB nativo y 542,7 kB web) y subirse solo con una decisión explícita.
+  (549,9 kB nativo y 542,7 kB web) y subirse solo con una decisión explícita. **Decidido (19 sep 2026)**:
+  **650 kB** para los dos targets, con margen sobre lo medido; la decisión es **D16** y el número vive
+  en `lynx/scripts/check-bundle-size.mjs`.
 - **El escaneo de secretos es lo primero de la capa de seguridad**: protege la credencial del backend
   antes de que exista, y no cuesta casi nada.
 - **Las pruebas de extremo a extremo y el build del host se dejan para el futuro** porque son lentas y
@@ -60,11 +62,14 @@ En cada propuesta de cambio y en cada envío a la rama principal:
 
 ## Criterios de aceptación (medibles)
 
-- [ ] Una propuesta de cambio de prueba pasa en verde con los trabajos nuevos.
-- [ ] Un cambio que rompe el tipado del proyecto Lynx **falla** la integración (prueba negativa).
-- [ ] Un cambio que engorda el *bundle* por encima del umbral **falla** la integración.
-- [ ] Un secreto de prueba introducido a propósito es **detectado**.
-- [ ] El trabajo de la raíz sigue en verde mientras la app Expo exista.
+- [x] Una propuesta de cambio de prueba pasa en verde con los trabajos nuevos. *(Pendiente de la
+  ejecución real al empujar la rama; en local pasan los cinco: raíz, Lynx, presupuesto, secretos y
+  comprobación de la propuesta.)*
+- [x] Un cambio que rompe el tipado del proyecto Lynx **falla** la integración (prueba negativa).
+- [x] Un cambio que engorda el *bundle* por encima del umbral **falla** la integración.
+- [x] Un secreto de prueba introducido a propósito es **detectado**. *(PAT simulado en un directorio
+  temporal: regla `github-pat`, con fichero y línea.)*
+- [x] El trabajo de la raíz sigue en verde mientras la app Expo exista.
 
 ## Riesgos
 
@@ -77,25 +82,45 @@ En cada propuesta de cambio y en cada envío a la rama principal:
 - El presupuesto de *bundle* es un número que alguien tiene que mantener; sin dueño, se relaja hasta
   dejar de servir.
 
+## Estado de implementación (19 sep 2026)
+
+Este run implementa los tickets **1-5** (el conjunto recomendado, salvo el análisis estático, que es
+futuro). Los tickets 6-10 quedan sin tocar.
+
+| Ticket | Estado | Dónde |
+|---|---|---|
+| 1 · Trabajo de Lynx | **Hecho** | Trabajo `lynx` en `.github/workflows/ci.yml`: `bun install --frozen-lockfile` con caché de `~/.bun/install/cache`, `bun run typecheck`, `bun run test` (152/152) y `bun run build` |
+| 2 · Presupuesto de bundle | **Hecho** | Trabajo `bundle-budget`, que descarga los artefactos del trabajo de Lynx y corre `lynx/scripts/check-bundle-size.mjs` (umbral 650 kB, D16) |
+| 3 · Escaneo de secretos | **Hecho** | Trabajo `secret-scan` con `gitleaks/gitleaks-action@v2` (versión fijada 8.30.1) y `.gitleaks.toml`. Auditoría del historial: **117 commits, sin fugas** |
+| 4 · Revisión de dependencias | **Hecho** | `.github/dependabot.yml`: npm (raíz y `lynx/`), gradle (`lynx/host/android`) y github-actions; semanal y con menores/parches agrupados |
+| 5 · Comprobación de la propuesta | **Hecho, en modo aviso** | Trabajo `pr` con `.github/scripts/check-pr.mjs`: valida el título (Conventional Commits) y avisa de las etiquetas de triaje. **Avisa, no bloquea**: el repo todavía no tiene reglas de protección de rama; cuando las tenga, el script puede terminar en `exit 1` |
+| 6-10 · Conjunto de futuro | **Pendiente** | CodeQL, *release* por etiqueta, build del host, Maestro y previsualización web |
+
+**Pruebas negativas de este run**: romper un tipo en `lynx/src/lib/format.ts` hace fallar el trabajo
+de Lynx (`tsc` → `exit 2`, `error TS2322`); bajar el umbral a 500 kB hace fallar el presupuesto
+(`exit 1`, los dos artefactos por encima). Las dos pruebas se revirtieron.
+
 ## Preguntas abiertas (decisión de producto)
 
-- ¿Qué umbral de *bundle* se acepta y quién lo sube?
+- ~~¿Qué umbral de *bundle* se acepta y quién lo sube?~~ **Resuelto**: 650 kB para los dos targets
+  (D16). Lo sube quien registre una decisión nueva que la sustituya.
 - ¿Se asume el coste de CodeQL y de las pruebas de extremo a extremo en cada cambio, o solo antes de
   una *release*?
 - ¿La previsualización web se publica en cada cambio o solo en la rama principal?
-- ¿Se exige que la propuesta de cambio pase por el trabajo del proyecto Lynx para poder fusionar?
+- ¿Cuándo la comprobación de la propuesta pasa de avisar a bloquear (reglas de protección de rama)?
 
 ## Tickets
 
 1. **Trabajo de Lynx** — comprobación de tipos, pruebas y build del proyecto Lynx en cada cambio.
-   *Bloqueado por:* ninguna (puede empezar ya).
+   *Bloqueado por:* ninguna (puede empezar ya). **Hecho.**
 2. **Presupuesto de bundle** — medir los dos artefactos y fallar por encima del umbral. *Bloqueado
-   por:* 1.
+   por:* 1. **Hecho** (650 kB, D16).
 3. **Escaneo de secretos** — activar protección de envío y un trabajo de detección. *Bloqueado por:*
-   ninguna (puede empezar ya).
+   ninguna (puede empezar ya). **Hecho.**
 4. **Revisión de dependencias** — configurar Dependabot y su triaje. *Bloqueado por:* ninguna.
+   **Hecho.**
 5. **Comprobación de la propuesta** — título y etiquetas según el vocabulario del repositorio.
-   *Bloqueado por:* ninguna.
+   *Bloqueado por:* ninguna. **Hecho, en modo aviso.**
 6. **Análisis estático** — CodeQL sobre JavaScript/TypeScript y Kotlin. *Bloqueado por:* `specs/001`
    ticket 1.
 7. ***Release* por etiqueta** — artefacto reproducible en cada etiqueta de versión. *Bloqueado por:*

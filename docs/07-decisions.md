@@ -354,3 +354,36 @@ Expo); release firmada desde el principio (un secreto más sin destinatario); al
 `android/` (ignorado por git).
 
 **Consecuencia**: los tickets 1-5 del `specs/001` arrancan sin decisiones de producto pendientes.
+
+---
+
+## D16 · Presupuesto de tamaño de bundle
+
+**Decisión**: la integración continua mide los dos artefactos de `bun run build`
+(`dist/main.lynx.bundle` y `dist/main.web.bundle`) y **falla si alguno supera 650 kB** (1 kB = 1000
+bytes), tanto en cada propuesta de cambio como en cada envío a `main`. La cifra vive en
+`lynx/scripts/check-bundle-size.mjs` y en el comentario del trabajo, pero **no se cambia ahí**: subirla
+exige una decisión nueva en este documento (`specs/005`, ticket 2).
+
+**Por qué**:
+
+- El *bundle* creció de ~250 a ~550 kB por fases y ninguna lo vigilaba: sin umbral, engordar es un
+  accidente silencioso; con umbral, es una decisión que alguien firma.
+- Pablo fijó **650 kB** para los dos targets (19 sep 2026), con margen sobre lo medido ese día
+  (**549,9 kB** nativo y **542,7 kB** web): holgado al principio para no convertirse en ruido, como
+  pide la sección de riesgos del `specs/005`.
+- El mismo número vale para nativo y web porque hasta hoy van casi a la par (~7 kB de diferencia) y
+  dos cifras distintas solo añaden mantenimiento.
+
+**Descartado**:
+
+- **Umbral relativo** (porcentaje de crecimiento desde una base): frágil, la base habría que
+  rehacerla y el crecimiento legítimo quedaría penalizado igual.
+- **Comprobarlo solo en la rama principal**: llegaría tarde; el cambio que engorda ya estaría
+  fusionado.
+- **Dejarlo como aviso**: nadie mira un aviso que no rompe.
+
+**Consecuencia**: quien tenga un crecimiento legítimo (una librería de UI, un gráfico, un polyfill de
+`Intl`) abre una decisión `Dn` que sustituya a la de 650 kB, y actualiza el umbral en el script y en
+el comentario del workflow. Verificación de este run (`specs/005`): con el umbral bajado a 500 kB el
+trabajo falla con `exit 1`; con 650 kB, pasa.

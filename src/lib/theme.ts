@@ -16,9 +16,11 @@
  * - **Neutros tintados, no gris puro.** Los oscuros llevan un croma mínimo hacia
  *   el azul de marca; el `#0a0a0a`/`#171717` plano es el look genérico que este
  *   sistema abandona.
- * - **Un solo tipo de borde, y es sutil.** Todos los bordes del sistema son 1px
- *   del mismo color (`border`), una línea de baja intensidad que agrupa sin
- *   encerrar. La jerarquía se resuelve con borde + elevación de superficie
+ * - **Un solo tipo de borde, y llega a 3:1.** Todos los bordes del sistema son
+ *   1px del mismo color (`border`) y cumplen el contraste de elementos de
+ *   interfaz (WCAG 1.4.11: ≥3:1 contra la superficie en la que se dibuja), así
+ *   el separador de listas se ve sin dejar de agrupar. La jerarquía se resuelve
+ *   con borde + elevación de superficie
  *   (`bg` < `surface` < `surfaceRaised`), sin sombras decorativas.
  * - **Espaciado y radios cerrados.** Sólo 4/8/16/24/36 y tres radios (control,
  *   contenedor, píldora). No hay valores sueltos tipo 10 o 14.
@@ -51,7 +53,7 @@ export interface ThemeColors {
   surface: string;
   /** Un nivel por encima de `surface` (hojas, controles, elementos activos). */
   surfaceRaised: string;
-  /** Separadores y bordes: una línea sutil, nunca un borde duro. */
+  /** Separadores y bordes: 1px y ≥3:1 contra cada superficie (WCAG 1.4.11). */
   border: string;
   /** Texto principal: títulos, valores, lo que se lee primero. */
   textPrimary: string;
@@ -88,7 +90,7 @@ export const darkTheme: ThemeColors = {
   bg: '#0B0E13',
   surface: '#141922',
   surfaceRaised: '#1C2230',
-  border: '#262E3B',
+  border: '#61708D',
   textPrimary: '#EAF0F8',
   textSecondary: '#A9B6C9',
   accent: '#3B82F6',
@@ -98,7 +100,7 @@ export const darkTheme: ThemeColors = {
   danger: '#F87171',
   textInverse: '#0B0E13',
   accentSoft: '#1D3357',
-  line: '#262E3B',
+  line: '#61708D',
   warning: '#F59E0B',
 };
 
@@ -114,7 +116,7 @@ export const lightTheme: ThemeColors = {
   bg: '#F6F8FB',
   surface: '#FFFFFF',
   surfaceRaised: '#EDF2F9',
-  border: '#D8DFEA',
+  border: '#76869F',
   textPrimary: '#0F1723',
   textSecondary: '#4A5768',
   accent: '#1D4ED8',
@@ -124,7 +126,7 @@ export const lightTheme: ThemeColors = {
   danger: '#C62B2B',
   textInverse: '#FFFFFF',
   accentSoft: '#DBEAFE',
-  line: '#D8DFEA',
+  line: '#76869F',
   warning: '#9A6100',
 };
 

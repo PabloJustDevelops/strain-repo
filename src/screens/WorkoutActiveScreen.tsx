@@ -92,7 +92,7 @@ export function WorkoutActiveScreen() {
     return (
       <view className="Screen" style={{ backgroundColor: colors.bg }}>
         <EmptyState
-          title="No hay workout activo"
+          title="No hay entrenamiento activo"
           body="Empezá uno desde la pestaña Hoy o desde una rutina."
           action={<Button title="Volver" variant="secondary" onPress={router.back} />}
         />
@@ -196,7 +196,7 @@ export function WorkoutActiveScreen() {
         <view className="ScreenContent">
           {session.exercises.length === 0 ? (
             <EmptyState
-              title="Este workout no tiene ejercicios"
+              title="Este entrenamiento no tiene ejercicios"
               body="Añade el primero con el botón + para empezar a registrar series."
             />
           ) : null}
@@ -305,7 +305,7 @@ export function WorkoutActiveScreen() {
           })}
 
           <Button
-            title="Descartar workout"
+            title="Descartar entrenamiento"
             variant="danger"
             onPress={() => {
               discardWorkout();

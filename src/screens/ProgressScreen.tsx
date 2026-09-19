@@ -118,7 +118,7 @@ export function ProgressScreen() {
 
         {!records.loading && top.length === 0 ? (
           <Text role="support" tone="textSecondary">
-            Completa tu primer workout para empezar a registrar PRs.
+            Completa tu primer entrenamiento para empezar a registrar PRs.
           </Text>
         ) : null}
 

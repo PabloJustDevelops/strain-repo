@@ -3,8 +3,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
 }
 
-// El bundle que produce `bun run build` en `lynx/`. Desde el módulo `app` son
-// tres niveles hacia arriba: app -> android -> host -> lynx.
+// El bundle que produce `bun run build` en la raíz del repo. Desde el módulo
+// `app` son tres niveles hacia arriba: app -> android -> host -> raíz.
 val lynxBundle = layout.projectDirectory.file("../../../dist/main.lynx.bundle")
 
 // Destino: los assets del APK. El bundle copiado no se versiona (ver .gitignore);
@@ -12,14 +12,14 @@ val lynxBundle = layout.projectDirectory.file("../../../dist/main.lynx.bundle")
 val assetsDir = layout.projectDirectory.dir("src/main/assets")
 
 val copyLynxBundle by tasks.registering(Copy::class) {
-    description = "Copia lynx/dist/main.lynx.bundle a los assets del APK."
+    description = "Copia dist/main.lynx.bundle a los assets del APK."
     group = "build"
 
     doFirst {
         val file = lynxBundle.asFile
         if (!file.isFile) {
             throw GradleException(
-                "No existe ${file.absolutePath}. Ejecuta `bun run build` en lynx/ antes de compilar el host.",
+                "No existe ${file.absolutePath}. Ejecuta `bun run build` en la raíz antes de compilar el host.",
             )
         }
         logger.lifecycle("Empaquetando bundle Lynx: ${file.absolutePath} (${file.length()} bytes)")

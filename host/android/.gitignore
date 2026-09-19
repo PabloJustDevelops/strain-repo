@@ -8,5 +8,5 @@ captures/
 .cxx/
 
 # El bundle de Lynx es un artefacto de build: `copyLynxBundle` lo deja aqui
-# desde lynx/dist y no se versiona.
+# desde dist/ (la raiz del repo) y no se versiona.
 app/src/main/assets/*.bundle

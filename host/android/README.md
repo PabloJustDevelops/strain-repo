@@ -5,8 +5,8 @@ de desarrollo**: el bundle viaja embebido en los assets del APK.
 
 Lo que hay hecho aquí son los tickets 1 y 2 de `specs/001`: el host y el módulo
 nativo de almacenamiento. El adaptador durable que lo consume (ticket 3), las
-notificaciones y Health Connect (`specs/002`), la cuenta (`specs/003`) y la
-retirada de Expo (`specs/004`) **no** están aquí.
+notificaciones y Health Connect (`specs/002`) y la cuenta (`specs/003`) **no**
+están aquí.
 
 ## Requisitos
 
@@ -19,13 +19,13 @@ retirada de Expo (`specs/004`) **no** están aquí.
 El bundle es un **artefacto de build**, no se versiona:
 
 ```bash
-cd ../../          # lynx/
+cd ../../          # raíz del repo
 bun install
-bun run build      # -> lynx/dist/main.lynx.bundle
+bun run build      # -> dist/main.lynx.bundle
 ```
 
 La tarea Gradle `copyLynxBundle` (enganchada a `preBuild`) lo copia desde
-`lynx/dist/main.lynx.bundle` a `app/src/main/assets/` antes de empaquetar. Si el
+`dist/main.lynx.bundle` a `app/src/main/assets/` antes de empaquetar. Si el
 bundle no existe, la build **falla con un mensaje explicando que hay que correr
 `bun run build`**. El archivo copiado está en `.gitignore`.
 
@@ -38,8 +38,9 @@ adb shell am start -n com.strain.app/.MainActivity
 ```
 
 Identidad (D15): `applicationId` `com.strain.app`, `minSdk` 26,
-`compileSdk`/`targetSdk` 36. En un dispositivo donde ya esté la app Expo, esta
-instalación la sustituye (firma distinta): hay que desinstalar antes.
+`compileSdk`/`targetSdk` 36. En un dispositivo donde ya esté instalada la app
+anterior, esta instalación la sustituye (firma distinta): hay que desinstalar
+antes.
 
 ## Estructura
 

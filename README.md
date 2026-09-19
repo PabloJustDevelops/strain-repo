@@ -69,23 +69,26 @@ git clone https://github.com/PabloJustDevelops/strain-repo.git
 cd strain-repo
 bun install
 
-bun run dev         # dev server (puerto 3000): target web + QR para Lynx Explorer
+bun run dev         # dev server (puerto 3000): preview web + QR para Lynx Explorer
+bun run preview:web # abre la preview en el navegador (con `bun run dev` en marcha)
 bun run typecheck   # tsc --noEmit
 bun run test        # vitest run
 bun run build       # dist/main.lynx.bundle + dist/main.web.bundle
 ```
 
-El bucle de trabajo tiene tres niveles —navegador para iterar, móvil real para validar, emulador para
-automatizar— y está explicado en
+El bucle de trabajo es **navegador → DevTool → móvil real**: iterar con la preview del dev server
+(`bun run dev` + `bun run preview:web`), inspeccionar con las DevTools del navegador o con **Lynx
+DevTool**, y validar con el **QR** y Lynx Explorer. `adb` y el emulador quedan fuera; la única prueba
+con dispositivo (durabilidad entre procesos) va a demanda. Está explicado en
 [`docs/12-entorno-desarrollo-lynx.md`](./docs/12-entorno-desarrollo-lynx.md). El setup completo, en
 [`docs/08-setup.md`](./docs/08-setup.md).
 
 ## Host nativo Android
 
 El host vive en [`host/android`](./host/android) y monta el bundle **sin Lynx Explorer ni servidor de
-desarrollo**: una tarea de Gradle lo copia desde `dist/` a los assets del APK. Se construye con
-`./gradlew assembleDebug` (JDK 17+, Android SDK 36). Detalles en
-[`host/android/README.md`](./host/android/README.md).
+desarrollo**: una tarea de Gradle lo copia desde `dist/` a los assets del APK. Es el **artefacto de
+distribución**, no el bucle de trabajo. Se construye con `./gradlew assembleDebug` (JDK 17+, Android
+SDK 36). Detalles en [`host/android/README.md`](./host/android/README.md).
 
 ## Integración continua
 

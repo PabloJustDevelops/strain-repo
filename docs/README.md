@@ -20,7 +20,7 @@ la arquitectura, las decisiones técnicas y el estado actual del desarrollo.
 | 09 | [Web de escritorio](./09-remodelacion-web-dashboard.md) | Dirección de producto del target `web` de Lynx |
 | 10 | [C6: targets de rutina](./10-c6-targets-de-rutina.md) | **Histórico**: cierre de C6 |
 | 11 | [Plan para una app tipo Hevy](./11-plan-app-tipo-hevy.md) | Cómo está montada Hevy, los tres pilares, arquitectura objetivo y fases F0–F7 |
-| 12 | [Entornos de desarrollo y preview de Lynx](./12-entorno-desarrollo-lynx.md) | Navegador (Lynx for Web), móvil por QR, escritorio, emulador y DevTool |
+| 12 | [Entornos de desarrollo y preview de Lynx](./12-entorno-desarrollo-lynx.md) | El bucle: preview en el navegador, DevTool, QR con Lynx Explorer; el host como artefacto |
 | 13 | [Pendiente de migrar](./13-pendiente-de-migrar-desde-expo.md) | Lo que aún no está migrado, con su ruta en la etiqueta de respaldo y su spec |
 
 ### Specs (SDD)

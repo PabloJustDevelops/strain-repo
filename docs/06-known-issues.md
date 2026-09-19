@@ -82,5 +82,5 @@ están como **puentes**; su implementación son los specs
 **Causa**: los elementos de Lynx se mapean a elementos web.
 
 **Regla**: el navegador sirve para composición, tipografía, color y navegación; **no** para dar por
-bueno el táctil ni el rendimiento. Eso se valida en móvil real o emulador
+bueno el táctil ni el rendimiento. Eso se valida en móvil real
 ([12](./12-entorno-desarrollo-lynx.md)).

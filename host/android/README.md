@@ -3,6 +3,11 @@
 App Android propia que monta el bundle Lynx **sin Lynx Explorer y sin servidor
 de desarrollo**: el bundle viaja embebido en los assets del APK.
 
+> **Esto es el artefacto de distribución, no el bucle de trabajo.** El día a día es la preview en el
+> navegador, el DevTool y el QR con Lynx Explorer; ver
+> [`docs/12-entorno-desarrollo-lynx.md`](../../docs/12-entorno-desarrollo-lynx.md). Este host se
+> construye sólo para distribuir, y ninguna de sus pruebas forma parte del bucle diario.
+
 Lo que hay hecho aquí son los tickets 1 y 2 de `specs/001`: el host y el módulo
 nativo de almacenamiento. El adaptador durable que lo consume (ticket 3) vive en
 el bundle (`src/db/nativeStorage.ts`), no en el host. Las pruebas de durabilidad
@@ -31,10 +36,17 @@ La tarea Gradle `copyLynxBundle` (enganchada a `preBuild`) lo copia desde
 bundle no existe, la build **falla con un mensaje explicando que hay que correr
 `bun run build`**. El archivo copiado está en `.gitignore`.
 
-## Construir, instalar, arrancar
+## Construir e instalar el APK (artefacto)
 
 ```bash
 ./gradlew assembleDebug            # Windows: .\gradlew.bat assembleDebug
+```
+
+El APK queda en `app/build/outputs/apk/debug/app-debug.apk`. Para llevarlo a un
+dispositivo con `adb` (esto es distribución del artefacto, no el bucle de
+desarrollo):
+
+```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n com.strain.app/.MainActivity
 ```
@@ -107,7 +119,10 @@ vuelve a sembrar. No se fabrican datos de continuidad.
 
 El requisito duro del spec es que lo registrado sobreviva a la **muerte del
 proceso**. Se demuestra en tres capas, de menos a más real; cada prueba lleva el
-nombre de lo que demuestra.
+nombre de lo que demuestra. La capa 1 (lógica) va al CI; las capas 2 y 3 son
+instrumentadas, se corren **a demanda** cuando se toca el almacén y son lo único
+del proyecto que necesita un dispositivo, así que quedan fuera del bucle diario
+([`docs/12`](../../docs/12-entorno-desarrollo-lynx.md), §6).
 
 ### 1 · Lógica (vitest, va al CI)
 
@@ -139,7 +154,7 @@ nueva** del módulo. Cubre además que la transacción revertida no deja rastro,
 los errores llegan con código y mensaje, que la conexión está en WAL y que el
 trabajo corre en el hilo del módulo.
 
-### 3 · Entre procesos (instrumentado, dos invocaciones)
+### 3 · Entre procesos (instrumentado, a demanda, dos invocaciones)
 
 Una prueba que escribe y lee en el **mismo** proceso no demuestra que el dato
 sobreviva a la muerte del proceso. Para eso hay **dos clases** que se ejecutan en

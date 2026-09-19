@@ -15,6 +15,13 @@ lynx = { group = "org.lynxsdk.lynx", name = "lynx", version.ref = "lynx" }
 lynx-jssdk = { group = "org.lynxsdk.lynx", name = "lynx-jssdk", version.ref = "lynx" }
 lynx-trace = { group = "org.lynxsdk.lynx", name = "lynx-trace", version.ref = "lynx" }
 primjs = { group = "org.lynxsdk.lynx", name = "primjs", version.ref = "primjs" }
+# Solo el XElement de `<svg>` (los iconos del bundle), no el paquete `xelement`
+# completo, que arrastra webview/video/animax. El behavior se registra a mano.
+xelement-svg = { group = "org.lynxsdk.lynx", name = "xelement-svg", version.ref = "lynx" }
+# `xelement-svg` 4.1.0 depende de servalsvg 0.0.2, que no publica el .so para
+# x86_64 (solo arm64/armv7/x86). Se sube a 0.2.4, que si lo trae, para poder
+# correr en el emulador x86_64.
+servalsvg = { group = "org.lynxsdk.lynx", name = "servalsvg", version = "0.2.4" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -74,4 +74,10 @@ dependencies {
     implementation(libs.lynx.jssdk)
     implementation(libs.lynx.trace)
     implementation(libs.primjs)
+
+    // El bundle pinta sus iconos con `<svg>`, que en Lynx es un XElement. Sin
+    // este behavior el motor avisa "No BehaviorController defined for class svg"
+    // y los iconos no aparecen.
+    implementation(libs.xelement.svg)
+    implementation(libs.servalsvg)
 }

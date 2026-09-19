@@ -5,6 +5,7 @@ import android.os.Bundle
 import com.lynx.tasm.LynxView
 import com.lynx.tasm.LynxViewBuilder
 import com.lynx.tasm.TemplateData
+import com.lynx.xelement.svg.BehaviorGenerator
 
 /**
  * Única pantalla del host: monta un `LynxView` a pantalla completa y le pide el
@@ -17,6 +18,9 @@ class MainActivity : Activity() {
 
         val lynxView: LynxView = LynxViewBuilder()
             .setTemplateProvider(AssetsTemplateProvider(this))
+            // Los iconos del bundle son `<svg>`, un XElement: hay que registrar
+            // su behavior o el motor los descarta.
+            .addBehaviors(BehaviorGenerator.getBehaviors())
             .build(this)
 
         setContentView(lynxView)

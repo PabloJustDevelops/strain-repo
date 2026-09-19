@@ -49,8 +49,7 @@ Estos términos describen *dónde* vive la app, no el entrenamiento. Existen por
 de un cliente genérico a una app propia, y sin ellos las conversaciones se confunden.
 
 **Host** — la **app Android propia** que embebe el motor Lynx y el bundle. Es lo que convierte la app
-en instalable y lo que da acceso a las API nativas. Hoy **no existe**: la app se ejecuta dentro de
-Lynx Explorer.
+en instalable y lo que da acceso a las API nativas. Vive en `host/android/` (`specs/001`).
 
 **Almacenamiento durable** — persistencia que sobrevive al cierre de la app, a la muerte del proceso y
 al reinicio del dispositivo. Hoy **no es durable**: se pierde lo registrado al cerrar.
@@ -81,9 +80,8 @@ Cada una tiene su criterio, y cada una está definida **una sola vez** en el mó
 Las tres son **estables**: en empate gana el primero. Ninguna es «bestSet» a secas — si aparece ese
 nombre en el código, es un error.
 
-`metrics` expone además cada fórmula **dos veces**: como función pura. En la app Expo eso
-convivía con fragmentos SQL equivalentes; en el port Lynx la equivalencia se mantiene sobre la
-definición pura, y los fragmentos SQL son legado que cae con la app Expo (`specs/004`).
+`metrics` expone además cada fórmula **dos veces**: como función pura. Los fragmentos SQL equivalentes
+de la app anterior ya no existen; la equivalencia se mantiene sobre la definición pura.
 
 ## Shapes: fila ≠ DTO
 
@@ -121,5 +119,6 @@ Las etiquetas en español para mostrar al usuario viven en `MUSCLE_GROUP_LABELS`
 
 Las decisiones de arquitectura están en `docs/07-decisions.md` (formato ADR-light, `D1`…`Dn`).
 Leé las que toquen el área antes de proponer un cambio; si tu propuesta las contradice, decilo
-explícitamente en vez de pisarlas. Para el estado de la transición, las que mandan hoy son **D13**
-(retirada de Expo) y **D14** (host nativo y almacenamiento durable).
+explícitamente en vez de pisarlas. Las que más tocan hoy son **D13** (retirada de la app anterior),
+**D14** (host nativo y almacenamiento durable) y **D17** (promoción a la raíz con la etiqueta como
+red).

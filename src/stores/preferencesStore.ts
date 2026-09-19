@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+
 import type { ThemeMode, Units } from '@/types/domain';
 import type { ReminderConfig } from '@/lib/notifications';
-import { createSafeAsyncStorage } from '@/lib/storage';
+import { DEFAULT_REMINDER_CONFIG } from '@/lib/notifications';
+import { createStateStorage } from '@/lib/storage';
 
 /**
- * Preferencias persistentes del usuario.
- * Vive en AsyncStorage para no mezclarse con la BD de entrenamiento.
+ * Preferencias persistentes del usuario. Vive en la seam `Storage` (Lynx) para
+ * no mezclarse con la BD de entrenamiento. Idéntico contrato al de la app anterior.
  */
-
 interface PreferencesState {
   themeMode: ThemeMode;
   units: Units;
@@ -26,14 +27,6 @@ interface PreferencesState {
   setReminder: (reminder: ReminderConfig) => void;
 }
 
-const DEFAULT_REMINDER: ReminderConfig = {
-  enabled: false,
-  hour: 18,
-  minute: 30,
-  daysOfWeek: [1, 3, 5],
-  message: 'Hora de entrenar. ¡A por ello!',
-};
-
 export const usePreferences = create<PreferencesState>()(
   persist(
     (set) => ({
@@ -43,7 +36,7 @@ export const usePreferences = create<PreferencesState>()(
       defaultRestSeconds: 90,
       keepScreenAwake: true,
       notificationsEnabled: false,
-      reminder: DEFAULT_REMINDER,
+      reminder: DEFAULT_REMINDER_CONFIG,
       setThemeMode: (themeMode) => set({ themeMode }),
       setUnits: (units) => set({ units }),
       setHapticsEnabled: (hapticsEnabled) => set({ hapticsEnabled }),
@@ -54,7 +47,7 @@ export const usePreferences = create<PreferencesState>()(
     }),
     {
       name: 'strain-preferences',
-      storage: createJSONStorage(() => createSafeAsyncStorage()),
-    }
-  )
+      storage: createJSONStorage(() => createStateStorage()),
+    },
+  ),
 );

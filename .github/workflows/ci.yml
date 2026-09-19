@@ -14,40 +14,11 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Raíz: app Expo (legado). Mientras exista es la app que se usa, así que su
-  # red de seguridad no se toca. Se retira con el specs/004.
+  # Proyecto: tipos, pruebas y build de los dos targets.
   # ---------------------------------------------------------------------------
-  root:
-    name: Raíz (Expo) · lint, tipos y pruebas
+  project:
+    name: Tipos, pruebas y build
     runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.4.2
-
-      - name: Install
-        run: bun install --frozen-lockfile
-
-      - name: Lint (eslint + anti-slop)
-        run: bun run lint
-
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Test
-        run: bun run test
-
-  # ---------------------------------------------------------------------------
-  # Lynx: el producto. Tipos, pruebas y build de los dos targets.
-  # ---------------------------------------------------------------------------
-  lynx:
-    name: Lynx · tipos, pruebas y build
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: lynx
     steps:
       - uses: actions/checkout@v7
 
@@ -61,7 +32,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('lynx/bun.lock') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: ${{ runner.os }}-bun-
 
       - name: Install
@@ -81,10 +52,10 @@ jobs:
       - name: Subir bundles
         uses: actions/upload-artifact@v7
         with:
-          name: lynx-bundles
+          name: bundles
           path: |
-            lynx/dist/main.lynx.bundle
-            lynx/dist/main.web.bundle
+            dist/main.lynx.bundle
+            dist/main.web.bundle
           if-no-files-found: error
 
   # ---------------------------------------------------------------------------
@@ -95,8 +66,8 @@ jobs:
   # la ligera: el presupuesto solo sirve si crecer cuesta una decisión.
   # ---------------------------------------------------------------------------
   bundle-budget:
-    name: Lynx · presupuesto de bundle
-    needs: lynx
+    name: Presupuesto de bundle
+    needs: project
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -104,11 +75,11 @@ jobs:
       - name: Descargar bundles
         uses: actions/download-artifact@v8
         with:
-          name: lynx-bundles
-          path: lynx/dist
+          name: bundles
+          path: dist
 
       - name: Comprobar tamaño
-        run: node lynx/scripts/check-bundle-size.mjs
+        run: node scripts/check-bundle-size.mjs
 
   # ---------------------------------------------------------------------------
   # Seguridad: escaneo de secretos. El fallo más caro y más fácil de cometer.

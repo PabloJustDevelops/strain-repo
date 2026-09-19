@@ -1,7 +1,9 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { getRepos } from '@db';
 import { toActiveSessionView, type ActiveSessionView, type SetView } from '@db/shapes';
 import { sessionTotals } from '@lib/metrics';
+import { restEndsAt, restRemainingSeconds } from '@lib/rest';
+import { buildWorkoutSummary, type WorkoutSummary } from '@lib/sessionSummary';
 import { supersetRestOwner } from '@lib/supersets';
 import { usePreferences } from '@stores/preferencesStore';
 
@@ -10,8 +12,8 @@ import { usePreferences } from '@stores/preferencesStore';
  *
  * - Se hidrata desde SQLite al abrir /workout/active.
  * - Optimistic updates: marca sets como completados localmente y sincroniza
- *   con la BD en background para que la UI sea instantánea.
- * - Mantiene también el timer global y el de descanso entre sets.
+ *   con la BD en background para que la UI sea instantÃ¡nea.
+ * - Mantiene tambiÃ©n el timer global y el de descanso entre sets.
  */
 
 interface ActiveWorkoutState {
@@ -19,7 +21,10 @@ interface ActiveWorkoutState {
   isLoading: boolean;
   restRemaining: number;          // segundos restantes del descanso actual
   isResting: boolean;
-  restStartedAt: number | null;   // timestamp del último descanso iniciado
+  restEndsAt: number | null;      // instante (ms) en que termina el descanso
+  /** Resumen de la última sesión cerrada. La pantalla de cierre no puede leer
+   * `session` porque al finalizar se limpia, así que el store lo conserva acá. */
+  lastFinished: WorkoutSummary | null;
 
   // Acciones
   loadActive: () => Promise<void>;
@@ -44,7 +49,8 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   isLoading: false,
   restRemaining: 0,
   isResting: false,
-  restStartedAt: null,
+  restEndsAt: null,
+  lastFinished: null,
 
   async loadActive() {
     set({ isLoading: true });
@@ -91,8 +97,8 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     const { session } = get();
 
     if (!session) return;
-    // Un ejercicio recién agregado arranca con una serie para poder registrar
-    // enseguida; si no, quedaría visible pero sin forma de anotar nada.
+    // Un ejercicio reciÃ©n agregado arranca con una serie para poder registrar
+    // enseguida; si no, quedarÃ­a visible pero sin forma de anotar nada.
     const row = await getRepos().sessions.addSessionExercise(session.id, exerciseId);
     await getRepos().sessions.addSet(row.id);
     const full = await getRepos().sessions.getFullSession(session.id);
@@ -120,11 +126,11 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
 
     await getRepos().sessions.completeSet(setId, weight, reps);
 
-    // El descanso arranca acá y no en la pantalla: este es el único punto que
-    // sabe a qué ejercicio pertenece el set, así que cualquier caller de
+    // El descanso arranca acÃ¡ y no en la pantalla: este es el Ãºnico punto que
+    // sabe a quÃ© ejercicio pertenece el set, asÃ­ que cualquier caller de
     // `completeSet` obtiene el descanso correcto sin tener que acordarse.
     //
-    // En un superset se descansa al cerrar la ronda, no en cada set: el dueño lo
+    // En un superset se descansa al cerrar la ronda, no en cada set: el dueÃ±o lo
     // decide la regla, y su `restSeconds` es el que arranca.
     const restOwner = supersetRestOwner(updated.exercises, setId);
 
@@ -164,7 +170,7 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
         })),
       },
     });
-    // `SetView` es un subconjunto de la fila con los mismos nombres, así que el
+    // `SetView` es un subconjunto de la fila con los mismos nombres, asÃ­ que el
     // patch cruza la seam tal cual: no hay mapeo inverso que mantener.
     await getRepos().sessions.updateSet(setId, patch);
   },
@@ -210,23 +216,24 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
   },
 
   startRest(seconds) {
+    const safe = Math.max(0, seconds);
+
     set({
-      isResting: true,
-      restRemaining: seconds,
-      restStartedAt: Date.now(),
+      isResting: safe > 0,
+      restRemaining: safe,
+      restEndsAt: restEndsAt(safe, Date.now()),
     });
   },
 
   skipRest() {
-    set({ isResting: false, restRemaining: 0, restStartedAt: null });
+    set({ isResting: false, restRemaining: 0, restEndsAt: null });
   },
 
   tickRest() {
-    const { restStartedAt, restRemaining } = get();
+    const { restEndsAt: endsAt } = get();
 
-    if (!restStartedAt) return;
-    const elapsed = Math.floor((Date.now() - restStartedAt) / 1000);
-    const remaining = Math.max(0, restRemaining - elapsed);
+    if (endsAt === null) return;
+    const remaining = restRemainingSeconds(endsAt, Date.now());
     set({
       restRemaining: remaining,
       isResting: remaining > 0,
@@ -237,7 +244,14 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     const { session } = get();
 
     if (!session) return;
-    await getRepos().sessions.finish(session.id);
+    const endedAt = new Date();
+    await getRepos().sessions.finish(session.id, { endedAt });
+
+    // Los PRs los escribe `finish()`, así que recién ahora reflejan esta sesión.
+    // El resumen se arma antes de limpiar `session`: la pantalla de cierre lee
+    // `lastFinished`, no la sesión activa.
+    const records = await getRepos().analytics.personalRecords();
+    const summary = buildWorkoutSummary(session, endedAt, records);
 
     // Sincronizar con Health Connect (best effort, no bloquea la UX).
     try {
@@ -263,10 +277,11 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
     }
 
     set({
+      lastFinished: summary,
       session: null,
       isResting: false,
       restRemaining: 0,
-      restStartedAt: null,
+      restEndsAt: null,
     });
   },
 
@@ -279,7 +294,8 @@ export const useActiveWorkout = create<ActiveWorkoutState>((set, get) => ({
       session: null,
       isResting: false,
       restRemaining: 0,
-      restStartedAt: null,
+      restEndsAt: null,
     });
   },
 }));
+

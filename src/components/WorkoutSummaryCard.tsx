@@ -1,48 +1,32 @@
-import { forwardRef, useEffect } from 'react';
-import { View, Text , useColorScheme } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
-import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, fontSize } from '@lib/theme';
+import { formatDateShort, formatNumber } from '@lib/format';
 import { topByVolume } from '@lib/metrics';
+import { px } from '@lib/theme';
+import { useTheme } from '@lib/useTheme';
 import type { SessionExerciseSummary } from '@db/shapes';
 import type { WorkoutSession } from '@/types/domain';
+import { Text } from '@components/Text';
 
 /**
- * Card resumen de un workout ya finalizado, pensada para capturar y compartir.
- * Se renderiza off-screen con ViewShot al compartir, pero también puede ir
- * embebida en pantallas de detalle.
+ * Tarjeta resumen de un workout finalizado, pensada para verse y compartirse.
  *
- * Contenido:
- * - Nombre del workout + fecha
- * - Duración, series totales, volumen total
- * - Top 3 ejercicios por volumen
- * - Mensaje motivador final
+ * En la app anterior esta tarjeta se capturaba con ViewShot para compartirla como
+ * imagen. En Lynx la captura de vistas sería un native module (fuera de alcance
+ * de esta fase), así que acá queda como tarjeta presentacional: la usa la
+ * pantalla de detalle de sesión y el día que exista el módulo de captura se le
+ * pasa una `ref` sin cambiar sus props.
+ *
+ * Sin `Intl`: la fecha y las cifras se formatean a mano (`@lib/format`).
  */
 interface WorkoutSummaryCardProps {
   session: WorkoutSession & {
     exercises?: SessionExerciseSummary[];
   };
-  onReady?: () => void;
   width?: number;
   height?: number;
 }
 
-export const WorkoutSummaryCard = forwardRef<View, WorkoutSummaryCardProps>(function WorkoutSummaryCard(
-  { session, onReady, width = 360, height = 540 },
-  ref
-) {
-  const colorScheme = useColorScheme();
-  const themeMode = usePreferences((s) => s.themeMode);
-  const isDark = themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
-  const colors = isDark ? darkTheme : lightTheme;
-
-  useEffect(() => {
-    // Le da un microtask al layout para que la captura no salga vacía.
-    const t = setTimeout(() => onReady?.(), 80);
-
-    return () => clearTimeout(t);
-  }, [onReady]);
+export function WorkoutSummaryCard({ session, width = 360, height = 540 }: WorkoutSummaryCardProps) {
+  const { colors } = useTheme();
 
   const start = session.startedAt ?? new Date();
   const end = session.endedAt ?? new Date();
@@ -53,76 +37,77 @@ export const WorkoutSummaryCard = forwardRef<View, WorkoutSummaryCardProps>(func
     volume,
   }));
 
-  const totalSets = session.totalSets;
-  const totalVol = session.totalVolume;
-
   return (
-    <View
-      ref={ref}
-      collapsable={false}
-      style={{
-        width,
-        height,
-        backgroundColor: colors.background,
-        padding: spacing.lg,
-        justifyContent: 'space-between',
-      }}
+    <view
+      className="SummaryCard"
+      style={{ width: px(width), height: px(height), backgroundColor: colors.bg, borderColor: colors.line }}
     >
-      <View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
-          <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name="barbell" size={20} color="#fff" />
-          </View>
-          <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: '800' }}>STRAIN</Text>
-        </View>
-        <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textTransform: 'uppercase', letterSpacing: 1 }}>
-          {start.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
+      <view>
+        <view className="SummaryBrand">
+          <view className="SummaryBrandBadge" style={{ backgroundColor: colors.accent }}>
+            <Text role="title" tone="onAccent">S</Text>
+          </view>
+          <Text role="title" tone="textPrimary">
+            STRAIN
+          </Text>
+        </view>
+
+        <Text role="detail" tone="textSecondary">
+          {formatDateShort(start)}
         </Text>
-        <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: '800', marginTop: spacing.xs }}>
+        <Text role="heading" tone="textPrimary">
           {session.name}
         </Text>
-      </View>
+      </view>
 
-      <View style={{ gap: spacing.md }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Stat label="Duración" value={`${durationMin} min`} colors={colors} />
-          <Stat label="Series" value={`${totalSets}`} colors={colors} />
-          <Stat label="Volumen" value={`${Math.round(totalVol).toLocaleString('es-ES')}`} colors={colors} unit="kg" />
-        </View>
+      <view>
+        <view className="StatRow">
+          <Stat label="Duración" value={`${durationMin} min`} />
+          <Stat label="Series" value={String(session.totalSets)} />
+          <Stat label="Volumen" value={formatNumber(session.totalVolume)} unit="kg" />
+        </view>
 
-        {top.length > 0 && (
-          <View>
-            <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textTransform: 'uppercase', marginBottom: spacing.xs }}>
+        {top.length > 0 ? (
+          <view className="SummaryTop">
+            <Text role="detail" tone="textSecondary">
               Top ejercicios
             </Text>
-            {top.map((t, i) => (
-              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 4 }}>
-                <Text style={{ color: colors.primary, fontWeight: '800', width: 18 }}>{i + 1}</Text>
-                <Text style={{ color: colors.text, flex: 1, fontWeight: '600' }}>{t.name}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
-                  {Math.round(t.volume).toLocaleString('es-ES')} kg
+            {top.map((entry, index) => (
+              <view className="RowBetween" key={`top-${index}-${entry.name}`}>
+                <Text role="support" tone="accent">
+                  {index + 1}
                 </Text>
-              </View>
+                <Text role="support" tone="textPrimary">
+                  {entry.name}
+                </Text>
+                <Text role="detail" tone="textSecondary">
+                  {formatNumber(entry.volume)} kg
+                </Text>
+              </view>
             ))}
-          </View>
-        )}
-      </View>
+          </view>
+        ) : null}
+      </view>
 
-      <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textAlign: 'center' }}>
+      <Text role="detail" tone="textSecondary">
         strain.app · workout #{session.id.slice(-4)}
       </Text>
-    </View>
+    </view>
   );
-});
+}
 
-function Stat({ label, value, unit, colors }: { label: string; value: string; unit?: string; colors: any }) {
+function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  const { colors } = useTheme();
+
   return (
-    <View style={{ alignItems: 'flex-start' }}>
-      <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textTransform: 'uppercase' }}>{label}</Text>
-      <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: '800' }}>
-        {value}
-        {unit ? <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, fontWeight: '500' }}> {unit}</Text> : null}
+    <view className="Stat">
+      <Text role="detail" tone="textSecondary">
+        {label}
       </Text>
-    </View>
+      <Text role="title" tone="textPrimary">
+        {value}
+        {unit ? ` ${unit}` : ''}
+      </Text>
+    </view>
   );
 }

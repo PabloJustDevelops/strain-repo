@@ -1,45 +1,39 @@
-import { Text, Pressable , useColorScheme } from 'react-native';
-import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { MUSCLE_GROUP_LABELS, type MuscleGroup } from '@/types/domain';
+import { useTheme } from '@lib/useTheme';
+import type { MuscleGroup } from '@/types/domain';
+import { Text } from '@components/Text';
 
+/**
+ * Pill seleccionable para filtrar por grupo muscular.
+ *
+ * `label` permite usarlo como chip "Todos" sin inventar un `MuscleGroup` que no
+ * existe (la app anterior resolvía el filtro "all" pasando un grupo cualquiera).
+ */
 interface MuscleChipProps {
   group: MuscleGroup;
   active?: boolean;
-  onPress?: () => void;
+  label?: string;
+  onPress: () => void;
 }
 
-/** Pill seleccionable para filtrar por grupo muscular. */
-export function MuscleChip({ group, active, onPress }: MuscleChipProps) {
-  const colorScheme = useColorScheme();
-  const themeMode = usePreferences((s) => s.themeMode);
-
-  const isDark =
-    themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
-
-  const colors = isDark ? darkTheme : lightTheme;
+export function MuscleChip({ group, active = false, label, onPress }: MuscleChipProps) {
+  const { colors } = useTheme();
 
   return (
-    <Pressable
-      onPress={onPress}
+    <view
+      className="Chip"
       style={{
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        borderRadius: radius.full,
-        backgroundColor: active ? colors.primary : colors.surfaceElevated,
-        borderWidth: 1,
-        borderColor: active ? colors.primary : colors.border,
+        backgroundColor: active ? colors.accent : colors.surfaceRaised,
+        borderColor: active ? colors.accent : colors.line,
       }}
+      bindtap={onPress}
     >
       <Text
-        style={{
-          color: active ? '#fff' : colors.text,
-          fontSize: fontSize.sm,
-          fontWeight: '600',
-        }}
+        role="support"
+        tone={active ? 'onAccent' : 'textPrimary'}
+
       >
-        {MUSCLE_GROUP_LABELS[group]}
+        {label ?? group}
       </Text>
-    </Pressable>
+    </view>
   );
 }

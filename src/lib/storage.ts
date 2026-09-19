@@ -1,73 +1,17 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { StateStorage } from 'zustand/middleware';
 
-/**
- * Acceso al almacenamiento persistente, seguro en render estático (SSR).
- *
- * El render estático de la web corre en node, donde no existe `window` ni
- * `localStorage`. Los stores de Zustand y el cliente de Supabase leían
- * `AsyncStorage`/`localStorage` directamente, así que `pnpm build:web` moría con
- * `ReferenceError: localStorage is not defined` al evaluar los módulos.
- *
- * Estos adaptadores detectan el entorno y caen a un almacén en memoria cuando no
- * hay persistencia disponible, sin lanzar. En nativo y en el navegador el
- * comportamiento no cambia.
- */
-
-/** Storage síncrono, compatible con `localStorage` y con Zustand. */
-export interface SimpleStorage {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-  removeItem(key: string): void;
-}
+import { getStorage } from '@db/storage';
 
 /**
- * Almacén en memoria. Es el fallback cuando no hay persistencia real: los datos
- * viven mientras dure el proceso y nunca lanzan.
+ * Adaptador de la seam `Storage` al `StateStorage` que espera el middleware
+ * `persist` de Zustand. En Lynx no hay AsyncStorage ni localStorage garantizado,
+ * así que las preferencias viven en la misma seam que el resto de la app.
  */
-export function createMemoryStorage(): SimpleStorage {
-  const data = new Map<string, string>();
-
+export function createStateStorage(): StateStorage {
+  const storage = getStorage();
   return {
-    getItem: (key) => data.get(key) ?? null,
-    setItem: (key, value) => {
-      data.set(key, value);
-    },
-    removeItem: (key) => {
-      data.delete(key);
-    },
-  };
-}
-
-/**
- * El `localStorage` del navegador, o `null` si no existe (SSR en node) o si
- * acceder a él lanza. Devuelve `null` en vez de lanzar: es la detección que
- * habilita el fallback.
- */
-export function getBrowserLocalStorage(): SimpleStorage | null {
-  try {
-    if (typeof window === 'undefined') return null;
-    const storage = window.localStorage;
-
-    return storage ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * El storage que consumen los stores de Zustand.
- *
- * - Sin `window` (render estático en node): memoria, para no romper el render.
- * - Con `window` (navegador y nativo, donde `AsyncStorage` es el backend real):
- *   `AsyncStorage`, que en web envuelve `localStorage`.
- */
-export function createSafeAsyncStorage(): StateStorage {
-  if (typeof window === 'undefined') return createMemoryStorage();
-
-  return {
-    getItem: (name) => AsyncStorage.getItem(name),
-    setItem: (name, value) => AsyncStorage.setItem(name, value),
-    removeItem: (name) => AsyncStorage.removeItem(name),
+    getItem: (name) => storage.getItem(name),
+    setItem: (name, value) => storage.setItem(name, value),
+    removeItem: (name) => storage.removeItem(name),
   };
 }

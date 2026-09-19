@@ -1,18 +1,19 @@
 # 06 · Problemas conocidos y workarounds
 
-Problemas **reales y abiertos** del port a Lynx. Los históricos de la era Expo están en
-[05-changelog](./05-changelog.md) y en la etiqueta `expo-final`; no se reproducen aquí.
+Problemas **reales y abiertos** del proyecto. Los históricos están en
+[05-changelog](./05-changelog.md); no se reproducen aquí.
 
 ## 1. La persistencia no es durable (el problema número uno)
 
 **Síntoma**: cerrar la app borra lo registrado.
 
-**Causa**: la implementación de la *seam* de almacenamiento es memoria + el *session storage* de
-Lynx, pensado para compartir datos entre *cards*, no como base de datos. Lo declara el propio fichero.
+**Causa**: la app escribe sobre la *seam* de almacenamiento, cuya implementación actual es memoria +
+el *session storage* de Lynx, pensado para compartir datos entre *cards*, no como base de datos. Lo
+declara el propio fichero.
 
-**Fix**: módulo nativo con SQLite en el host propio —
-[`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md). Hasta entonces, **no meter
-features nuevas sobre el almacén actual**: se perderían.
+**Fix**: conectar la seam al **módulo nativo SQLite** que ya vive en el host
+([`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md), ticket 3). Hasta entonces, **no
+meter features nuevas sobre el almacén actual**: se perderían.
 
 ---
 
@@ -27,15 +28,12 @@ completo a memoria.
 
 ---
 
-## 3. No hay app propia: se ejecuta dentro de Lynx Explorer
+## 3. Las piezas nativas aún no están
 
-**Síntoma**: sin app instalada no hay notificaciones, Health Connect, widgets ni firma.
+**Síntoma**: el host propio ya existe (`host/android/`), pero las notificaciones del descanso y Health
+Connect no: el port las tiene como **puentes**.
 
-**Fix**: el host del [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md).
-
-> **Trampa de ubicación al crear el host**: la carpeta `android/` de la raíz está en `.gitignore` (es
-> el *prebuild* de la app Expo). Un host creado ahí **no se versionaría**. El host nace en el árbol
-> del proyecto Lynx.
+**Fix**: [`specs/002`](../specs/002-nativas-notificaciones-y-health-connect.md).
 
 ---
 
@@ -43,7 +41,7 @@ completo a memoria.
 
 **Síntoma**: cualquier `toLocaleString` o `Intl.DateTimeFormat` revienta en runtime.
 
-**Fix**: `lynx/src/lib/format.ts` formatea a mano (fechas, número de miles, duración, mes corto). **No
+**Fix**: `src/lib/format.ts` formatea a mano (fechas, número de miles, duración, mes corto). **No
 uses `Intl`** ni para un caso trivial.
 
 ---

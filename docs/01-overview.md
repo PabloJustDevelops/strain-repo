@@ -24,22 +24,16 @@ entrenamiento viva en el mismo sitio que el resto de tu salud.
 
 ## Sobre qué se construye (estado actual)
 
-La app se está construyendo sobre **Lynx con ReactLynx y Rspeedy** (ver [02-stack](./02-stack.md) y
-[03-arquitectura](./03-architecture.md)). El port vive hoy en `lynx/` y es donde está el trabajo nuevo.
+La app está construida sobre **Lynx con ReactLynx y Rspeedy** (ver [02-stack](./02-stack.md) y
+[03-arquitectura](./03-architecture.md)) y vive en la **raíz del repositorio**.
 
-> **Nota de transición**: el repositorio todavía contiene la **app Expo original** en la raíz. Es
-> **legado**: no se le añaden features y se retira por el
-> [`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md). Nada se borra hasta que
-> exista el host nativo del [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md). La
-> red de seguridad es la etiqueta `expo-final`.
+Dos límites que hay que tener presentes (detalle en [06-problemas](./06-known-issues.md)):
 
-Dos límites de la base actual que hay que tener presentes (detalle en
-[06-problemas](./06-known-issues.md)):
-
-- **La persistencia no es durable todavía**: la app funciona, pero cerrarla pierde lo registrado. Es
-  el primer problema que resuelve el `specs/001`.
-- **No hay app propia**: hoy se ejecuta dentro de Lynx Explorer, así que no hay notificaciones,
-  Health Connect ni widgets hasta el host del `specs/001`.
+- **La persistencia no es durable todavía**: la app funciona, pero cerrarla pierde lo registrado. El
+  host nativo y su módulo SQLite ya existen en `host/android/`; falta el **adaptador** que conecta la
+  app a ese almacén (ticket 3 del `specs/001`).
+- **Faltan las piezas nativas y la cuenta**: notificaciones y Health Connect (`specs/002`) y las
+  pantallas de auth y la sincronización (`specs/003`).
 
 ## Visión a medio plazo
 
@@ -50,10 +44,11 @@ El plan por fases está en [11-plan-app-tipo-hevy](./11-plan-app-tipo-hevy.md) (
 - [x] Fuente de 47 ejercicios y biblioteca con filtros
 - [x] Editor de rutinas con reordenar arrastrando
 - [x] Sistema de diseño v2 (tokens, componentes, 5 pestañas)
-- [ ] **Host nativo y almacenamiento durable** ([`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md))
+- [x] Host nativo y módulo SQLite ([`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md))
+- [ ] Almacenamiento durable conectado a la app ([`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md))
 - [ ] Notificaciones del descanso y Health Connect ([`specs/002`](../specs/002-nativas-notificaciones-y-health-connect.md))
 - [ ] Cuenta y sincronización con InsForge ([`specs/003`](../specs/003-auth-y-cuenta-con-insforge.md))
-- [ ] Retirada de Expo y limpieza del repo ([`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md))
+- [x] Retirada de la app anterior y limpieza del repo ([`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md))
 - [ ] CI/CD que cubra el producto real ([`specs/005`](../specs/005-ci-cd.md))
 
 ## Qué NO es Strain

@@ -1,180 +1,127 @@
-import { useMemo } from 'react';
-import { View, Text, Pressable , useColorScheme } from 'react-native';
+import { useMemo } from '@lynx-js/react';
 
-import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, fontSize } from '@lib/theme';
+import { buildHeatmapGrid, type HeatmapDay } from '@lib/heatmap';
+import { remountKey } from '@lib/reactKeys';
+import { px, withAlpha } from '@lib/theme';
+import { useTheme } from '@lib/useTheme';
+import { Text } from '@components/Text';
+
+export type { HeatmapDay };
 
 /**
- * Datos de un día en el heatmap.
- * date: ISO yyyy-mm-dd, count: número de workouts ese día, volume: volumen total.
+ * Heatmap de consistencia estilo "contributions" de GitHub.
+ *
+ * Cada columna es una semana (lunes → domingo) y cada celda un día, más oscura
+ * cuanto más volumen. Se dibuja a mano con `<view>`: Lynx no trae librería de
+ * gráficos y no se suman dependencias. La aritmética de fechas vive en
+ * `@lib/heatmap` (pura y testeada); acá sólo se pinta.
+ *
+ * El rango de color usa `withAlpha` sobre el primario del tema, porque el CSS de
+ * Lynx no acepta el hex de 8 dígitos (`#rrggbbaa`) que usaba la app anterior.
  */
-export interface HeatmapDay {
-  date: string;
-  count: number;
-  volume: number;
-}
-
 interface HeatmapProps {
-  data: HeatmapDay[];
+  data: readonly HeatmapDay[];
   weeks?: number;
   cellSize?: number;
   onDayPress?: (day: HeatmapDay) => void;
 }
 
-/**
- * Heatmap de consistencia estilo GitHub contributions.
- * - Cada columna = semana (lunes → domingo).
- * - Cada celda = día, intensidad del color según volumen.
- * - Toca un día para ver el detalle (callback opcional).
- */
+const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
 export function Heatmap({ data, weeks = 26, cellSize = 14, onDayPress }: HeatmapProps) {
-  const colorScheme = useColorScheme();
-  const themeMode = usePreferences((s) => s.themeMode);
+  const { colors } = useTheme();
 
-  const isDark =
-    themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
+  const grid = useMemo(() => buildHeatmapGrid(data, weeks, new Date()), [data, weeks]);
 
-  const colors = isDark ? darkTheme : lightTheme;
+  function intensity(volume: number): string {
+    if (volume <= 0 || grid.maxVolume <= 0) return colors.surface;
 
-  const { grid, monthLabels, maxVolume } = useMemo(() => {
-    const byDate = new Map(data.map((d) => [d.date, d]));
-    const maxV = data.reduce((m, d) => Math.max(m, d.volume), 0);
+    const ratio = volume / grid.maxVolume;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dayOfWeek = (today.getDay() + 6) % 7;
-    const lastSunday = new Date(today);
-    lastSunday.setDate(today.getDate() - dayOfWeek);
+    if (ratio < 0.25) return withAlpha(colors.accent, 0.25);
 
-    const startDate = new Date(lastSunday);
-    startDate.setDate(lastSunday.getDate() - (weeks - 1) * 7);
+    if (ratio < 0.5) return withAlpha(colors.accent, 0.5);
 
-    const gridData: (HeatmapDay | null)[][] = [];
-    const monthMarkers: { col: number; label: string }[] = [];
-    let lastMonth = -1;
+    if (ratio < 0.75) return withAlpha(colors.accent, 0.75);
 
-    for (let w = 0; w < weeks; w++) {
-      const column: (HeatmapDay | null)[] = [];
-
-      for (let d = 0; d < 7; d++) {
-        const cellDate = new Date(startDate);
-        cellDate.setDate(startDate.getDate() + w * 7 + d);
-
-        if (cellDate > today) {
-          column.push(null);
-          continue;
-        }
-
-        const iso = cellDate.toISOString().split('T')[0];
-        const hit = byDate.get(iso);
-        column.push(hit ?? { date: iso, count: 0, volume: 0 });
-      }
-
-      gridData.push(column);
-
-      const firstDayOfCol = new Date(startDate);
-      firstDayOfCol.setDate(startDate.getDate() + w * 7);
-
-      if (firstDayOfCol.getMonth() !== lastMonth) {
-        lastMonth = firstDayOfCol.getMonth();
-        monthMarkers.push({
-          col: w,
-          label: firstDayOfCol.toLocaleDateString('es-ES', { month: 'short' }),
-        });
-      }
-    }
-
-    return { grid: gridData, monthLabels: monthMarkers, maxVolume: maxV };
-  }, [data, weeks]);
-
-  const intensity = (volume: number): string => {
-    if (volume === 0) return colors.surface;
-    const ratio = volume / maxVolume;
-
-    if (ratio < 0.25) return colors.primary + '55';
-
-    if (ratio < 0.5) return colors.primary + '99';
-
-    if (ratio < 0.75) return colors.primary + 'cc';
-
-    return colors.primary;
-  };
-
-  const gap = 3;
-  const labelWidth = 28;
+    return colors.accent;
+  }
 
   return (
-    <View>
-      <View style={{ flexDirection: 'row', height: 18, marginLeft: labelWidth, marginBottom: 2 }}>
-        {monthLabels.map((m) => (
+    <view>
+      <view className="HeatmapMonths">
+        {grid.monthMarkers.map((marker) => (
           <Text
-            key={`${m.col}-${m.label}`}
-            style={{
-              color: colors.textMuted,
-              fontSize: fontSize.xs,
-              position: 'absolute',
-              left: m.col * (cellSize + gap),
-            }}
+            role="detail"
+            tone="textSecondary"
+            className="HeatmapMonth"
+            key={remountKey('month', `${marker.col}-${marker.label}`)}
+            style={{ left: px(marker.col * (cellSize + 3)) }}
           >
-            {m.label}
+            {marker.label}
           </Text>
         ))}
-      </View>
+      </view>
 
-      <View style={{ flexDirection: 'row' }}>
-        <View style={{ width: labelWidth, paddingTop: 0 }}>
-          {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d, i) => (
+      <view className="HeatmapBody">
+        <view className="HeatmapDayLabels">
+          {DAY_LABELS.map((label) => (
             <Text
-              key={i}
-              style={{
-                color: colors.textMuted,
-                fontSize: fontSize.xs,
-                height: cellSize + gap,
-                lineHeight: cellSize + gap,
-                opacity: i % 2 === 0 ? 1 : 0.4,
-              }}
+              role="detail"
+              tone="textSecondary"
+              key={remountKey('day', label)}
+              style={{ height: px(cellSize + 3), lineHeight: px(cellSize + 3) }}
             >
-              {d}
+              {label}
             </Text>
           ))}
-        </View>
+        </view>
 
-        <View style={{ flexDirection: 'row', gap }}>
-          {grid.map((column, wi) => (
-            <View key={wi} style={{ gap }}>
-              {column.map((day, di) => (
-                <Pressable
-                  key={di}
-                  onPress={() => day && onDayPress?.(day)}
-                  disabled={!day || day.count === 0}
-                  style={{
-                    width: cellSize,
-                    height: cellSize,
-                    borderRadius: 3,
-                    backgroundColor: day ? intensity(day.volume) : 'transparent',
-                  }}
-                />
-              ))}
-            </View>
+        <view className="HeatmapGrid">
+          {grid.columns.map((column, weekIndex) => (
+            <view className="HeatmapColumn" key={remountKey('week', weekIndex)}>
+              {column.map((day, dayIndex) =>
+                day ? (
+                  <view
+                    className="HeatmapCell"
+                    key={remountKey('cell', day.date)}
+                    style={{
+                      width: px(cellSize),
+                      height: px(cellSize),
+                      backgroundColor: intensity(day.volume),
+                    }}
+                    bindtap={onDayPress ? () => onDayPress(day) : undefined}
+                  />
+                ) : (
+                  <view
+                    className="HeatmapCell HeatmapCellEmpty"
+                    key={remountKey('future', `${weekIndex}-${dayIndex}`)}
+                    style={{ width: px(cellSize), height: px(cellSize) }}
+                  />
+                )
+              )}
+            </view>
           ))}
-        </View>
-      </View>
+        </view>
+      </view>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm, marginLeft: labelWidth }}>
-        <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>Menos</Text>
-        {[0, 0.25, 0.5, 0.75, 1].map((r) => (
-          <View
-            key={r}
+      <view className="HeatmapLegend">
+        <Text role="detail" tone="textSecondary">
+          Menos
+        </Text>
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
+          <view
+            className="HeatmapLegendCell"
+            key={remountKey('legend', ratio)}
             style={{
-              width: 12,
-              height: 12,
-              borderRadius: 3,
-              backgroundColor: r === 0 ? colors.surface : colors.primary + '88',
+              backgroundColor: ratio === 0 ? colors.surface : withAlpha(colors.accent, ratio * 0.8),
             }}
           />
         ))}
-        <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>Más</Text>
-      </View>
-    </View>
+        <Text role="detail" tone="textSecondary">
+          Más
+        </Text>
+      </view>
+    </view>
   );
 }

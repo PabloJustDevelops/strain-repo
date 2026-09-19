@@ -1,40 +1,25 @@
-import { View, type ViewProps } from 'react-native';
-import { useColorScheme } from 'react-native';
-import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius } from '@lib/theme';
+import type { ReactNode } from '@lynx-js/react';
 
-interface CardProps extends ViewProps {
-  padded?: boolean;
-}
+import { useTheme } from '@lib/useTheme';
 
 /**
- * Contenedor con borde y elevación ligera. Base para la mayoría de tarjetas.
+ * Contenedor con borde y fondo elevado. Base de casi todo lo que se lista.
  */
-export function Card({ children, style, padded = true, ...rest }: CardProps) {
-  const colorScheme = useColorScheme();
-  const themeMode = usePreferences((s) => s.themeMode);
+interface CardProps {
+  /** `false` para que el padding lo ponga el contenido (filas a sangre). */
+  padded?: boolean;
+  children?: ReactNode;
+}
 
-  const isDark =
-    themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
-
-  const colors = isDark ? darkTheme : lightTheme;
+export function Card({ padded = true, children }: CardProps) {
+  const { colors } = useTheme();
 
   return (
-    <View
-      {...rest}
-      style={[
-        {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderWidth: 1,
-          borderRadius: radius.lg,
-          padding: padded ? spacing.lg : 0,
-          gap: spacing.sm,
-        },
-        style,
-      ]}
+    <view
+      className={padded ? 'Card CardPadded' : 'Card'}
+      style={{ backgroundColor: colors.surface, borderColor: colors.line }}
     >
       {children}
-    </View>
+    </view>
   );
 }

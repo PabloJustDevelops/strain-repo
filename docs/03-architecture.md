@@ -22,10 +22,10 @@ La regla que sostiene todo: **la UI no habla con el almacenamiento, habla con re
 lo que permite sustituir la persistencia (hoy no durable) por el módulo nativo del
 [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md) sin tocar ninguna pantalla.
 
-## Estructura de carpetas (proyecto Lynx)
+## Estructura de carpetas
 
 ```
-lynx/
+strain-repo/
 ├── lynx.config.ts              # Rspeedy: plugin ReactLynx, targets web + lynx, alias
 ├── src/
 │   ├── app/
@@ -61,6 +61,7 @@ lynx/
 │   ├── test/                   # `jsxCapture.ts` (arnés de JSX) y setup
 │   ├── App.tsx / index.tsx     # Arranque: bootstrap de datos antes del primer render
 │   └── App.css                 # Solo layout: color y tipografía viven en los tokens
+├── host/                       # host nativo: LynxView + módulo SQLite
 ├── package.json / bun.lock
 └── tsconfig.json / vitest.config.mts
 ```

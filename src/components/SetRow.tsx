@@ -1,20 +1,24 @@
-import { View, Text, Pressable , useColorScheme } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
-} from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-
-import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { swipeActionOpacity } from '@lib/swipeActions';
+import { useTheme } from '@lib/useTheme';
 import { calculatePlates, type PlateResult } from '@lib/plateCalculator';
 import type { SetView } from '@db/shapes';
+import { Text } from '@components/Text';
 
+/**
+ * Fila de un set dentro del workout activo.
+ *
+ * Qué cambia respecto de la app anterior:
+ * - **No hay swipe.** Lynx no trae `gesture-handler`/`reanimated`, y el elemento
+ *   `<SwipeAction>` de Lynx UI no está en `@lynx-js/types` (ni instalado). Las
+ *   acciones de swipe ("completar" / "eliminar") pasan a ser botones explícitos
+ *   en la propia fila: más descubribles y sin depender de un gesto nativo.
+ *   `@lib/swipeActions` (la opacidad del fondo durante el swipe) queda sin
+ *   consumidor por el mismo motivo, lista para cuando exista el gesto.
+ * - El detalle opcional del set (RPE/notas) se abría con long-press; ahora hay
+ *   un botón "…" además de `bindlongpress`, así la acción se ve.
+ *
+ * El resto se mantiene: tap en el peso abre la calculadora de discos (o el
+ * keypad si el set ya está completado) y tap en las reps abre el keypad.
+ */
 interface SetRowProps {
   set: SetView;
   previous?: SetView | null;
@@ -25,18 +29,9 @@ interface SetRowProps {
   onShowPlates: (result: PlateResult) => void;
   onEditWeight?: () => void;
   onEditReps?: () => void;
+  onOpenDetails?: () => void;
 }
 
-/**
- * Fila de un set dentro del workout activo.
- *
- * Gestos:
- * - Swipe derecha -> completar
- * - Swipe izquierda -> eliminar
- * - Tap en peso -> abrir calculadora de discos
- *
- * Incluye auto-peso de la sesión anterior (si existe) como referencia.
- */
 export function SetRow({
   set,
   previous,
@@ -47,196 +42,107 @@ export function SetRow({
   onShowPlates,
   onEditWeight,
   onEditReps,
+  onOpenDetails,
 }: SetRowProps) {
-  const colorScheme = useColorScheme();
-  const themeMode = usePreferences((s) => s.themeMode);
-  const haptics = usePreferences((s) => s.hapticsEnabled);
+  const { colors } = useTheme();
 
-  const isDark =
-    themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
-
-  const colors = isDark ? darkTheme : lightTheme;
-
-  const translateX = useSharedValue(0);
-  const itemHeight = useSharedValue(72);
-
-  const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-15, 15])
-    .onUpdate((e) => {
-      translateX.value = e.translationX;
-    })
-    .onEnd((e) => {
-      const threshold = 80;
-
-      if (e.translationX > threshold && !set.isCompleted) {
-        translateX.value = withTiming(400, { duration: 200 });
-        itemHeight.value = withTiming(0, { duration: 200 }, () => {
-          runOnJS(onComplete)();
-        });
-
-        if (haptics) runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
-      } else if (e.translationX < -threshold) {
-        itemHeight.value = withTiming(0, { duration: 200 }, () => {
-          runOnJS(onDelete)();
-        });
-
-        if (haptics) runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Warning);
-      } else {
-        translateX.value = withTiming(0, { duration: 200 });
-      }
-    });
-
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    height: itemHeight.value,
-    opacity: itemHeight.value === 0 ? 0 : 1,
-  }));
-
-  const rightBgStyle = useAnimatedStyle(() => ({
-    opacity: swipeActionOpacity(translateX.value),
-  }));
-
-  const rightActionStyle = useAnimatedStyle(() => ({
-    opacity: Math.min(1, Math.max(0, translateX.value / 80)),
-  }));
-
-  const leftActionStyle = useAnimatedStyle(() => ({
-    opacity: Math.min(1, Math.max(0, -translateX.value / 80)),
-  }));
-
-  const bgColor = useAnimatedStyle(() => ({
-    backgroundColor: set.isCompleted
-      ? withTiming(colors.completed + '33')
-      : withTiming(colors.surface),
-  }));
+  const hasDetails = set.rpe !== null || (set.notes ?? '').length > 0;
 
   const handleWeightTap = () => {
+    // Completado: el peso se corrige con el keypad. Sin completar: el peso que
+    // hay es el objetivo, así que lo útil es ver cómo se arma con los discos.
     if (set.isCompleted && onEditWeight) {
-      // Si ya está completado, abrir keypad para editar (no calculadora)
       onEditWeight();
 
       return;
     }
 
-    const result = calculatePlates(set.weight);
-    onShowPlates(result);
-  };
-
-  const handleRepsTap = () => {
-    if (onEditReps) onEditReps();
+    onShowPlates(calculatePlates(set.weight));
   };
 
   return (
-    <View style={{ marginBottom: spacing.sm }}>
-      {/* Acciones detrás de la fila */}
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            backgroundColor: colors.success,
-            borderRadius: radius.md,
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: spacing.lg,
-          },
-          rightBgStyle,
-        ]}
-      >
-        <Animated.View style={leftActionStyle}>
-          <Ionicons name="checkmark-circle" size={28} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '700', marginTop: 2 }}>Completar</Text>
-        </Animated.View>
-      </Animated.View>
+    <view
+      className="WorkoutSet"
+      style={{ borderColor: colors.line, backgroundColor: colors.surface }}
+      bindlongpress={onOpenDetails}
+    >
+      <view className="WorkoutSetRow">
+        <Text role="detail" tone="textSecondary">
+          {set.setIndex}
+        </Text>
 
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            backgroundColor: colors.danger,
-            borderRadius: radius.md,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            paddingHorizontal: spacing.lg,
-          },
-          rightActionStyle,
-        ]}
-      >
-        <Animated.View style={rightActionStyle}>
-          <Ionicons name="trash" size={28} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '700', marginTop: 2 }}>Eliminar</Text>
-        </Animated.View>
-      </Animated.View>
+        <view className="SetPrev">
+          {previous ? (
+            <Text role="detail" tone="textSecondary">
+              ant. {previous.reps}×{previous.weight}
+            </Text>
+          ) : null}
+        </view>
 
-      <GestureDetector gesture={swipeGesture}>
-        <Animated.View style={[cardStyle, bgColor, { borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, overflow: 'hidden' }]}>
-          <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, width: 28, fontWeight: '700' }}>
-            {set.setIndex}
+        <view className="SetCell" bindtap={handleWeightTap}>
+          <Text role="heading" tone="textPrimary">
+            {set.weight || '—'}
           </Text>
+          <Text role="detail" tone="textSecondary">
+            {units}
+          </Text>
+        </view>
 
-          {previous && (
-            <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, width: 60 }}>
-              ant.{previous.reps}×{previous.weight}
+        <view className="SetDivider" style={{ backgroundColor: colors.line }} />
+
+        <view className="SetCell" bindtap={onEditReps}>
+          <Text role="heading" tone="textPrimary">
+            {set.reps || '—'}
+          </Text>
+          <Text role="detail" tone="textSecondary">
+            reps
+          </Text>
+        </view>
+
+        <view
+          className="SetToggle"
+          style={{
+            backgroundColor: set.isCompleted ? colors.success : 'transparent',
+            borderColor: set.isCompleted ? colors.success : colors.line,
+          }}
+          bindtap={set.isCompleted ? onUncomplete : onComplete}
+        >
+          {set.isCompleted ? (
+            <Text role="support" tone="onAccent">
+              ✓
             </Text>
-          )}
-          {!previous && <View style={{ width: 60 }} />}
+          ) : null}
+        </view>
 
-          <Pressable
-            onPress={handleWeightTap}
-            style={{
-              flex: 1,
-              paddingVertical: spacing.sm,
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: '700' }}>
-              {set.weight || '—'}
+        <view className="SetIconButton" bindtap={onDelete}>
+          <Text role="title" tone="danger">
+            ✕
+          </Text>
+        </view>
+
+        {onOpenDetails ? (
+          <view className="SetIconButton" bindtap={onOpenDetails}>
+            <Text role="title" tone="textSecondary">
+              ⋯
             </Text>
-            <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>{units}</Text>
-          </Pressable>
+          </view>
+        ) : null}
+      </view>
 
-          <View style={{ width: 1, height: 32, backgroundColor: colors.border }} />
-
-          <Pressable
-            onPress={handleRepsTap}
-            style={{
-              flex: 1,
-              paddingVertical: spacing.sm,
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: '700' }}>
-              {set.reps || '—'}
+      {hasDetails ? (
+        <view className="SetDetailsLine">
+          {set.rpe !== null ? (
+            <Text role="detail" tone="textSecondary">
+              RPE {set.rpe}
             </Text>
-            <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>reps</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => (set.isCompleted ? onUncomplete() : onComplete())}
-            hitSlop={10}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: set.isCompleted ? colors.completed : 'transparent',
-              borderWidth: 2,
-              borderColor: set.isCompleted ? colors.completed : colors.border,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {set.isCompleted && <Ionicons name="checkmark" size={22} color="#fff" />}
-          </Pressable>
-        </Animated.View>
-      </GestureDetector>
-    </View>
+          ) : null}
+          {set.notes ? (
+            <Text role="detail" tone="textSecondary">
+              {set.notes}
+            </Text>
+          ) : null}
+        </view>
+      ) : null}
+    </view>
   );
 }

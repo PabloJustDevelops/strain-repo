@@ -1,110 +1,73 @@
-import { Pressable, Text, ActivityIndicator, type ViewStyle } from 'react-native';
-import { usePreferences } from '@stores/preferencesStore';
-import { useColorScheme } from 'react-native';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
+import { Button as LynxButton } from '@lynx-js/lynx-ui';
 
+import { Text, type TextTone } from '@components/Text';
+import { useTheme } from '@lib/useTheme';
+import type { ThemeColors } from '@lib/theme';
+
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+
+/**
+ * Botón estándar de Strain, sobre el `button` headless de `@lynx-js/lynx-ui`.
+ *
+ * El `Button` de lynx-ui aporta lo que faltaba con un `bindtap` pelado: separa
+ * pulsado, reposo y deshabilitado (inyecta `ui-active` y `ui-disabled`), así que
+ * los estados del botón se pueden pintar de verdad. El aspecto sigue siendo
+ * nuestro: la librería es headless y sólo pinta lo que le dan `style` y
+ * `className`.
+ */
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-  loading?: boolean;
+  variant?: ButtonVariant;
   disabled?: boolean;
+  /** Ocupa todo el ancho disponible. */
   fullWidth?: boolean;
-  icon?: React.ReactNode;
-  style?: ViewStyle;
+}
+
+interface VariantStyle {
+  background: string;
+  border: string;
+  tone: TextTone;
 }
 
 /**
- * Botón estándar de Strain.
- * - primary: acción principal (azul)
- * - secondary: acción secundaria (outlined)
- * - ghost: acción terciaria (sin fondo)
- * - danger: acción destructiva (rojo)
+ * Sólo `primary` y `danger` son rellenos; `secondary` y `ghost` no pintan
+ * fondo. El acento queda para la acción primaria de la pantalla, que es lo que
+ * sostiene la regla 60-30-10.
  */
+function variantStyle(variant: ButtonVariant, colors: ThemeColors): VariantStyle {
+  switch (variant) {
+    case 'secondary':
+      return { background: colors.surfaceRaised, border: colors.line, tone: 'textPrimary' };
+    case 'ghost':
+      return { background: 'transparent', border: 'transparent', tone: 'accent' };
+    case 'danger':
+      return { background: colors.danger, border: colors.danger, tone: 'textInverse' };
+    case 'primary':
+      return { background: colors.accent, border: colors.accent, tone: 'onAccent' };
+  }
+}
+
 export function Button({
   title,
   onPress,
   variant = 'primary',
-  loading,
-  disabled,
-  fullWidth,
-  icon,
-  style,
+  disabled = false,
+  fullWidth = false,
 }: ButtonProps) {
-  const colorScheme = useColorScheme();
-  const themeMode = usePreferences((s) => s.themeMode);
-
-  const isDark =
-    themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
-
-  const colors = isDark ? darkTheme : lightTheme;
-
-  const isDisabled = disabled || loading;
-  const opacity = isDisabled ? 0.5 : 1;
-
-  const styles = getStyles(variant, colors, fullWidth);
+  const { colors } = useTheme();
+  const style = variantStyle(variant, colors);
 
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.base,
-        { opacity: pressed ? 0.85 : opacity },
-        style,
-      ]}
+    <LynxButton
+      className={fullWidth ? 'Button ButtonFull' : 'Button'}
+      style={{ backgroundColor: style.background, borderColor: style.border }}
+      disabled={disabled}
+      onClick={onPress}
     >
-      {loading ? (
-        <ActivityIndicator color={styles.text.color} />
-      ) : (
-        <>
-          {icon}
-          <Text style={styles.text}>{title}</Text>
-        </>
-      )}
-    </Pressable>
+      <Text role="title" tone={style.tone}>
+        {title}
+      </Text>
+    </LynxButton>
   );
-}
-
-function getStyles(variant: ButtonProps['variant'], colors: typeof darkTheme, fullWidth?: boolean) {
-  const base: ViewStyle = {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    minHeight: 44,
-  };
-
-  if (fullWidth) base.alignSelf = 'stretch';
-
-  switch (variant) {
-    case 'primary':
-      return {
-        base: { ...base, backgroundColor: colors.primary },
-        text: { color: '#fff', fontWeight: '700' as const, fontSize: fontSize.base },
-      };
-    case 'secondary':
-      return {
-        base: { ...base, backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.border },
-        text: { color: colors.text, fontWeight: '600' as const, fontSize: fontSize.base },
-      };
-    case 'ghost':
-      return {
-        base: { ...base, backgroundColor: 'transparent' },
-        text: { color: colors.primary, fontWeight: '600' as const, fontSize: fontSize.base },
-      };
-    case 'danger':
-      return {
-        base: { ...base, backgroundColor: colors.danger },
-        text: { color: '#fff', fontWeight: '700' as const, fontSize: fontSize.base },
-      };
-    default:
-      return {
-        base: { ...base, backgroundColor: colors.primary },
-        text: { color: '#fff', fontWeight: '700' as const, fontSize: fontSize.base },
-      };
-  }
 }

@@ -1,23 +1,27 @@
-import { randomUUID } from 'expo-crypto';
-
 /**
- * Generación de IDs únicos para filas, archivos y recordatorios.
+ * Generaci�n de IDs �nicos para filas, archivos y recordatorios.
  *
- * Usa `expo-crypto` en vez de `nanoid`: nanoid v5 exige el global
- * `crypto.getRandomValues()`, que **Hermes no tiene**, y por eso el seed tumbaba
- * el bootstrap en Expo Go (el error se veía como "Data layer no inicializado").
+ * Versi�n Lynx: el runtime PrimJS no garantiza `crypto.getRandomValues()`
+ * (mismo problema que el runtime anterior), as� que usamos un generador UUID v4
+ * propio basado en `Math.random()`. Suficiente para claves locales offline;
+ * no es criptogr�ficamente seguro, pero aqu� solo se usa para unicidad.
  *
- * Ventajas frente al polyfill global:
- * - `expo-crypto` es un módulo de Expo incluido en Expo Go.
- * - No muta globals, así que no hay trap de orden de imports: el problema que
- *   hace frágiles a `react-native-get-random-values`/`expo-standard-web-crypto`.
- * - Funciona igual en web e iOS (su implementación usa Web Crypto allí).
+ * Cuando haya un native module de crypto en Lynx, se puede cambiar la
+ * implementaci�n sin tocar a los consumidores (misma firma).
  */
+function uuidv4(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export function newId(): string {
-  return randomUUID();
+  return uuidv4();
 }
 
 /** Id corto para sufijos (nombres de archivo, identificadores de recordatorio). */
 export function shortId(length = 6): string {
-  return randomUUID().replace(/-/g, '').slice(0, length);
+  return uuidv4().replace(/-/g, '').slice(0, length);
 }

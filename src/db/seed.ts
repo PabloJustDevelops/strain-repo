@@ -1,13 +1,26 @@
 /**
  * Catálogo inicial de ejercicios predefinidos.
  * Ejecutar solo la primera vez (o si la BD está vacía).
+ *
+ * Port 1:1 de `src/db/seed.ts` de la app anterior: los mismos 47 ejercicios, en el
+ * mismo orden y con los mismos campos (paridad de dominio). La diferencia es la
+ * seam: sobre KV no hay defaults de tabla, así que `secondaryMuscles`, `notes` e
+ * `instructions` se completan acá con el mismo valor que el esquema Drizzle
+ * (`[]`/`null`), y el id y los timestamps los pone el repo al crear la fila.
  */
 
-import { newId } from '@lib/id';
-import type { ExercisesRepo } from './repos';
-import type { NewExercise } from './schema';
+import type { ExercisesRepo } from './exercisesRepo';
+import type { Exercise } from './schema';
 
-const SEED: Omit<NewExercise, 'id'>[] = [
+/** Columnas que el seed escribe; id y timestamps los asigna el repo. */
+type SeedInput = Omit<Exercise, 'id' | 'createdAt' | 'updatedAt'>;
+
+/** Igual que `NewExercise` de Drizzle: los campos con default de tabla son opcionales. */
+type SeedRow = Omit<SeedInput, 'secondaryMuscles' | 'notes' | 'instructions'> & {
+  instructions?: string | null;
+};
+
+const SEED: SeedRow[] = [
   // ============ PECHO ============
   { name: 'Press de banca', muscleGroup: 'chest', equipment: 'barbell', mechanic: 'compound', isCustom: false, instructions: 'Acostado en banco, agarra la barra con las manos a la anchura de los hombros. Baja hasta el pecho y empuja hacia arriba.' },
   { name: 'Press inclinado con mancuernas', muscleGroup: 'chest', equipment: 'dumbbell', mechanic: 'compound', isCustom: false, instructions: 'Banco a 30-45°. Empuja las mancuernas desde el pecho hasta la extensión completa.' },
@@ -71,7 +84,12 @@ const SEED: Omit<NewExercise, 'id'>[] = [
 /** Puebla la tabla exercises si está vacía. */
 export async function seedExercises(exercises: ExercisesRepo): Promise<void> {
   if ((await exercises.count()) > 0) return;
-  // Asignamos un id (uuid de expo-crypto) a cada ejercicio predefinido
-  const withIds: NewExercise[] = SEED.map((ex) => ({ ...ex, id: newId() }));
-  await exercises.bulkCreate(withIds);
+  // Los campos con default de tabla se completan acá (no hay Drizzle que los ponga).
+  const rows: SeedInput[] = SEED.map((ex) => ({
+    ...ex,
+    secondaryMuscles: [],
+    instructions: ex.instructions ?? null,
+    notes: null,
+  }));
+  await exercises.bulkCreate(rows);
 }

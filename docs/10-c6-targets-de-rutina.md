@@ -1,6 +1,6 @@
 # 10 · C6 — Targets de rutina en la sesión
 
-> **Documento histórico (era Expo)**: registra el cierre de C6 en la app Expo. Se conserva como
+> **Documento histórico**: registra el cierre de C6 en la app anterior. Se conserva como
 > pasado. La paridad en el port Lynx ya está cubierta: la sesión copia el snapshot de targets al
 > iniciarla y el descanso tiene dueño único. Ver `D11` en [07-decisiones](./07-decisions.md).
 

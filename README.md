@@ -1,24 +1,23 @@
 # Strain
 
 App de seguimiento de entrenamientos de gimnasio, estilo Hevy, **Android-first y offline por
-defecto**, construida sobre **Lynx** con **ReactLynx** y **Rspeedy**.
+defecto**, construida sobre **Lynx** con **ReactLynx** y **Rspeedy**, con un **host Android propio**
+que embebe el bundle.
 
 ## Estado del proyecto
 
-> **En transición**: el proyecto Lynx vive hoy en `lynx/` y es donde está el trabajo. La **app Expo**
-> de la raíz es **legado**, no recibe features y se retira por el
-> [`specs/004`](./specs/004-reestructura-del-repo-y-retirada-de-expo.md). Nada se borra hasta que
-> exista el host nativo del [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md). La red
-> de seguridad es la etiqueta **`expo-final`**.
+- **El proyecto Lynx es la raíz del repositorio**: `src/`, `host/`, `scripts/`, `lynx.config.ts`.
+  La app antigua que convivía aquí se retiró siguiendo el
+  [`specs/004`](./specs/004-reestructura-del-repo-y-retirada-de-expo.md); su versión intacta queda en
+  la etiqueta de respaldo, y lo que aún no está migrado se lista en
+  [`docs/13-pendiente-de-migrar-desde-expo.md`](./docs/13-pendiente-de-migrar-desde-expo.md).
+- **La persistencia todavía no es durable**: cerrar la app pierde lo registrado. El host y el módulo
+  nativo SQLite ya existen; falta el adaptador que los conecta (ticket 3 del
+  [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md)).
+- **Faltan tres piezas de producto**: las pantallas de auth y la cuenta ([`specs/003`](./specs/003-auth-y-cuenta-con-insforge.md)),
+  y Health Connect y las notificaciones ([`specs/002`](./specs/002-nativas-notificaciones-y-health-connect.md)).
 
-Dos límites que conviene saber antes de tocar nada:
-
-- **La persistencia todavía no es durable**: cerrar la app pierde lo registrado. Es el primer problema
-  que resuelve el [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md).
-- **No hay app propia**: hoy se ejecuta dentro de **Lynx Explorer**, así que las funciones nativas
-  (notificaciones, Health Connect) y el build Android llegan con el host del mismo spec.
-
-## Características (port Lynx)
+## Características
 
 - 💪 **Biblioteca de ejercicios** con categorización por grupo muscular y equipo (47 en el seed)
 - 🏋️ **Rutinas**: crear, editar, añadir ejercicios y **reordenar arrastrando**
@@ -32,14 +31,14 @@ Dos límites que conviene saber antes de tocar nada:
 
 | Capa | Tecnología |
 |---|---|
-| UI | **ReactLynx** (`@lynx-js/react`) sobre el motor **Lynx** |
-| Build | **Rspeedy** con dos targets: `lynx` (nativo) y `web` (Lynx for Web) |
-| Componentes | **`@lynx-js/lynx-ui`** |
+| UI | **ReactLynx** (`@lynx-js/react`) sobre el motor **Lynx**; elementos `page/view/text/scroll-view/input`, no DOM |
+| Build | **Rspeedy** (`@lynx-js/rspeedy`) con dos targets: `lynx` (nativo) y `web` (Lynx for Web) |
+| Componentes | **`@lynx-js/lynx-ui`** (hoja, switch, input, sortable, overlay…). `lynx.config.ts` activa `enableNewGesture` |
 | Estado | **Zustand** |
-| Persistencia | *Seam* propia (**hoy no durable** → [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md)) |
+| Persistencia | *Seam* propia + **módulo nativo SQLite** en el host ([`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md)) |
 | Cuenta / sync | **InsForge** (opcional → [`specs/003`](./specs/003-auth-y-cuenta-con-insforge.md)) |
-| Testing | **Vitest** |
-| Paquetes | **bun 1.4.2** |
+| Testing | **Vitest** (`bun run test`) |
+| Paquetes | **bun 1.4.2** (`bun.lock`) |
 
 Detalle en [`docs/02-stack.md`](./docs/02-stack.md) y [`docs/03-architecture.md`](./docs/03-architecture.md).
 
@@ -47,24 +46,25 @@ Detalle en [`docs/02-stack.md`](./docs/02-stack.md) y [`docs/03-architecture.md`
 
 ```
 strain-repo/
-├── lynx/                  ← el proyecto (Lynx + ReactLynx + Rspeedy)
-│   ├── src/screens/       # 14 pantallas
-│   ├── src/components/    # UI compartida y shell
-│   ├── src/db/            # repos, schema y la seam de almacenamiento
-│   ├── src/stores/        # Zustand
-│   └── src/lib/           # lógica pura de dominio, formato y tema
-├── specs/                 ← specs (SDD), numerados y con tickets
-├── docs/                  ← documentación del proyecto
-├── .agents/skills/        ← skills de SDD y de Lynx
-│
-└── app/ src/ android/ app.json eas.json   ← app Expo (LEGADO, se retira)
+├── src/                  # el port Lynx: pantallas, componentes, stores, db y lib
+│   ├── screens/          # 14 pantallas
+│   ├── components/       # UI compartida y shell
+│   ├── db/               # repos, schema y la seam de almacenamiento
+│   ├── stores/           # Zustand
+│   └── lib/              # lógica pura de dominio, formato y tema
+├── host/android/         # host nativo: LynxView + módulo SQLite (se versiona)
+├── scripts/              # check-bundle-size.mjs (presupuesto de bundle)
+├── lynx.config.ts        # Rspeedy: plugins, targets y alias
+├── specs/                # specs (SDD), numerados y con tickets
+├── docs/                 # documentación del proyecto
+└── .agents/skills/       # skills de SDD y de Lynx
 ```
 
 ## Primeros pasos
 
 ```bash
 git clone https://github.com/PabloJustDevelops/strain-repo.git
-cd strain-repo/lynx
+cd strain-repo
 bun install
 
 bun run dev         # dev server (puerto 3000): target web + QR para Lynx Explorer
@@ -78,16 +78,27 @@ automatizar— y está explicado en
 [`docs/12-entorno-desarrollo-lynx.md`](./docs/12-entorno-desarrollo-lynx.md). El setup completo, en
 [`docs/08-setup.md`](./docs/08-setup.md).
 
-La integración continua (`.github/workflows/ci.yml`) conserva el trabajo de la raíz y añade el de
-Lynx (tipos, pruebas y build), el presupuesto de bundle, el escaneo de secretos y la comprobación de
-título y triaje de la propuesta ([`specs/005`](./specs/005-ci-cd.md)).
+## Host nativo Android
+
+El host vive en [`host/android`](./host/android) y monta el bundle **sin Lynx Explorer ni servidor de
+desarrollo**: una tarea de Gradle lo copia desde `dist/` a los assets del APK. Se construye con
+`./gradlew assembleDebug` (JDK 17+, Android SDK 36). Detalles en
+[`host/android/README.md`](./host/android/README.md).
+
+## Integración continua
+
+[`.github/workflows/ci.yml`](./.github/workflows/ci.yml) corre, en cada propuesta y en `main`, tipos,
+pruebas y build de los dos targets, el **presupuesto de bundle** (650 kB, ver D16), el escaneo de
+secretos y la comprobación de título y triaje. El porque y los umbrales están en
+[`specs/005`](./specs/005-ci-cd.md).
 
 ## Documentación y specs
 
 - **Documentación**: [`docs/README.md`](./docs/README.md) (índice).
-- **Decisiones**: [`docs/07-decisions.md`](./docs/07-decisions.md) (`D1`…`D14`).
+- **Decisiones**: [`docs/07-decisions.md`](./docs/07-decisions.md) (`D1`…`Dn`).
+- **Pendiente de migrar**: [`docs/13-pendiente-de-migrar-desde-expo.md`](./docs/13-pendiente-de-migrar-desde-expo.md).
 - **Specs (SDD)**: [`specs/`](./specs) — host y almacenamiento durable, nativas, auth/cuenta, retirada
-  de Expo y CI/CD.
+  de la app antigua y CI/CD.
 - **Glosario de dominio**: [`CONTEXT.md`](./CONTEXT.md).
 - **Guía para agentes**: [`AGENTS.md`](./AGENTS.md).
 

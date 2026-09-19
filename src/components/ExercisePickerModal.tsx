@@ -1,40 +1,40 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Modal, View, Text, Pressable, FlatList, TextInput , useColorScheme } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Input } from '@lynx-js/lynx-ui';
+import { useEffect, useState } from '@lynx-js/react';
 
 import { getRepos } from '@db';
-import { usePreferences } from '@stores/preferencesStore';
-import { darkTheme, lightTheme, spacing, radius, fontSize } from '@lib/theme';
-import { type Exercise } from '@/types/domain';
-import { muscleGroupLabel, equipmentLabel } from '@lib/labels';
+import { Sheet } from '@components/Sheet';
+import { Text } from '@components/Text';
+import { equipmentLabel, muscleGroupLabel } from '@lib/labels';
+import { remountKey } from '@lib/reactKeys';
+import { useTheme } from '@lib/useTheme';
+import type { Exercise } from '@/types/domain';
 
+/**
+ * Selector de ejercicio para el workout activo.
+ *
+ * Carga el catálogo al abrir (nunca durante el render) y devuelve el id del
+ * elegido. Es la salida natural de un workout vacío.
+ *
+ * La lista larga va dentro de un `<scroll-view>` con alto máximo: sigue sin
+ * haber `FlatList`, pero la hoja ya trae el gesto de arrastre de lynx-ui.
+ */
 interface ExercisePickerModalProps {
   visible: boolean;
   onClose: () => void;
   onPick: (exerciseId: string) => void;
 }
 
-/**
- * Selector de ejercicio para el workout activo.
- *
- * Carga el catálogo al abrir (nunca en render) con búsqueda por nombre y
- * devuelve el id del elegido. Es el que le da salida a un workout vacío.
- */
 export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePickerModalProps) {
-  const colorScheme = useColorScheme();
-  const themeMode = usePreferences((s) => s.themeMode);
-
-  const isDark =
-    themeMode === 'system' ? colorScheme === 'dark' : themeMode === 'dark';
-
-  const colors = isDark ? darkTheme : lightTheme;
+  const { colors } = useTheme();
 
   const [items, setItems] = useState<Exercise[]>([]);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
     if (!visible) return;
+
     let cancelled = false;
+
     getRepos()
       .exercises.list()
       .then((list) => {
@@ -46,134 +46,64 @@ export function ExercisePickerModal({ visible, onClose, onPick }: ExercisePicker
     };
   }, [visible]);
 
-  const filtered = useMemo(
-    () =>
-      items.filter(
-        (ex) => query.length === 0 || ex.name.toLowerCase().includes(query.toLowerCase())
-      ),
-    [items, query]
+  const needle = query.trim().toLowerCase();
+  const filtered = items.filter(
+    (exercise) => needle.length === 0 || exercise.name.toLowerCase().includes(needle)
   );
 
-  const handleClose = () => {
-    setQuery('');
-    onClose();
-  };
-
-  const handlePick = (exerciseId: string) => {
-    setQuery('');
-    onPick(exerciseId);
-  };
-
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={handleClose} />
-      <View
-        style={{
-          backgroundColor: colors.surfaceElevated,
-          borderTopLeftRadius: radius.xl,
-          borderTopRightRadius: radius.xl,
-          paddingTop: spacing.lg,
-          paddingBottom: spacing.xxl,
-          maxHeight: '78%',
-        }}
-      >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: spacing.lg,
-            marginBottom: spacing.md,
-          }}
-        >
-          <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
-            Añadir ejercicio
-          </Text>
-          <Pressable onPress={handleClose} hitSlop={10}>
-            <Ionicons name="close" size={24} color={colors.text} />
-          </Pressable>
-        </View>
+    <Sheet
+      visible={visible}
+      title="Añadir ejercicio"
+      onClose={() => {
+        setQuery('');
+        onClose();
+      }}
+    >
+      <Input
+        className="Input"
+        style={{ backgroundColor: colors.surface, borderColor: colors.line, color: colors.textPrimary }}
+        placeholder="Buscar ejercicio"
+        confirmType="search"
+        value={query}
+        onInput={(value) => setQuery(value)}
+      />
 
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginHorizontal: spacing.lg,
-            marginBottom: spacing.md,
-            backgroundColor: colors.surface,
-            borderRadius: radius.md,
-            paddingHorizontal: spacing.md,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-        >
-          <Ionicons name="search" size={18} color={colors.textMuted} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Buscar ejercicio"
-            placeholderTextColor={colors.textMuted}
-            style={{
-              flex: 1,
-              paddingVertical: spacing.md,
-              paddingHorizontal: spacing.sm,
-              color: colors.text,
-              fontSize: fontSize.base,
-            }}
-          />
-        </View>
+      <scroll-view className="SheetScroll" scroll-orientation="vertical">
+        <view className="SheetScrollContent">
+          {filtered.length === 0 ? (
+            <Text role="support" tone="textSecondary">
+              Sin resultados.
+            </Text>
+          ) : null}
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(ex) => ex.id}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{
-            paddingHorizontal: spacing.lg,
-            paddingBottom: spacing.lg,
-            gap: spacing.sm,
-          }}
-          ListEmptyComponent={
-            <View style={{ alignItems: 'center', padding: spacing.xxl }}>
-              <Text style={{ color: colors.textMuted }}>Sin resultados.</Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => handlePick(item.id)}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: spacing.md,
-                padding: spacing.md,
-                borderRadius: radius.md,
-                backgroundColor: pressed ? colors.surface : colors.background,
-                borderWidth: 1,
-                borderColor: colors.border,
-              })}
+          {filtered.map((exercise) => (
+            <view
+              className="PickerRow"
+              key={remountKey('picker', exercise.id)}
+              style={{ backgroundColor: colors.bg, borderColor: colors.line }}
+              bindtap={() => {
+                setQuery('');
+                onPick(exercise.id);
+              }}
             >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: radius.md,
-                  backgroundColor: colors.primaryMuted,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="add" size={20} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontWeight: '700' }}>{item.name}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
-                  {muscleGroupLabel(item.muscleGroup)} ·{' '}
-                  {equipmentLabel(item.equipment)}
+              <view className="PickerBadge" style={{ backgroundColor: colors.accentSoft }}>
+                <Text role="heading" tone="accent">
+                  +
                 </Text>
-              </View>
-            </Pressable>
-          )}
-        />
-      </View>
-    </Modal>
+              </view>
+              <view className="RowFill">
+                <Text role="title" tone="textPrimary">
+                  {exercise.name}
+                </Text>
+                <Text role="support" tone="textSecondary">
+                  {muscleGroupLabel(exercise.muscleGroup)} · {equipmentLabel(exercise.equipment)}
+                </Text>
+              </view>
+            </view>
+          ))}
+        </view>
+      </scroll-view>
+    </Sheet>
   );
 }

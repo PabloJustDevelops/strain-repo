@@ -1,8 +1,18 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true,
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
     "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@lynx-js/react",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "types": ["@lynx-js/types"],
     "paths": {
       "@/*": ["./src/*"],
       "@db": ["./src/db/index.ts"],
@@ -11,24 +21,9 @@
       "@stores/*": ["./src/stores/*"],
       "@lib/*": ["./src/lib/*"],
       "@types/*": ["./src/types/*"],
-      "@assets/*": ["./assets/*"]
-    },
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "jsx": "react-native",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+      "@assets/*": ["./src/assets/*"]
+    }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "tools",
-    "lynx"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "lynx.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

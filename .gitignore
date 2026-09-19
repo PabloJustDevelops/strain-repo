@@ -19,6 +19,11 @@ ios/
 android/
 *.orig.*
 
+# Host nativo (specs/001). La regla `android/` de arriba ignora cualquier carpeta
+# llamada así, en cualquier nivel; el host nuevo vive en `lynx/host/android/` y
+# sí se versiona (D15: versionado desde el ticket 1).
+!lynx/host/android/
+
 # Metro
 .metro-health-check*
 

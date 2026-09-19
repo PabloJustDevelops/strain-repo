@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sin ActionBar: la única vista de la Activity es el LynxView, que ocupa
+         toda la pantalla. -->
+    <style name="Theme.Strain" parent="android:Theme.Material.NoActionBar" />
+</resources>

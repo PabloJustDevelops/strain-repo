@@ -1,0 +1,16 @@
+[versions]
+agp = "8.11.1"
+kotlin = "2.1.21"
+# Versiones del SDK nativo de Lynx, fijadas a las del motor 4.1.0 que usa Lynx Explorer.
+lynx = "4.1.0"
+primjs = "4.1.1"
+
+[libraries]
+lynx = { group = "org.lynxsdk.lynx", name = "lynx", version.ref = "lynx" }
+lynx-jssdk = { group = "org.lynxsdk.lynx", name = "lynx-jssdk", version.ref = "lynx" }
+lynx-trace = { group = "org.lynxsdk.lynx", name = "lynx-trace", version.ref = "lynx" }
+primjs = { group = "org.lynxsdk.lynx", name = "primjs", version.ref = "primjs" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

@@ -4,9 +4,10 @@ App Android propia que monta el bundle Lynx **sin Lynx Explorer y sin servidor
 de desarrollo**: el bundle viaja embebido en los assets del APK.
 
 Lo que hay hecho aquí son los tickets 1 y 2 de `specs/001`: el host y el módulo
-nativo de almacenamiento. El adaptador durable que lo consume (ticket 3), las
-notificaciones y Health Connect (`specs/002`) y la cuenta (`specs/003`) **no**
-están aquí.
+nativo de almacenamiento. El adaptador durable que lo consume (ticket 3) vive en
+el bundle (`src/db/nativeStorage.ts`), no en el host; la prueba de durabilidad
+(ticket 4), las notificaciones y Health Connect (`specs/002`) y la cuenta
+(`specs/003`) **no** están aquí.
 
 ## Requisitos
 
@@ -86,6 +87,20 @@ un `callback` que se invoca **una sola vez**, con `{ ok: true, data }` o
   argumentos `String`. Los valores de `params` viajan como texto y SQLite los
   convierte aplicando la afinidad de la columna, así que `WHERE id = ?` contra un
   `INTEGER` sigue comparando contra un entero. `execute` sí ata los tipos reales.
+
+### Adaptador durable y migración (ticket 3)
+
+El bundle implementa la seam `Storage` sobre este módulo en
+`src/db/nativeStorage.ts`: una tabla `kv` (`key` primaria, `value` con el JSON que
+ya guardaba cada entidad) y `keys(prefix)` con `LIKE ?` sobre la clave. La seam es
+**asíncrona** porque el puente también lo es; los repos ya devolvían promesas, así
+que el cambio no toca ninguna pantalla. Un fallo de escritura rechaza con el
+código y el mensaje del módulo: no se traga.
+
+**Migración: no hay nada que migrar.** El almacén anterior (memoria + *session
+storage*) no era durable y se pierde al cerrar la card, así que no puede contener
+datos de continuidad. La tabla `kv` nace vacía y el catálogo de ejercicios se
+vuelve a sembrar. No se fabrican datos de continuidad.
 
 ### Prueba instrumentada
 

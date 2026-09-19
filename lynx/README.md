@@ -30,7 +30,7 @@ Lynx **no es React Native**. No trae out-of-the-box:
 | `expo-haptics` + animaciones de `reanimated` | ❌ Native module / sin equivalente: el descanso avisa por color, no por háptica ni pulso |
 | `ViewShot` (capturar la tarjeta para compartir) | ❌ Native module: `WorkoutSummaryCard` se pinta, pero no se captura ni se comparte |
 | `Intl` (`Intl.DateTimeFormat`, `toLocaleString`) | ❌ **No implementado** en Lynx; `src/lib/format.ts` formatea a mano |
-| `drizzle-orm` | ⚠️ Fuga de dependencia: `src/lib/metrics.ts` importa `drizzle-orm` (los helpers SQL, que Lynx no usa) y resuelve desde el `node_modules` de la **raíz**, no desde `lynx/`. El bundle lo tree-shakea (0 kB), pero `lynx` no compila si la raíz no tiene las deps instaladas |
+| `drizzle-orm` | ✅ Ausente a propósito: la capa de datos usa la *seam* KV (`src/db/storage.ts`). `src/lib/metrics.ts` sólo tiene funciones puras (los helpers SQL de la app Expo no se portaron), así que `lynx/` compila con sus propias dependencias |
 
 ## Fase 1 — hecho ✅
 

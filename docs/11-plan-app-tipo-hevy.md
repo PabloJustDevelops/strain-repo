@@ -61,22 +61,22 @@ queremos llegar en funcionalidad**:
 ## 3. Nuestro punto de partida (verificado, no supuesto)
 
 > **Actualización (19 sep 2026)**: esta sección describe el punto de partida del plan. Desde entonces
-> se decidió **retirar la app Expo** ([D13](./07-decisions.md#d13--retirada-de-expo)) y que el port
-> Lynx —14 pantallas, **5 pestañas** y sistema de diseño v2— es la base. Las menciones a la app Expo
-> se leen como **estado inicial**, no como destino.
+> se retiró la app anterior ([D13](./07-decisions.md)) y el proyecto Lynx —14 pantallas, **5 pestañas**
+> y sistema de diseño v2— es la base. Las menciones a la app anterior se leen como **estado inicial**,
+> no como destino.
 
 - **Dominio ya modelado** en `CONTEXT.md`: `Exercise` (global o custom), `Routine`, `Routine Exercise`
   (con `targetSets`, `targetReps`, `targetWeight`, `restSeconds`, `orderIndex`, **`supersetGroup`**),
   `Session` (máquina de estados `active → completed | discarded` con agregados `totalVolume`,
   `totalSets`, `durationSeconds`) y `Session Exercise` con **snapshot** de los targets. Es un modelo de
   dominio más serio que el de muchas apps del sector: la parte de datos ya está pensada.
-- **App Expo funcionando** con SQLite + Drizzle, semilla de 47 ejercicios, Health Connect con 11
+- **App anterior funcionando** con SQLite + Drizzle, semilla de 47 ejercicios, Health Connect con 11
   permisos, y una suite de tests propia.
 - **Port Lynx** con 14 pantallas y 7 pestañas sobre una *seam* de almacenamiento, con un sistema de
   diseño de primera generación.
 - **Los dos huecos que bloquean todo lo demás** (verificado en el emulador el 18-19 sep):
   1. **No hay almacenamiento durable**: la implantación de la seam es memoria + *session storage*, así
-     que **cerrar la app borra lo registrado**. Documentado en `lynx/src/db/storage.ts`.
+     que **cerrar la app borra lo registrado**. Documentado en `src/db/storage.ts`.
   2. **No hay app propia**: hoy se ejecuta dentro del **Lynx Explorer**. Sin host propio no hay
      notificaciones, ni Health Connect, ni widgets, ni almacenamiento nativo.
 - Y un hueco de diseño: la UI de primera generación es plana, con tarjetas donde no tocan, títulos
@@ -116,7 +116,7 @@ que permite cambiar la implantación sin reescribir pantallas.
 | **F0 · Envolvente de desarrollo** | Preview web + DevTool enganchados; `pnpm dev` abre la app en el navegador | Ver `docs/12-entorno-desarrollo-lynx.md`: la app se ve en el navegador y en el móvil real; el emulador queda sólo para automatizar |
 | **F1 · Sistema de diseño v2** *(en curso)* | Tokens, componentes e IA de 5 pestañas; pantallas reconstruidas | Contrastes medidos, tests verdes, capturas de las 6 pantallas clave |
 | **F2 · Persistencia durable + host propio** | App Android propia con LynxView y almacenamiento que sobrevive al cierre | Cerrar y reabrir la app conserva rutinas, sesiones y ajustes; test de integración que lo demuestra |
-| **F3 · Registro con paridad** | Sesión activa completa: valores de la vez anterior, tipos de serie, RPE, descanso automático, notas, PRs en vivo, resumen y descarte | Se puede entrenar de verdad con el móvil en la mano sin tocar la app Expo; los PRs se calculan y se ven |
+| **F3 · Registro con paridad** | Sesión activa completa: valores de la vez anterior, tipos de serie, RPE, descanso automático, notas, PRs en vivo, resumen y descarte | Se puede entrenar de verdad con el móvil en la mano sin tocar la app anterior; los PRs se calculan y se ven |
 | **F4 · Progreso** | Calendario, detalle de sesión, gráficas por ejercicio (peso/volumen/1RM), volumen por músculo, récords, medidas | Todas las gráficas se pintan con datos reales de sesiones propias; nada de datos inventados |
 | **F5 · Biblioteca** | Catálogo con instrucciones y vídeo, ejercicios propios, filtros por músculo y equipo, historial por ejercicio | Se puede crear un ejercicio propio y entrenarlo; el filtro por equipo reduce el catálogo de verdad |
 | **F6 · Integraciones nativas** | Notificación de descanso, Health Connect, widgets | El descanso avisa con la pantalla apagada; Health Connect recibe la sesión |

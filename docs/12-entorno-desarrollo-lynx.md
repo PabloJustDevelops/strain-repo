@@ -53,7 +53,7 @@ exactamente el hueco que hacía tan lenta la verificación de UI.
 Aviso de fidelidad: el resultado web no es el nativo. Sirve para composición, tipografía, color,
 navegación y estados; **no** para dar por bueno el táctil, el rendimiento ni nada nativo.
 
-Nota del repo (corregida al montar F0): solo hay **un** `lynx/lynx.config.ts`, el del propio `lynx/`; no
+Nota del repo (corregida al montar F0): solo hay **un** `lynx.config.ts`, el de la raíz; no
 hay copia aparte para el preview. Este párrafo decía que el preview local usaba una copia "de los
 agentes" con su propia configuración, y a 19 sep 2026 no existe tal copia en el repo.
 
@@ -105,7 +105,7 @@ Bucle de tres niveles, y montar los niveles 0 y 1 ya (fase **F0** del plan, `doc
 2. **Validar** (experiencia real): móvil por QR, cuando algo tiene que sentirse bien de verdad.
 3. **Automatizar y regresión** (evidencia): emulador Android con `adb`/Maestro.
 
-**Montado el 19 sep 2026 (este run)**: `lynx/lynx.config.ts` declara `environments: { web: {}, lynx: {} }`,
+**Montado el 19 sep 2026 (este run)**: `lynx.config.ts` declara `environments: { web: {}, lynx: {} }`,
 y ya **no** hace falta un script de preview aparte: `bun run dev` sirve a la vez el bundle `lynx` y la
 página de desarrollo web, y `bun run build` emite los dos bundles. Detalle verificado en la sección 9.
 
@@ -119,7 +119,7 @@ página de desarrollo web, y `bun run build` emite los dos bundles. Detalle veri
 
 ## 9 · Montaje F0 (19 sep 2026) — qué se verificó
 
-- `lynx/lynx.config.ts` declara los dos entornos, `web` y `lynx`.
+- `lynx.config.ts` declara los dos entornos, `web` y `lynx`.
 - `bun run dev` (puerto **3000** por defecto; `--port` para cambiarlo) compila los dos targets y sirve:
   - `GET /main.web.bundle` → **200** (≈530 KB).
   - `GET /main.lynx.bundle` → **200** (≈537 KB).

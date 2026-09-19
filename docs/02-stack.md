@@ -1,7 +1,6 @@
 # 02 · Stack tecnológico
 
-> El proyecto es **Lynx + ReactLynx + Rspeedy**. Sus raíces son `lynx/` (hoy) y la raíz del repo tras
-> el [`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md).
+> El proyecto es **Lynx + ReactLynx + Rspeedy** y vive en la **raíz del repositorio**.
 
 ## Core
 
@@ -17,7 +16,7 @@
 
 | Capa | Tecnología | Por qué |
 |------|------------|---------|
-| Almacenamiento | ***Seam* propia** (`Storage`) | Lynx no trae base de datos; la seam aísla la decisión. **Hoy no es durable** (memoria + session storage) y el [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md) la sustituye por un módulo nativo SQLite |
+| Almacenamiento | ***Seam* propia** (`Storage`) + módulo nativo SQLite | Lynx no trae base de datos; la seam aísla la decisión. El módulo nativo vive en el host (`host/android/`) y el [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md) conecta la app a él |
 | Repositorios | Factories sobre la seam (`exercises`, `routines`, `sessions`, `analytics`) | La UI nunca habla con el almacenamiento: habla con repos. Esa frontera permite cambiar la implementación sin tocar pantallas |
 | Sincronización | **InsForge** (opcional, por demanda) | Cuenta y backup multi-dispositivo; la nube nunca es la fuente de verdad ([`specs/003`](../specs/003-auth-y-cuenta-con-insforge.md)) |
 
@@ -43,8 +42,8 @@
 
 | Herramienta | Uso |
 |-------------|-----|
-| **bun 1.4.2** | Gestor de paquetes y runtime de scripts (`bun.lock` en raíz y en `lynx/`) |
-| **Vitest** | Tests (`bun run test`), con arnés de JSX propio en `lynx/src/test/jsxCapture.ts` |
+| **bun 1.4.2** | Gestor de paquetes y runtime de scripts (`bun.lock` en la raíz) |
+| **Vitest** | Tests (`bun run test`), con arnés de JSX propio en `src/test/jsxCapture.ts` |
 | **TypeScript `--noEmit`** | Typecheck en CI |
 | **Lynx DevTool** | Paneles de consola, DOM/CSS, capturas y trazas (ver [12](./12-entorno-desarrollo-lynx.md)) |
 
@@ -52,7 +51,7 @@
 
 | Pieza | Alternativa |
 |-------|-------------|
-| `Intl` (`toLocaleString`, `DateTimeFormat`) | `lynx/src/lib/format.ts` formatea a mano |
+| `Intl` (`toLocaleString`, `DateTimeFormat`) | `src/lib/format.ts` formatea a mano |
 | SQLite | Módulo nativo propio ([`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md)) |
 | Health Connect, notificaciones, hápticas, captura/compartir | Módulos nativos propios |
 | `tab-group` | No existe en la versión actual de `lynx-ui`: la tab bar es propia |

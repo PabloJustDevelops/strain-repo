@@ -6,15 +6,10 @@ Guía para agentes que trabajan en este repositorio.
 
 **Strain** — app de seguimiento de entrenamiento de fuerza, Android-first y offline por defecto.
 
-El proyecto está **en transición y esto importa**:
-
-- El **proyecto Lynx** (ReactLynx + Rspeedy) es el destino y donde vive el trabajo nuevo. Hoy está en
-  `lynx/`; el `specs/004` gobierna su promoción a la raíz.
-- La **app Expo** de la raíz (`app/`, `src/`, `android/`, `app.json`, `eas.json` y sus dependencias)
-  es legado: **no se le añaden features**. Se retira según el `specs/004`, y **nada se borra hasta que
-  exista el host del `specs/001`**. La red de seguridad es la etiqueta `expo-final`.
-
-Si dudas de en qué base trabajar, es el proyecto Lynx.
+El proyecto **Lynx** (ReactLynx + Rspeedy) **es la raíz del repositorio**: `src/`, `host/`, `scripts/`,
+`lynx.config.ts`. La app que convivía aquí hasta el `specs/004` se retiró; su último estado está en la
+etiqueta **`expo-final`**, y lo que aún no está migrado se lista en
+`docs/13-pendiente-de-migrar-desde-expo.md`.
 
 ## Stack
 
@@ -24,9 +19,10 @@ Si dudas de en qué base trabajar, es el proyecto Lynx.
 | Build | **Rspeedy** (`@lynx-js/rspeedy`) con dos targets: `lynx` (nativo) y `web` (Lynx for Web) |
 | Componentes | **`@lynx-js/lynx-ui`** (hoja, switch, input, sortable, overlay…). `lynx.config.ts` activa `enableNewGesture` |
 | Estado | **Zustand** |
-| Persistencia | *Seam* de almacenamiento propio. **Hoy no es durable** (memoria + session storage): el `specs/001` la sustituye por un módulo nativo SQLite |
+| Host | **`host/android/`**: app Android propia (`LynxView` + módulo nativo SQLite). El bundle lo copia una tarea de Gradle desde `dist/` |
+| Persistencia | *Seam* de almacenamiento propio. **Hoy no es durable** (memoria + session storage): el `specs/001` la conecta al módulo nativo SQLite del host |
 | Testing | **Vitest** (`bun run test`), arnés de JSX propio en `src/test/jsxCapture.ts` |
-| Paquetes | **bun 1.4.2** (`bun.lock` en raíz y en `lynx/`) |
+| Paquetes | **bun 1.4.2** (`bun.lock`) |
 
 Lo que **Lynx no trae** y por eso está portado a mano o pendiente: `Intl` (formateo propio), SQLite,
 Health Connect, notificaciones, captura/compartir, y el componente `tab-group` (no existe en la
@@ -63,36 +59,39 @@ CSS existe (`lynx-check-css-support`), qué componentes hay (`lynx-ui`), cómo d
 ## Convenciones
 
 - **Para remontar un componente con `key`**, usá `remountKey(namespace, id)`
-  (`lynx/src/lib/reactKeys.ts`): la clave de reserva lleva el namespace, así dos hermanos cerrados no
+  (`src/lib/reactKeys.ts`): la clave de reserva lleva el namespace, así dos hermanos cerrados no
   pueden colisionar (React avisa "two children with the same key"). No uses literales como `'none'`
   como clave.
 - **Toda longitud lleva unidad.** El motor Lynx rechaza toda longitud distinta de 0 sin unidad,
   también inline. Los tokens de longitud se exportan ya como `'16px'` y todo número pasa por `px()`.
-- **Nada de `Intl`.** `lynx/src/lib/format.ts` formatea a mano; no uses `toLocaleString`.
+- **Nada de `Intl`.** `src/lib/format.ts` formatea a mano; no uses `toLocaleString`.
 - **Un solo dueño para el descanso**: lo arranca el store, no la pantalla.
+- **El host no vive en `android/`.** El host nativo está en `host/android/` (versionado, D15); no
+  crees una carpeta `android/` en la raíz.
 - **Vocabulario**: usá los términos de `CONTEXT.md`. Si un concepto no está, puede que estés
   inventando lenguaje o que haya un hueco real.
 - **Decisiones**: antes de proponer un cambio, leé `docs/07-decisions.md` (`D1`…`Dn`). Si tu propuesta
-  contradice una decisión, decilo explícitamente (por ejemplo, la retirada de Expo es `D13`).
+  contradice una decisión, decilo explícitamente (por ejemplo, la retirada de la app anterior es
+  `D13`, y la promoción a la raíz con la etiqueta como red es `D17`).
 
 ## Comandos
 
-Raíz (app Expo, mientras exista):
+Proyecto (raíz del repositorio):
 
 ```bash
-bun install
-bun run lint && bun run typecheck && bun run test
-```
-
-Proyecto Lynx:
-
-```bash
-cd lynx
 bun install
 bun run typecheck   # tsc --noEmit
 bun run test        # vitest run
 bun run build       # dist/main.lynx.bundle + dist/main.web.bundle
 bun run dev         # dev server (puerto 3000): target web + QR para Lynx Explorer
+```
+
+Host nativo (`specs/001`):
+
+```bash
+bun run build
+cd host/android
+./gradlew assembleDebug   # Windows: .\gradlew.bat assembleDebug
 ```
 
 El bucle de trabajo tiene tres niveles: **navegador** (iterar, vía la URL *Preview* del dev server),

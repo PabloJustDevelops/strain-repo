@@ -387,3 +387,31 @@ exige una decisión nueva en este documento (`specs/005`, ticket 2).
 `Intl`) abre una decisión `Dn` que sustituya a la de 650 kB, y actualiza el umbral en el script y en
 el comentario del workflow. Verificación de este run (`specs/005`): con el umbral bajado a 500 kB el
 trabajo falla con `exit 1`; con 650 kB, pasa.
+
+## D17 · La promoción a la raíz se hace con la etiqueta como red, antes de cerrar 002/003
+
+**Decisión**: el proyecto Lynx se promueve a la raíz y la app Expo se retira **antes** de que estén
+migradas las cinco piezas del inventario del `specs/004` —las pantallas de auth, la capa durable,
+Health Connect, las notificaciones y la cuenta—. Lo que hace seguro adelantar el paso es la etiqueta
+**`expo-final`**, que guarda el último commit con la app vieja intacta, más el inventario escrito de lo
+que falta en [`docs/13`](./13-pendiente-de-migrar-desde-expo.md), con su ruta exacta en la etiqueta y
+su spec.
+
+**Por qué**:
+
+- El host nativo del [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md) (tickets 1 y
+  2) ya existe y **arranca**: el repositorio no se queda sin una aplicación que corre, que era la única
+  razón dura para no borrar (D13).
+- Mantener dos aplicaciones mientras se migran la cuenta y las nativas duplica el mantenimiento y
+  conserva la ambigüedad de cuál es la base, que es justo el problema que el `specs/004` cierra.
+- El riesgo del borrado no es perder código —está en la etiqueta— sino **perder de vista lo que
+  falta**; eso lo cubre el inventario, no la presencia de la app vieja en el árbol.
+
+**Descartado**: esperar a cerrar `002`/`003` (alarga la convivencia sin reducir el riesgo real, porque
+el código no se pierde); borrar sin inventario (convierte el borrado en arqueología).
+
+**Consecuencia**: la promoción, la reescritura de rutas y el borrado se hacen en el mismo bloque, con
+commits por tema (borrado, promoción, configuración, CI, documentación), y `docs/13` pasa a ser la
+lista de trabajo de `002`/`003`. `D13` se cumple con su criterio de borrado ya satisfecho: el host
+existe y el proyecto es la raíz; lo único que se adelanta es la paridad de las cinco piezas, cubierta
+por la etiqueta.

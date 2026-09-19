@@ -1236,7 +1236,7 @@ No hay carpeta `web/` ni aplicación separada. Las pantallas de escritorio son *
 proyecto Lynx, adaptadas con el sistema de diseño:
 
 ```
-lynx/src/
+src/
 ├── screens/         → las pantallas (adaptadas a escritorio en la parte B del diseño)
 ├── components/      → el shell y los componentes compartidos
 └── lib/theme.ts     → los tokens del sistema

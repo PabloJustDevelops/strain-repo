@@ -108,6 +108,12 @@
 
 .Input { min-height: 44px; padding-left: 16px; padding-right: 16px; border-width: 1px; border-radius: 10px; }
 
+/* Buscador: la lupa vive dentro de la caja; el `Input` interno no lleva borde
+   ni fondo propios porque los pone la caja. */
+.SearchField { display: flex; flex-direction: row; align-items: center; min-height: 44px; border-width: 1px; border-radius: 10px; padding-left: 8px; padding-right: 8px; }
+.SearchFieldIcon { margin-right: 8px; }
+.SearchFieldInput { flex: 1; min-height: 44px; padding-left: 0; padding-right: 0; }
+
 /* --- Ajustes: segmentado y toggle ----------------------------------------- */
 
 .Segmented { display: flex; flex-direction: row; border-width: 1px; border-radius: 10px; padding: 4px; margin-top: 8px; }
@@ -312,6 +318,9 @@
 /* Nombres largos: se corta con elipsis, nunca desborda la fila. */
 .ListRowTitle { overflow: hidden; text-overflow: ellipsis; }
 .ListRowMeta { overflow: hidden; text-overflow: ellipsis; }
+/* Variante compacta: por encima entran 8-9 filas donde antes entraban 6-7;
+   `min-height` mantiene el área táctil aunque la fila tenga una sola línea. */
+.ListRowDense { padding-top: 8px; padding-bottom: 8px; min-height: 44px; justify-content: center; }
 
 /* Cabecera de sección: título + acción opcional. */
 .SectionHeader { display: flex; flex-direction: row; align-items: center; justify-content: space-between; min-height: 44px; margin-top: 16px; }

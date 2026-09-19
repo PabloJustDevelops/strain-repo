@@ -29,6 +29,7 @@ export type IconName =
   | 'dumbbell'
   | 'chart'
   | 'heart'
+  | 'search'
   | 'settings';
 
 /** Todo nombre que el set sabe dibujar. El test lo recorre completo. */
@@ -44,6 +45,7 @@ export const ICON_NAMES: readonly IconName[] = [
   'dumbbell',
   'chart',
   'heart',
+  'search',
   'settings',
 ];
 
@@ -70,6 +72,7 @@ const ICONS: Record<IconName, string> = {
   chart: '<path d="M4 20V9"/><path d="M10 20V4"/><path d="M16 20v-6"/><path d="M3 20h18"/>',
   heart:
     '<path d="M12 20C12 20 5 15.6 5 10.7A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7 3.7C19 15.6 12 20 12 20z"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M16 16 21 21"/>',
   settings:
     '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
 };

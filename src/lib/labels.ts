@@ -44,3 +44,15 @@ export function muscleFilterChip(filter: MuscleFilter): { group: MuscleGroup; la
 
   return { group: filter, label: MUSCLE_GROUP_LABELS[filter] };
 }
+
+/**
+ * Contador de la cabecera de la biblioteca.
+ *
+ * Sin recorte es una cuenta, no una fracción: "47 ejercicios". Con la búsqueda
+ * o el filtro activos, lo que se ve sobre el total: "12 de 47".
+ */
+export function exerciseCountLabel(filtered: number, total: number): string {
+  if (filtered === total) return `${total} ${total === 1 ? 'ejercicio' : 'ejercicios'}`;
+
+  return `${filtered} de ${total}`;
+}

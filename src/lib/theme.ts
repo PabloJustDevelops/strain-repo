@@ -150,6 +150,17 @@ export const space = {
 
 export type SpaceToken = keyof typeof space;
 
+/**
+ * Pila tipográfica de la app, declarada una sola vez.
+ *
+ * Sin ella cada target decide por su cuenta: la preview web pinta con la serif
+ * por defecto del navegador mientras el host nativo usa la sans del sistema,
+ * y todo juicio visual hecho en el navegador sale falseado. Es la sans del
+ * sistema en cada plataforma: `font-family` es una propiedad de texto
+ * soportada por Lynx como lista de nombres, y resuelve el primero disponible.
+ */
+export const FONT_FAMILY = "system-ui, -apple-system, Roboto, 'Helvetica Neue', sans-serif";
+
 /** Los 6 pasos de la escala tipográfica, de menor a mayor. */
 export const TYPE_SCALE = [12, 14, 16, 18, 22, 34] as const;
 

@@ -49,7 +49,7 @@ export function WorkoutFinishScreen() {
               <Text role="display" tone="onAccent">✓</Text>
             </view>
             <Text role="display" tone="textPrimary">
-              Workout completado
+              Entrenamiento completado
             </Text>
             <Text role="support" tone="textSecondary">
               {summary.name}

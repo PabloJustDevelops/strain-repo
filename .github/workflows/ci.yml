@@ -75,3 +75,37 @@ jobs:
 
       - name: Build (targets lynx y web)
         run: bun run build
+
+      # El presupuesto de bundle corre en un trabajo aparte que solo descarga
+      # estos dos ficheros, para no repetir el build.
+      - name: Subir bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: lynx-bundles
+          path: |
+            lynx/dist/main.lynx.bundle
+            lynx/dist/main.web.bundle
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Presupuesto de bundle: falla si los artefactos superan el umbral.
+  #
+  # UMBRALES: 650 kB nativo y 650 kB web (1 kB = 1000 bytes). Subirlos EXIGE una
+  # decisión registrada en docs/07-decisions.md (hoy D16). No los ajustes aquí a
+  # la ligera: el presupuesto solo sirve si crecer cuesta una decisión.
+  # ---------------------------------------------------------------------------
+  bundle-budget:
+    name: Lynx · presupuesto de bundle
+    needs: lynx
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descargar bundles
+        uses: actions/download-artifact@v4
+        with:
+          name: lynx-bundles
+          path: lynx/dist
+
+      - name: Comprobar tamaño
+        run: node lynx/scripts/check-bundle-size.mjs

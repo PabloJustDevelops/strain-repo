@@ -3,6 +3,7 @@ import { Icon } from '@components/Icon';
 import { Text } from '@components/Text';
 import { remountKey } from '@lib/reactKeys';
 import { useCurrentRoute, useRouter, useTabs } from '@lib/router';
+import { FONT_FAMILY } from '@lib/theme';
 import { useTheme } from '@lib/useTheme';
 import {
   TAB_COMPONENTS,
@@ -35,7 +36,7 @@ export function Shell() {
     const Active = TAB_COMPONENTS[tab];
 
     return (
-      <view className="Shell">
+      <view className="Shell" style={{ fontFamily: FONT_FAMILY }}>
         <view className="ShellBody">
           <Active params={route.params} />
         </view>
@@ -47,7 +48,7 @@ export function Shell() {
   const StackScreen = resolveRoute(route.name);
 
   return (
-    <view className="Shell">
+    <view className="Shell" style={{ fontFamily: FONT_FAMILY }}>
       <view
         className="ShellHeader"
         style={{ backgroundColor: colors.surface, borderColor: colors.border }}

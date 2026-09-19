@@ -55,11 +55,14 @@ let bootstrapping: Promise<Repos> | null = null;
  * La siembra corre ANTES de `publishRepos`: si se publicara primero, una pantalla
  * podría leer la biblioteca todavía vacía. Un fallo (de siembra incluido) no se
  * traga: se propaga con su causa y limpia el cache para poder reintentar.
+ *
+ * El primer `await getStorage()` abre la base durable del host; si el módulo
+ * nativo no está, cae al respaldo de sesión (ver `storage.ts`).
  */
 export function bootstrapDatabase(): Promise<Repos> {
   if (!bootstrapping) {
     bootstrapping = (async () => {
-      const repos = createRepos(getStorage());
+      const repos = createRepos(await getStorage());
       await seedExercises(repos.exercises);
       publishRepos(repos);
       return repos;

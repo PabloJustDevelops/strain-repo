@@ -45,17 +45,15 @@ export function createRoutinesRepo(storage: Storage): RoutinesRepo {
   const routineExercises = createKvStore<RoutineExercise>(storage, 'routineExercise');
   const exercises = createKvStore<Exercise>(storage, 'exercise', ['createdAt', 'updatedAt']);
 
-  function byRoutine(routineId: string): RoutineExercise[] {
-    return routineExercises
-      .all()
+  async function byRoutine(routineId: string): Promise<RoutineExercise[]> {
+    return (await routineExercises.all())
       .filter((re) => re.routineId === routineId)
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }
 
   const repo: RoutinesRepo = {
     async list(includeArchived = false) {
-      return routines
-        .all()
+      return (await routines.all())
         .filter((r) => includeArchived || !r.isArchived)
         .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
     },
@@ -65,15 +63,20 @@ export function createRoutinesRepo(storage: Storage): RoutinesRepo {
     },
 
     async getWithExercises(id) {
-      const routine = routines.byId(id);
+      const routine = await routines.byId(id);
       if (!routine) return null;
-      const rows = byRoutine(id)
-        .map((re) => {
-          const exercise = exercises.byId(re.exerciseId);
+      const rows = await Promise.all(
+        (await byRoutine(id)).map(async (re) => {
+          const exercise = await exercises.byId(re.exerciseId);
           return exercise ? { ...re, exercise } : null;
-        })
-        .filter((r): r is RoutineExercise & { exercise: Exercise } => r !== null);
-      return { routine, exercises: rows };
+        }),
+      );
+      return {
+        routine,
+        exercises: rows.filter(
+          (r): r is RoutineExercise & { exercise: Exercise } => r !== null,
+        ),
+      };
     },
 
     async create(input) {
@@ -88,19 +91,19 @@ export function createRoutinesRepo(storage: Storage): RoutinesRepo {
         createdAt: now,
         updatedAt: now,
       };
-      routines.put(routine);
+      await routines.put(routine);
       return routine;
     },
 
     async update(id, patch) {
-      const current = routines.byId(id);
+      const current = await routines.byId(id);
       if (!current) return;
-      routines.put({ ...current, ...patch, id, updatedAt: new Date() });
+      await routines.put({ ...current, ...patch, id, updatedAt: new Date() });
     },
 
     async delete(id) {
-      for (const re of byRoutine(id)) routineExercises.remove(re.id);
-      routines.remove(id);
+      for (const re of await byRoutine(id)) await routineExercises.remove(re.id);
+      await routines.remove(id);
     },
 
     async clone(id, newName) {
@@ -113,7 +116,7 @@ export function createRoutinesRepo(storage: Storage): RoutinesRepo {
         color: original.routine.color ?? undefined,
       });
       for (const ex of original.exercises) {
-        routineExercises.put({
+        await routineExercises.put({
           id: newId(),
           routineId: copy.id,
           exerciseId: ex.exerciseId,
@@ -130,8 +133,8 @@ export function createRoutinesRepo(storage: Storage): RoutinesRepo {
     },
 
     async addExercise(routineId, exerciseId, opts = {}) {
-      const last = byRoutine(routineId).reduce((m, re) => Math.max(m, re.orderIndex), 0);
-      routineExercises.put({
+      const last = (await byRoutine(routineId)).reduce((m, re) => Math.max(m, re.orderIndex), 0);
+      await routineExercises.put({
         id: newId(),
         routineId,
         exerciseId,
@@ -147,7 +150,7 @@ export function createRoutinesRepo(storage: Storage): RoutinesRepo {
     },
 
     async setSupersetGroup(routineId, routineExerciseIds, group) {
-      for (const re of byRoutine(routineId)) {
+      for (const re of await byRoutine(routineId)) {
         let next = re.supersetGroup;
         if (group) {
           if (routineExerciseIds.includes(re.id)) next = group;
@@ -155,30 +158,30 @@ export function createRoutinesRepo(storage: Storage): RoutinesRepo {
         } else if (routineExerciseIds.includes(re.id)) {
           next = null;
         }
-        if (next !== re.supersetGroup) routineExercises.put({ ...re, supersetGroup: next });
+        if (next !== re.supersetGroup) await routineExercises.put({ ...re, supersetGroup: next });
       }
       await repo.touch(routineId);
     },
 
     async reorderExercises(routineId, orderedIds) {
-      orderedIds.forEach((id, idx) => {
-        const re = routineExercises.byId(id);
+      for (const [idx, id] of orderedIds.entries()) {
+        const re = await routineExercises.byId(id);
         if (re && re.routineId === routineId) {
-          routineExercises.put({ ...re, orderIndex: idx + 1 });
+          await routineExercises.put({ ...re, orderIndex: idx + 1 });
         }
-      });
+      }
       await repo.touch(routineId);
     },
 
     async removeExercise(routineExerciseId) {
-      const re = routineExercises.byId(routineExerciseId);
-      routineExercises.remove(routineExerciseId);
+      const re = await routineExercises.byId(routineExerciseId);
+      await routineExercises.remove(routineExerciseId);
       if (re) await repo.touch(re.routineId);
     },
 
     async touch(id) {
-      const current = routines.byId(id);
-      if (current) routines.put({ ...current, updatedAt: new Date() });
+      const current = await routines.byId(id);
+      if (current) await routines.put({ ...current, updatedAt: new Date() });
     },
   };
 

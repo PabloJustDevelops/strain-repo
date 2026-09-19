@@ -7,16 +7,21 @@ import type { Storage } from './storage';
  * que los cuatro repos comparten. Lo relacional (joins, agregados) lo resuelve
  * cada repo en memoria a partir de estas primitivas.
  *
+ * El listado sale de `storage.keys(prefix)`, que el adaptador nativo resuelve con
+ * una consulta; por eso no hace falta mantener un índice aparte (la versión
+ * anterior guardaba `__index__` con una lectura-modificación por escritura, que
+ * además era racy).
+ *
  * Los campos `Date` se serializan a ISO en el JSON y se rehidratan al leer,
  * porque `JSON.stringify` los convierte a string. `dateFields` declara cuáles.
  */
 export interface KvStore<Row extends { id: string }> {
-  all(): Row[];
-  byId(id: string): Row | undefined;
-  put(row: Row): void;
-  remove(id: string): void;
-  count(): number;
-  clear(): void;
+  all(): Promise<Row[]>;
+  byId(id: string): Promise<Row | undefined>;
+  put(row: Row): Promise<void>;
+  remove(id: string): Promise<void>;
+  count(): Promise<number>;
+  clear(): Promise<void>;
 }
 
 export function createKvStore<Row extends { id: string }>(
@@ -25,25 +30,12 @@ export function createKvStore<Row extends { id: string }>(
   dateFields: readonly (keyof Row)[] = [],
 ): KvStore<Row> {
   const prefix = `${table}:`;
-  const indexKey = `${table}:__index__`;
-
-  function readIndex(): string[] {
-    const raw = storage.getItem(indexKey);
-    if (!raw) return [];
-    try {
-      return JSON.parse(raw) as string[];
-    } catch {
-      return [];
-    }
-  }
-
-  function writeIndex(ids: string[]): void {
-    storage.setItem(indexKey, JSON.stringify(ids));
-  }
 
   function hydrate(raw: string): Row | undefined {
     try {
       const parsed = JSON.parse(raw) as Record<string, unknown>;
+      // Descarta filas corruptas o restos del `__index__` del almacén anterior.
+      if (typeof parsed.id !== 'string') return undefined;
       for (const field of dateFields) {
         const key = field as string;
         const value = parsed[key];
@@ -56,10 +48,10 @@ export function createKvStore<Row extends { id: string }>(
   }
 
   return {
-    all() {
+    async all() {
       const out: Row[] = [];
-      for (const id of readIndex()) {
-        const raw = storage.getItem(prefix + id);
+      for (const key of await storage.keys(prefix)) {
+        const raw = await storage.getItem(key);
         if (!raw) continue;
         const row = hydrate(raw);
         if (row) out.push(row);
@@ -67,32 +59,25 @@ export function createKvStore<Row extends { id: string }>(
       return out;
     },
 
-    byId(id) {
-      const raw = storage.getItem(prefix + id);
+    async byId(id) {
+      const raw = await storage.getItem(prefix + id);
       return raw ? hydrate(raw) : undefined;
     },
 
-    put(row) {
-      storage.setItem(prefix + row.id, JSON.stringify(row));
-      const ids = readIndex();
-      if (!ids.includes(row.id)) {
-        ids.push(row.id);
-        writeIndex(ids);
-      }
+    async put(row) {
+      await storage.setItem(prefix + row.id, JSON.stringify(row));
     },
 
-    remove(id) {
-      storage.removeItem(prefix + id);
-      writeIndex(readIndex().filter((x) => x !== id));
+    async remove(id) {
+      await storage.removeItem(prefix + id);
     },
 
-    count() {
-      return readIndex().length;
+    async count() {
+      return (await storage.keys(prefix)).length;
     },
 
-    clear() {
-      for (const id of readIndex()) storage.removeItem(prefix + id);
-      writeIndex([]);
+    async clear() {
+      for (const key of await storage.keys(prefix)) await storage.removeItem(key);
     },
   };
 }

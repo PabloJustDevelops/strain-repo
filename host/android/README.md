@@ -5,9 +5,10 @@ de desarrollo**: el bundle viaja embebido en los assets del APK.
 
 Lo que hay hecho aquí son los tickets 1 y 2 de `specs/001`: el host y el módulo
 nativo de almacenamiento. El adaptador durable que lo consume (ticket 3) vive en
-el bundle (`src/db/nativeStorage.ts`), no en el host; la prueba de durabilidad
-(ticket 4), las notificaciones y Health Connect (`specs/002`) y la cuenta
-(`specs/003`) **no** están aquí.
+el bundle (`src/db/nativeStorage.ts`), no en el host. Las pruebas de durabilidad
+del ticket 4 incluyen dos mitades instrumentadas que se ejecutan en invocaciones
+separadas (ver **Durabilidad** abajo). Las notificaciones y Health Connect
+(`specs/002`) y la cuenta (`specs/003`) **no** están aquí.
 
 ## Requisitos
 
@@ -102,17 +103,109 @@ storage*) no era durable y se pierde al cerrar la card, así que no puede conten
 datos de continuidad. La tabla `kv` nace vacía y el catálogo de ejercicios se
 vuelve a sembrar. No se fabrican datos de continuidad.
 
-### Prueba instrumentada
+## Durabilidad (ticket 4 de `specs/001`)
+
+El requisito duro del spec es que lo registrado sobreviva a la **muerte del
+proceso**. Se demuestra en tres capas, de menos a más real; cada prueba lleva el
+nombre de lo que demuestra.
+
+### 1 · Lógica (vitest, va al CI)
+
+`src/db/durabilidad.test.ts`, en la raíz del repo:
 
 ```bash
-./gradlew connectedDebugAndroidTest   # con un emulador o dispositivo conectado
+bun run test                                      # o solo este fichero:
+bunx vitest run src/db/durabilidad.test.ts
 ```
 
-Demuestra la durabilidad a nivel de módulo: crear tabla, insertar filas,
-**cerrar** la base, **volver a abrirla** y que sigan ahí; que una transacción
-revertida no deja rastro (ni la operación válida anterior a la que falla); que
-los errores llegan con código y mensaje; que la conexión está en WAL; y que el
-trabajo corre en el hilo del módulo y no en el del test.
+Un doble del módulo guarda las claves en un disco **externo a la instancia**, así
+que abrir un **segundo storage sobre el mismo disco** demuestra que los repos y
+el *kv* releen del almacenamiento y no de una caché en memoria (rutinas,
+ejercicios, ajustes y una sesión terminada con su PR siguen ahí). Un tercer caso
+escribe directamente en el disco y comprueba que la **misma** instancia lo ve: el
+camino de lectura no cachea.
+
+### 2 · Módulo (instrumentado)
+
+```bash
+./gradlew connectedDebugAndroidTest   # Windows: .\gradlew.bat
+```
+
+`StorageModuleTest` prueba la durabilidad a nivel de módulo: crear tabla,
+insertar, **cerrar** la conexión, **reabrir** y que las filas sigan; un caso usa
+**la forma de tabla y las claves del adaptador JS** (`kv`, sentencias
+`INSERT OR REPLACE` y `SELECT ... LIKE`), cierra y las relee con una **instancia
+nueva** del módulo. Cubre además que la transacción revertida no deja rastro, que
+los errores llegan con código y mensaje, que la conexión está en WAL y que el
+trabajo corre en el hilo del módulo.
+
+### 3 · Entre procesos (instrumentado, dos invocaciones)
+
+Una prueba que escribe y lee en el **mismo** proceso no demuestra que el dato
+sobreviva a la muerte del proceso. Para eso hay **dos clases** que se ejecutan en
+**invocaciones separadas**, con el proceso matándose en medio:
+
+- `DurabilidadEscribeTest` — crea la tabla con la forma del adaptador y deja la
+  clave `routine:ticket4`.
+- `DurabilidadLeeTest` — en otra corrida, abre la misma base y exige esa fila.
+
+`connectedDebugAndroidTest` **no** sirve aquí: al terminar **desinstala** la app y
+con ella borra `databases/`, así que la segunda corrida no vería nada. Se usan los
+mismos APKs instalados a mano y `am instrument`, que sí conserva los datos:
+
+```bash
+./gradlew installDebug installDebugAndroidTest
+
+ADB="$ANDROID_HOME/platform-tools/adb"   # Windows: el adb.exe del SDK
+RUNNER=com.strain.app.test/androidx.test.runner.AndroidJUnitRunner
+
+# 1) escribe y termina (al acabar muere el proceso de instrumentación)
+"$ADB" shell am instrument -w -e fase escribe \
+  -e class com.strain.app.storage.DurabilidadEscribeTest "$RUNNER"
+
+# 2) mata el proceso de la app (explícito)
+"$ADB" shell am force-stop com.strain.app
+
+# 3) comprueba que la base quedó en disco
+"$ADB" shell run-as com.strain.app ls -l databases/
+
+# 4) lee desde un proceso nuevo
+"$ADB" shell am instrument -w -e fase lee \
+  -e class com.strain.app.storage.DurabilidadLeeTest "$RUNNER"
+```
+
+`-e fase escribe` / `-e fase lee` es obligatorio: sin la fase cada mitad se
+**salta** (`assumeTrue`), de modo que una corrida suelta no depende del orden en
+que se descubran las clases. Ojo con la sintaxis de `am`: es `-e NOMBRE VALOR`,
+con el nombre y el valor en **dos** argumentos.
+
+**Salida real en el emulador `strain`** (19 sep 2026, x86_64):
+
+```
+$ adb shell am instrument -w -e fase escribe -e class ...DurabilidadEscribeTest ...
+com.strain.app.storage.DurabilidadEscribeTest:.
+Time: 0.145
+OK (1 test)
+
+$ adb shell am force-stop com.strain.app
+$ adb shell run-as com.strain.app ls -l databases/
+total 24
+-rw-rw---- 1 u0_a230 u0_a230 20480 2026-09-19 12:17 durabilidad-proceso.db
+
+$ adb shell am instrument -w -e fase lee -e class ...DurabilidadLeeTest ...
+com.strain.app.storage.DurabilidadLeeTest:.
+Time: 0.087
+OK (1 test)
+```
+
+El fichero bajado con
+`adb exec-out run-as com.strain.app cat databases/durabilidad-proceso.db` empieza
+por la cabecera `SQLite format 3` y dentro está la fila
+`{"id":"ticket4","name":"Durabilidad entre procesos"}`.
+
+**Control negativo**: con `adb shell pm clear com.strain.app` (que borra la base)
+la mitad que lee **falla** con `SQLITE_ERROR: no such table: kv`; así se ve que la
+prueba no es vacua.
 
 ## Dependencias que el ticket no listaba
 

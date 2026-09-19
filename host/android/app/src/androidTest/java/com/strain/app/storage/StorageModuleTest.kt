@@ -72,6 +72,37 @@ class StorageModuleTest {
     }
 
     @Test
+    fun el_kv_del_adaptador_reabre_con_una_instancia_nueva_y_conserva_las_claves() {
+        // Misma forma de tabla y mismas sentencias que emite el adaptador JS
+        // (`src/db/nativeStorage.ts`), no una tabla de juguete: si el adaptador
+        // cambia de esquema, esta prueba deja de cubrirlo.
+        success { module.open(TEST_DB, it) }
+        execute(KV_CREATE)
+        execute(KV_UPSERT, "routine:abc", KV_ROW)
+        execute(KV_UPSERT, "exercise:1", """{"id":"1"}""")
+        assertEquals(KV_ROW, query(KV_SELECT_VALUE, "routine:abc")[0].getString("value"))
+        assertEquals(1, query(KV_SELECT_KEYS, "routine:%").size)
+        assertEquals(1, query(KV_SELECT_KEYS, "exercise:%").size)
+        assertEquals(2, query(KV_SELECT_KEYS, "%").size)
+
+        // Muerte del proceso: se tira la instancia y se abre una NUEVA sobre el
+        // mismo fichero. Lo que sobreviva tiene que estar en disco, no en el objeto.
+        success { module.close(it) }
+        val reopened = StorageModule(context)
+        try {
+            success { reopened.open(TEST_DB, it) }
+            val rows = queryOn(reopened, KV_SELECT_VALUE, "routine:abc")
+            assertEquals(1, rows.size)
+            assertEquals(KV_ROW, rows[0].getString("value"))
+            assertEquals(1, queryOn(reopened, KV_SELECT_KEYS, "routine:%").size)
+            assertEquals(0, queryOn(reopened, KV_SELECT_KEYS, "session:%").size)
+        } finally {
+            rawResponse { reopened.close(it) }
+            reopened.destroy()
+        }
+    }
+
+    @Test
     fun la_transaccion_confirmada_persiste_y_la_revertida_no_deja_rastro() {
         success { module.open(TEST_DB, it) }
         execute("CREATE TABLE counter (id INTEGER PRIMARY KEY, label TEXT NOT NULL)")
@@ -186,11 +217,15 @@ class StorageModuleTest {
         return thread
     }
 
-    private fun execute(sql: String, vararg params: Any?): Long =
-        success { module.execute(sql, JavaOnlyArray.of(*params), it) }.getLong(FIELD_DATA)
+    private fun execute(sql: String, vararg params: Any?): Long = executeOn(module, sql, *params)
 
-    private fun query(sql: String, vararg params: Any?): List<ReadableMap> {
-        val data = success { module.query(sql, JavaOnlyArray.of(*params), it) }.getArray(FIELD_DATA)
+    private fun query(sql: String, vararg params: Any?): List<ReadableMap> = queryOn(module, sql, *params)
+
+    private fun executeOn(target: StorageModule, sql: String, vararg params: Any?): Long =
+        success { target.execute(sql, JavaOnlyArray.of(*params), it) }.getLong(FIELD_DATA)
+
+    private fun queryOn(target: StorageModule, sql: String, vararg params: Any?): List<ReadableMap> {
+        val data = success { target.query(sql, JavaOnlyArray.of(*params), it) }.getArray(FIELD_DATA)
         assertNotNull("query debería devolver filas", data)
         return (0 until data!!.size()).map { index -> data.getMap(index)!! }
     }
@@ -212,5 +247,13 @@ class StorageModuleTest {
         const val FIELD_MESSAGE = "message"
         const val FIELD_SQL = "sql"
         const val FIELD_PARAMS = "params"
+
+        // Tabla y sentencias del adaptador JS (`src/db/nativeStorage.ts`).
+        const val KV_CREATE =
+            "CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)"
+        const val KV_UPSERT = "INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)"
+        const val KV_SELECT_VALUE = "SELECT value FROM kv WHERE key = ? LIMIT 1"
+        const val KV_SELECT_KEYS = "SELECT key FROM kv WHERE key LIKE ? ESCAPE '\\'"
+        const val KV_ROW = """{"id":"abc","name":"Durabilidad 2026-09-19"}"""
     }
 }

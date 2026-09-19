@@ -48,10 +48,12 @@ Thumbs.db
 .claude/
 .commandcode/
 
-# Skills de ingeniería compartidas: viven en el repo para que cualquier agente las lea
+# Skills de ingeniería compartidas: viven en el repo para que cualquier agente las lea.
+# La allowlist es explícita: solo se versionan las que el proyecto usa.
 .agents/*
 !.agents/skills/
 .agents/skills/*
+# SDD (mattpocock/skills)
 !.agents/skills/setup-matt-pocock-skills/
 !.agents/skills/diagnosing-bugs/
 !.agents/skills/tdd/
@@ -61,7 +63,24 @@ Thumbs.db
 !.agents/skills/resolving-merge-conflicts/
 !.agents/skills/triage/
 !.agents/skills/to-tickets/
+!.agents/skills/to-spec/
+!.agents/skills/domain-modeling/
+!.agents/skills/grilling/
+!.agents/skills/grill-me/
+!.agents/skills/grill-with-docs/
+!.agents/skills/ask-matt/
+!.agents/skills/wayfinder/
+!.agents/skills/improve-codebase-architecture/
 !.agents/skills/writing-for-agents/
+# Lynx (lynx-community/skills)
+!.agents/skills/reactlynx-best-practices/
+!.agents/skills/lynx-ui/
+!.agents/skills/lynx-devtool/
+!.agents/skills/lynx-api-docs/
+!.agents/skills/lynx-check-css-support/
+!.agents/skills/lynx-typescript/
+!.agents/skills/rspeedy-bundle-size/
+!.agents/skills/lynx-debug-info-remapping/
 
 # Salidas de herramientas locales
 .playwright-mcp/

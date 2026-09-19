@@ -1,172 +1,101 @@
 # 06 · Problemas conocidos y workarounds
 
-## Sesión actual (levantar web)
+Problemas **reales y abiertos** del port a Lynx. Los históricos de la era Expo están en
+[05-changelog](./05-changelog.md) y en la etiqueta `expo-final`; no se reproducen aquí.
 
-### 1. `react-native-web` no estaba instalado
+## 1. La persistencia no es durable (el problema número uno)
 
-**Síntoma**:
+**Síntoma**: cerrar la app borra lo registrado.
 
-```
-CommandError: It looks like you're trying to use web support but don't have the required dependencies installed.
-Please install react-native-web@~0.19.13
-```
+**Causa**: la implementación de la *seam* de almacenamiento es memoria + el *session storage* de
+Lynx, pensado para compartir datos entre *cards*, no como base de datos. Lo declara el propio fichero.
 
-**Causa**: el proyecto se desarrolló solo con builds Android; `react-native-web` nunca se añadió.
-
-**Fix**: `pnpm add react-native-web@~0.19.13`.
-
----
-
-### 2. `metro.config.js` → recursión infinita en `resolveRequest`
-
-**Síntoma**:
-
-```
-Metro error: Maximum call stack size exceeded
-Call Stack
-  String.match (<anonymous>)
-  Object.config.resolver.resolveRequest (metro.config.js)   ← recursión
-  Object.config.resolver.resolveRequest (metro.config.js)
-  ...
-```
-
-**Causa**: el código original hacía `return config.resolver.resolveRequest(...)`. Pero `config.resolver.resolveRequest` ya está apuntando a la función que estamos definiendo → bucle infinito.
-
-**Fix**: usar `context.resolveRequest(context, moduleName, platform)` (API moderna de Metro). El alias ya no delega a sí mismo.
-
-Ver [`metro.config.js`](./../metro.config.js).
+**Fix**: módulo nativo con SQLite en el host propio —
+[`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md). Hasta entonces, **no meter
+features nuevas sobre el almacén actual**: se perderían.
 
 ---
 
-### 3. `@babel/runtime/helpers/interopRequireDefault` no encontrado
+## 2. `analytics` sobre la seam KV no escala
 
-**Síntoma**:
+**Síntoma**: las agregaciones (volumen por semana, racha, PRs, heatmap) obligan a traer el histórico
+completo a memoria.
 
-```
-Metro error: Unable to resolve module @babel/runtime/helpers/interopRequireDefault from app/(tabs)/_layout.tsx
-```
+**Causa**: el almacén es clave-valor, no relacional.
 
-**Causa**: pnpm aísla las dependencias transitivas. Por defecto, `@babel/runtime` queda en `node_modules/.pnpm/...` y Metro no lo ve sin hoist explícito.
-
-**Fix**: añadir `public-hoist-pattern[]=@babel/runtime*` al [`.npmrc`](./../.npmrc) y correr `pnpm install`.
-
-> Nota: el `.npmrc` ya tenía hoist para `*expo*`, `*react*`, etc., pero faltaba `@babel/runtime`. Si más módulos dan error tipo "Unable to resolve module …", añadirlos aquí.
+**Fix**: la misma decisión del `specs/001`. Sobre SQLite, la agregación es una consulta.
 
 ---
 
-## Históricos del repo (resueltos)
+## 3. No hay app propia: se ejecuta dentro de Lynx Explorer
 
-### 4. `@kingstinct/react-native-health-connect` 404 en npm
+**Síntoma**: sin app instalada no hay notificaciones, Health Connect, widgets ni firma.
 
-**Causa**: ese paquete **no existe en el registry público**. Aparece en blogs y guías pero nunca se publicó.
+**Fix**: el host del [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md).
 
-**Fix**: usar `react-native-health-connect@3.5.3` (mantenido por `matinzd`).
-
-### 5. `HealthConnect.SdkAvailabilityStatus` no es un tipo, es un valor
-
-**Síntoma**: TS2749 en `checkAvailability()`.
-
-**Fix**: tipar el retorno como `Promise<number>` directamente.
-
-### 6. `Permission[]` no acepta unión de subtipos
-
-**Síntoma**: TS error al pasar `[readSteps, readHR, writeExercise, writeRoute]` juntos.
-
-**Causa**: la librería tipa cada permission por separado y no tiene unión.
-
-**Fix**: declarar tipo local:
-
-```ts
-type HealthPermission =
-  | HealthConnect.Permission
-  | HealthConnect.WriteExerciseRoutePermission
-  | HealthConnect.BackgroundAccessPermission
-  | HealthConnect.ReadHealthDataHistoryPermission;
-```
-
-### 7. `HealthConnect.ExerciseType.RESISTANCE_TRAINING` no existe
-
-**Fix**: usar `HealthConnect.ExerciseType.WEIGHTLIFTING` (= 81 en el enum oficial).
-
-### 8. `View` no importado en `shareWorkout.ts`
-
-**Síntoma**: error TS en `CardRef`.
-
-**Fix**: `import type { View } from 'react-native'` y `type CardRef = View | null`.
-
-### 9. El descanso de supersets arrancaba en cada set
-
-**Causa**: `completeSet` arrancaba el descanso en todo set completado, pero `CONTEXT.md` define el
-Superset como «se ejecutan en alternancia y se descansa al cerrar el grupo». En A/B alternado el timer
-arrancaba justo entre A1→B1, que es el momento en que no se descansa. Además, el armado de grupos en
-la sesión activa hardcodeaba la letra `A`, así que dos supersets del mismo entrenamiento se fusionaban
-en un grupo `A` no contiguo.
-
-**Fix**: `src/lib/supersets.ts` define la regla y la letra libre, con una sola definición compartida
-entre la sesión activa y el builder de rutinas. `supersetRestOwner` devuelve el ejercicio cuyo
-descanso corresponde arrancar, así el `restSeconds` que se usa es el del ejercicio que cierra la
-ronda. Issue #2.
-
-### 10. El keypad confirmaba el peso truncado (known-issue K)
-
-**Causa**: `NumericKeypad` guardaba la parte entera en `value` y los decimales aparte en `decimals`.
-El display combinaba ambos, pero `onConfirm(value)` enviaba sólo la parte entera: la secuencia
-`1 0 2 . 5` mostraba `102.05` y confirmaba `102`. Como el 1RM en vivo se calcula con peso × reps,
-también se estimaba sobre el peso truncado.
-
-**Fix**: la edición vive en un reducer puro (`src/lib/keypad.ts`) cuyo estado es un único buffer de
-texto: lo mostrado y el valor que se confirma salen del mismo origen, así no pueden divergir.
-El keypad confirma `keypadValue(state)` (parte entera + decimales) y el 1RM en vivo usa ese mismo
-valor. Tests en `src/lib/keypad.test.ts`: secuencias multi-tecla, borrado del decimal dígito a dígito
-y preview de 1RM con peso decimal.
-
-### 11. El render estático de la web moría por `localStorage` (known-issue J)
-
-**Causa**: `expo export -p web` renderiza en node, donde no existe `localStorage`. `src/lib/supabase.ts`
-lo evaluaba directo al construir el cliente (`Platform.OS === 'web' ? localStorage : …`), así que el
-module eval lanzaba `ReferenceError: localStorage is not defined` al cargar `app/_layout.tsx`. Los
-stores de Zustand tenían el mismo problema latente: `createJSONStorage(() => AsyncStorage)` toca
-`window.localStorage` al hidratar.
-
-**Fix**: `src/lib/storage.ts` centraliza el acceso. `getBrowserLocalStorage()` devuelve el
-`localStorage` del navegador o `null` sin lanzar, y `createSafeAsyncStorage()` devuelve `AsyncStorage`
-cuando hay entorno de ejecución real (nativo o navegador) y un almacén en memoria en SSR. Supabase y
-los stores lo consumen. No se cambió el modo de render (sigue el output estático). `pnpm build:web`
-termina en `Exported: dist`. Tests en `src/lib/storage.test.ts`.
-
-### 12. Versiones de Expo desalineadas (known-issue B)
-
-**Causa**: el proyecto quedó en SDK 56 con librerías de React Native fuera de la versión que Expo
-esperaba para ese SDK (`react-native`, `safe-area-context`, `screens`, `view-shot`). Expo Go de las
-tiendas ya es SDK 57, así que abrir el proyecto daba "Project is incompatible with this version of
-Expo Go" y el warning "may not work correctly" al arrancar.
-
-**Fix**: subida a **Expo SDK 57 / React Native 0.86.3** siguiendo el walkthrough oficial:
-`pnpm add expo@~57.0.22` y `npx expo install --fix` para alinear todo (`expo-*`, `react-native`,
-`gesture-handler`, `reanimated`, `worklets`). `npx expo-doctor` queda **21/21 limpio**. Breaking
-changes aplicados: el plugin de Babel pasó de `react-native-reanimated/plugin` a
-`react-native-worklets/plugin` (el primero ya no existe en Reanimated 4.5) y se quitó
-`android.queries` de `app.json` (el schema del SDK 57 ya no lo acepta). Las guardas de Expo Go
-siguen intactas: `expo-constants` conserva `executionEnvironment` y los tests de
-`notifications`/`healthConnect` siguen en verde.
+> **Trampa de ubicación al crear el host**: la carpeta `android/` de la raíz está en `.gitignore` (es
+> el *prebuild* de la app Expo). Un host creado ahí **no se versionaría**. El host nace en el árbol
+> del proyecto Lynx.
 
 ---
 
-## Problemas estructurales abiertos (no resueltos)
+## 4. Lynx no implementa `Intl`
 
-| # | Issue | Impacto | Workaround |
-|---|-------|---------|------------|
-| A | **No hay tests automatizados**. Toda la lógica crítica (repos, stores, cálculo de PR) está sin cobertura. | Riesgo de regresiones al refactorizar. | Pendiente decidir Jest vs Vitest y empezar por repositories. |
-| C | **Cambios sin commitear del usuario** (no míos). Hay ~25 archivos modificados en `git status` previos a este bloque: `auth/*`, `exercises/*`, `db/*`, varios `components/*`, `tsconfig.json`, etc. | Dificulta el `git pull` limpio. | El usuario debe revisarlos y commitear cuando quiera. Yo no los he tocado. |
-| D | **`expo-sqlite@15.0.6` vs `~15.1.4` esperado**. | Posibles bugs con la API async nueva. | Funciona en builds actuales; pendiente bumpear. |
-| E | **Web solo para dev**. No hay build de producción afinado para web. | La app no es usable públicamente desde URL pública. | Aceptado: producto es Android-first. |
-| F | **`session_exercises` divergente entre SQLite y Supabase**. D11 agregó `target_sets`, `target_reps` y `rest_seconds` sólo al esquema local: `supabase/migrations/initial_app_schema.sql` y `supabase/schema.sql` no las tienen. | Cuando se implemente el sync, los targets no viajan a la nube. Hoy no impacta: `pushPendingChanges` es un stub y ningún repo escribe `sync_queue`. | Al implementar el sync, agregar una migración idempotente en `supabase/migrations/`. Decisión D11. |
-| H | **La regla "el primer set es warmup" está duplicada**: `SessionsRepo.start` (`s === 1 ? ...`) y `exportImport` (`i === 0 ? ...`). | Puede divergir sin que nadie lo note. | Unificar en una sola definición cuando se toque alguno de los dos caminos. |
-| I | **`BetterSqliteStack.seam` se devuelve y ningún consumidor lo lee** (Speculative Generality del `/code-review`). | Superficie sin uso en el adapter de tests. | Borrarlo si sigue sin consumidor en el próximo review. |
+**Síntoma**: cualquier `toLocaleString` o `Intl.DateTimeFormat` revienta en runtime.
+
+**Fix**: `lynx/src/lib/format.ts` formatea a mano (fechas, número de miles, duración, mes corto). **No
+uses `Intl`** ni para un caso trivial.
 
 ---
 
-## Decisiones de fix pendientes
+## 5. `tab-group` no existe en `lynx-ui`
 
-- Empezar a escribir tests unitarios al menos del repositorio principal (`SessionsRepo`).
-- Revisar y commitear los archivos modificados sin commitear del usuario antes de mergear a main.
+**Síntoma**: no hay componente oficial de pestañas.
+
+**Causa**: el paquete está sin publicar en la versión que se usa.
+
+**Workaround**: la tab bar es propia (`Shell`). No es un pendiente: es la solución adoptada.
+
+---
+
+## 6. `Sortable` sin verificar en dispositivo
+
+**Síntoma**: reordenar arrastrando funciona en el port, pero **no se ha probado en Lynx Explorer** con
+el bucle de dispositivo activo; el gesto convive con el scroll de la pantalla.
+
+**Workaround**: si no encaja, el fallback es subir/bajar con botones —`routineEditor.moveBy` ya lo
+resuelve y tiene tests—.
+
+---
+
+## 7. Fuga de `drizzle-orm` desde las dependencias de la raíz
+
+**Síntoma**: el proyecto Lynx importa `drizzle-orm` en `lynx/src/lib/metrics.ts` (los helpers SQL que
+Lynx no usa) y lo resuelve desde el `node_modules` de **la raíz**, no desde `lynx/`.
+
+**Consecuencia**: el *bundle* lo elimina (0 kB), pero Lynx **no compila si la raíz no tiene las
+dependencias instaladas**.
+
+**Fix**: sacar los helpers SQL de esa ruta cuando el `specs/004` retire la app Expo (que es quien
+instala `drizzle-orm`).
+
+---
+
+## 8. Piezas que aún no están portadas
+
+Health Connect, notificaciones, captura/compartir y hápticas dependen de un módulo nativo. En el port
+están como **puentes**; su implementación son los specs
+[`002`](../specs/002-nativas-notificaciones-y-health-connect.md) y
+[`003`](../specs/003-auth-y-cuenta-con-insforge.md).
+
+---
+
+## 9. Límites de fidelidad del preview web
+
+**Síntoma**: el preview en navegador (Lynx for Web) parece la app, pero no lo es.
+
+**Causa**: los elementos de Lynx se mapean a elementos web.
+
+**Regla**: el navegador sirve para composición, tipografía, color y navegación; **no** para dar por
+bueno el táctil ni el rendimiento. Eso se valida en móvil real o emulador
+([12](./12-entorno-desarrollo-lynx.md)).

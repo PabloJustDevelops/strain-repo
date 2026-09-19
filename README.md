@@ -1,165 +1,91 @@
 # Strain
 
-App multiplataforma (Web + Android) para seguimiento de entrenamientos de gimnasio, estilo Hevy, construida con **un único código base** en Expo + TypeScript.
+App de seguimiento de entrenamientos de gimnasio, estilo Hevy, **Android-first y offline por
+defecto**, construida sobre **Lynx** con **ReactLynx** y **Rspeedy**.
 
-## Características
+## Estado del proyecto
 
-- 💪 **Biblioteca de ejercicios** con categorización por grupo muscular y equipo
-- 🏋️ **Builder de rutinas** con drag-to-reorder
-- ⏱️ **Modo workout activo** con timer, descanso automático, calculadora de discos y gestos swipe
-- 📈 **Progreso** con gráficos de volumen, PRs (1RM estimado) y racha de consistencia
-- 📅 **Historial** filtrable de todos los workouts
-- 💾 **Local-first**: todo funciona offline con SQLite (expo-sqlite + Drizzle)
-- ☁️ **Sync opcional** entre dispositivos vía Supabase
-- 🌗 Tema claro/oscuro siguiendo el sistema
-- 📲 Haptic feedback, soporte landscape, layout adaptativo (stack en móvil, side-by-side en desktop)
+> **En transición**: el proyecto Lynx vive hoy en `lynx/` y es donde está el trabajo. La **app Expo**
+> de la raíz es **legado**, no recibe features y se retira por el
+> [`specs/004`](./specs/004-reestructura-del-repo-y-retirada-de-expo.md). Nada se borra hasta que
+> exista el host nativo del [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md). La red
+> de seguridad es la etiqueta **`expo-final`**.
 
-## Stack técnico
+Dos límites que conviene saber antes de tocar nada:
 
-- **Expo SDK 52** + **expo-router 4** (file-based routing)
-- **React Native 0.76** + **Reanimated 3** (gestos y animaciones)
-- **expo-sqlite** + **Drizzle ORM** (storage local, type-safe)
-- **Zustand** (estado)
-- **Supabase** (auth + sync opcional)
-- **react-native-chart-kit** (gráficos)
+- **La persistencia todavía no es durable**: cerrar la app pierde lo registrado. Es el primer problema
+  que resuelve el [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md).
+- **No hay app propia**: hoy se ejecuta dentro de **Lynx Explorer**, así que las funciones nativas
+  (notificaciones, Health Connect) y el build Android llegan con el host del mismo spec.
+
+## Características (port Lynx)
+
+- 💪 **Biblioteca de ejercicios** con categorización por grupo muscular y equipo (47 en el seed)
+- 🏋️ **Rutinas**: crear, editar, añadir ejercicios y **reordenar arrastrando**
+- ⏱️ **Modo workout activo** con cronómetro, descanso automático, calculadora de discos y RPE/notas
+- 📈 **Progreso** con volumen semanal, PRs (1RM estimado), racha y heatmap
+- 📅 **Historial** con detalle de cada sesión
+- 🎨 **Sistema de diseño propio**: tokens por rol, contraste medido, tipografía y espaciado
+- 📴 **Local-first**: funciona sin conexión
+
+## Stack
+
+| Capa | Tecnología |
+|---|---|
+| UI | **ReactLynx** (`@lynx-js/react`) sobre el motor **Lynx** |
+| Build | **Rspeedy** con dos targets: `lynx` (nativo) y `web` (Lynx for Web) |
+| Componentes | **`@lynx-js/lynx-ui`** |
+| Estado | **Zustand** |
+| Persistencia | *Seam* propia (**hoy no durable** → [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md)) |
+| Cuenta / sync | **InsForge** (opcional → [`specs/003`](./specs/003-auth-y-cuenta-con-insforge.md)) |
+| Testing | **Vitest** |
+| Paquetes | **bun 1.4.2** |
+
+Detalle en [`docs/02-stack.md`](./docs/02-stack.md) y [`docs/03-architecture.md`](./docs/03-architecture.md).
 
 ## Estructura del proyecto
 
 ```
 strain-repo/
-├── app/                        # expo-router (file-based)
-│   ├── _layout.tsx             # Root layout (inicializa BD, tema)
-│   ├── (tabs)/                 # Grupo con bottom tabs / sidebar
-│   │   ├── _layout.tsx
-│   │   ├── index.tsx           # Hoy (Home)
-│   │   ├── routines.tsx        # Lista de rutinas
-│   │   ├── exercises.tsx       # Biblioteca de ejercicios
-│   │   ├── history.tsx         # Historial de workouts
-│   │   ├── progress.tsx        # Gráficos + PRs + streak
-│   │   └── settings.tsx        # Ajustes + datos
-│   ├── workout/
-│   │   ├── active.tsx          # Pantalla principal de workout activo
-│   │   └── finish.tsx          # Resumen tras finalizar
-│   ├── exercises/[id].tsx      # Detalle de ejercicio
-│   └── routines/[id].tsx       # Detalle/editor de rutina
+├── lynx/                  ← el proyecto (Lynx + ReactLynx + Rspeedy)
+│   ├── src/screens/       # 14 pantallas
+│   ├── src/components/    # UI compartida y shell
+│   ├── src/db/            # repos, schema y la seam de almacenamiento
+│   ├── src/stores/        # Zustand
+│   └── src/lib/           # lógica pura de dominio, formato y tema
+├── specs/                 ← specs (SDD), numerados y con tickets
+├── docs/                  ← documentación del proyecto
+├── .agents/skills/        ← skills de SDD y de Lynx
 │
-├── src/
-│   ├── components/             # UI reutilizable
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Sidebar.tsx         # Sidebar para desktop
-│   │   ├── SetRow.tsx          # Fila con swipe-to-complete
-│   │   ├── RestTimer.tsx       # Timer flotante de descanso
-│   │   ├── PlateCalculatorSheet.tsx
-│   │   └── MuscleChip.tsx
-│   ├── db/                     # Capa de datos (Drizzle + SQLite)
-│   │   ├── schema.ts           # Tablas y relaciones
-│   │   ├── client.ts           # Conexión singleton
-│   │   ├── repositories.ts     # CRUD + lógica de dominio
-│   │   ├── migrations.ts       # Migraciones SQL idempotentes
-│   │   └── seed.ts             # Catálogo inicial de ejercicios
-│   ├── stores/                 # Estado global (Zustand)
-│   │   ├── preferencesStore.ts
-│   │   └── activeWorkoutStore.ts
-│   ├── types/                  # Tipos compartidos del dominio
-│   │   └── domain.ts
-│   └── lib/                    # Utilidades
-│       ├── format.ts           # Formato de fechas, pesos, duraciones
-│       ├── plateCalculator.ts  # Cálculo de discos
-│       ├── theme.ts            # Tokens de tema claro/oscuro
-│       ├── exportImport.ts     # Backup JSON/CSV + importador Hevy
-│       └── supabase.ts         # Cliente opcional de Supabase
-│
-├── supabase/
-│   └── schema.sql              # Esquema espejo para Supabase + RLS
-├── assets/                     # Iconos, splash, imágenes
-├── app.json                    # Config Expo
-├── eas.json                    # Config EAS Build
-├── tsconfig.json               # Alias: @, @db, @components, @stores, @lib
-├── babel.config.js
-└── metro.config.js
+└── app/ src/ android/ app.json eas.json   ← app Expo (LEGADO, se retira)
 ```
 
 ## Primeros pasos
 
-### 1. Instalar dependencias
-
 ```bash
+git clone https://github.com/PabloJustDevelops/strain-repo.git
+cd strain-repo/lynx
 bun install
+
+bun run dev         # dev server (puerto 3000): target web + QR para Lynx Explorer
+bun run typecheck   # tsc --noEmit
+bun run test        # vitest run
+bun run build       # dist/main.lynx.bundle + dist/main.web.bundle
 ```
 
-### 2. Ejecutar en desarrollo
+El bucle de trabajo tiene tres niveles —navegador para iterar, móvil real para validar, emulador para
+automatizar— y está explicado en
+[`docs/12-entorno-desarrollo-lynx.md`](./docs/12-entorno-desarrollo-lynx.md). El setup completo, en
+[`docs/08-setup.md`](./docs/08-setup.md).
 
-```bash
-# Web
-bun run web
+## Documentación y specs
 
-# iOS
-bun run ios
-
-# Android
-bun run android
-```
-
-### 3. Build de producción
-
-```bash
-# Web (Vercel / estático)
-bun run build:web
-
-# Mobile (iOS + Android)
-bun run build:production
-```
-
-### 4. Configurar Supabase (opcional)
-
-Solo si quieres sincronizar entre dispositivos:
-
-1. Crea un proyecto en [supabase.com](https://supabase.com)
-2. Ejecuta `supabase/schema.sql` en el SQL Editor
-3. Usa `docs/.env.example` como plantilla y crea `.env` en la raiz:
-   ```
-   EXPO_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-   ```
-4. Reinicia la app y ve a Settings → Sincronizar
-
-## Decisiones de arquitectura
-
-### ¿Por qué SQLite local-first?
-
-- Cero latencia al registrar sets (UX crítica en el gym)
-- Funciona 100% offline (gimnasios sin WiFi, modo avión, roaming)
-- La sincronización con la nube es opcional y por demanda
-- Los datos son tuyos: exportar en JSON/CSV en cualquier momento
-
-### ¿Por qué Drizzle y no Prisma?
-
-Drizzle genera SQL plano en lugar de un ORM pesado. Es 100% compatible con expo-sqlite, tiene mejor rendimiento en móvil y los tipos se infieren de las definiciones de tabla.
-
-### Flujo de un workout
-
-1. Usuario abre `/` (Hoy) o `/routines`
-2. Pulsa "Empezar" → `SessionsRepo.start()` crea filas en `workout_sessions`, `session_exercises` y `sets`
-3. Store `useActiveWorkout` mantiene la sesión en memoria con optimistic updates
-4. Cada `completeSet` actualiza el store local + BD + recalcula totales
-5. Al finalizar: `SessionsRepo.finish()` cierra la sesión, recalcula PRs (1RM por fórmula de Epley)
-
-### Layout adaptativo
-
-- `< 1024px` (móvil / tablet): bottom tabs + stacks
-- `>= 1024px` (web / desktop): sidebar fijo a la izquierda + contenido a la derecha
-- Detección: `useWindowDimensions().width` en cada layout relevante
-
-## Roadmap
-
-- [ ] Notificaciones push (recordatorios de entrenamiento)
-- [ ] Widget para iOS/Android con próximo workout
-- [ ] Apple Health / Google Fit integration
-- [ ] Generación de gráficos de líneas por ejercicio (victory-native)
-- [ ] Compartir workout como imagen
-- [ ] Apple Watch companion app
-- [ ] Temas personalizables
+- **Documentación**: [`docs/README.md`](./docs/README.md) (índice).
+- **Decisiones**: [`docs/07-decisions.md`](./docs/07-decisions.md) (`D1`…`D14`).
+- **Specs (SDD)**: [`specs/`](./specs) — host y almacenamiento durable, nativas, auth/cuenta, retirada
+  de Expo y CI/CD.
+- **Glosario de dominio**: [`CONTEXT.md`](./CONTEXT.md).
+- **Guía para agentes**: [`AGENTS.md`](./AGENTS.md).
 
 ## Licencia
 

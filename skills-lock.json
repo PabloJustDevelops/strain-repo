@@ -48,32 +48,6 @@
       "skillPath": "toolchains/typescript/data/drizzle/SKILL.md",
       "computedHash": "daefe2ce00404d56ac89ff312abc57457d3779ff5f8a38a1c6b4867c67a86ea4"
     },
-    "expo-api-routes": {
-      "source": "expo/skills",
-      "sourceType": "autoskills-registry",
-      "computedHash": "8b4ce4d0ab40f0633dfc202c2b91bcf4c6d318393634a37960c37b1c2f9d7893"
-    },
-    "expo-cicd-workflows": {
-      "source": "expo/skills",
-      "sourceType": "autoskills-registry",
-      "computedHash": "09dffe4e7c971274eb3cad655e3bf157b7473d1fce996057730573b0bedf7c5e"
-    },
-    "expo-deployment": {
-      "source": "expo/skills",
-      "sourceType": "autoskills-registry",
-      "computedHash": "b9a9d3cffec27445ddaac16599f4bc17d2f29438c1d938d11d70a788f82ee8ea"
-    },
-    "expo-dev-client": {
-      "source": "expo/skills",
-      "sourceType": "github",
-      "skillPath": "plugins/expo/skills/expo-dev-client/SKILL.md",
-      "computedHash": "7b8b0ec9a98e96674b13b72b798bc1b0b0d122244dc22c54d375613eb525bcae"
-    },
-    "expo-tailwind-setup": {
-      "source": "expo/skills",
-      "sourceType": "autoskills-registry",
-      "computedHash": "420489ebf1b3a954ff71d6794819ba212d4b64d8d47c4f0db9a4bc30d25f194b"
-    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -110,6 +84,42 @@
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "computedHash": "016f12709bff30a27419e8add978a9be70f5ca1fb6738b3be6793038e0aba631"
     },
+    "lynx-api-docs": {
+      "source": "lynx-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/lynx-api-docs/SKILL.md",
+      "computedHash": "f71b5fe3fada7732211d25f8eae27d8be3e66964659d6de57a72ff987c4d7606"
+    },
+    "lynx-check-css-support": {
+      "source": "lynx-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/lynx-check-css-support/SKILL.md",
+      "computedHash": "198bd60d6d589349172d0fbfa52b22f8f79a7d8272524a78783d9d9b4844e327"
+    },
+    "lynx-debug-info-remapping": {
+      "source": "lynx-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/lynx-debug-info-remapping/SKILL.md",
+      "computedHash": "d9f91fb174daa4b89685e0d01acc19058cf2ec18f4f68ea91552753a7da4329d"
+    },
+    "lynx-devtool": {
+      "source": "lynx-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/lynx-devtool/SKILL.md",
+      "computedHash": "1347a61bf35be87c0f2035ea4a33323255399b590b2bfab1461341c3fe1ad12e"
+    },
+    "lynx-typescript": {
+      "source": "lynx-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/lynx-typescript/SKILL.md",
+      "computedHash": "60b32fac5166d7bc91fd6f8d1274783a241f6390585db1e9a7ffce815882d54b"
+    },
+    "lynx-ui": {
+      "source": "lynx-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/lynx-ui/SKILL.md",
+      "computedHash": "5f61ff75b5a93cb14cc7875d635a7b3208b64fc2b6471d77cbf7351cc0077eac"
+    },
     "native-data-fetching": {
       "source": "expo/skills",
       "sourceType": "autoskills-registry",
@@ -133,11 +143,23 @@
       "skillPath": "skills/nodejs-best-practices/SKILL.md",
       "computedHash": "b57334d753ce0f23a37f72f7f4e70d095f4d9ae0ff983e76f66d3b5e5fb58b8c"
     },
+    "reactlynx-best-practices": {
+      "source": "lynx-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/reactlynx-best-practices/SKILL.md",
+      "computedHash": "ba604970ea365f40c68c914dcff006b3c96a4ccc3242c9fcbdbd31d923d4695e"
+    },
     "resolving-merge-conflicts": {
       "source": "mattpocock/skills",
       "sourceType": "github",
       "skillPath": "skills/engineering/resolving-merge-conflicts/SKILL.md",
       "computedHash": "436698459190d8e9f03dc32ada08401b56e352fb6a19bf71a2227fad8b80d98f"
+    },
+    "rspeedy-bundle-size": {
+      "source": "lynx-community/skills",
+      "sourceType": "github",
+      "skillPath": "skills/rspeedy-bundle-size/SKILL.md",
+      "computedHash": "0b0f79d4d6799a16dcbf71e583ec9f9623dbb9b8659f9d27e8e310947a107ece"
     },
     "seo": {
       "source": "addyosmani/web-quality-skills",
@@ -204,11 +226,6 @@
       "sourceType": "github",
       "skillPath": "plugins/javascript-typescript/skills/typescript-advanced-types/SKILL.md",
       "computedHash": "bc33bc9653d649a461e49abe45634b6b11a7aeeae552b05ec4d54d4589d16739"
-    },
-    "upgrading-expo": {
-      "source": "expo/skills",
-      "sourceType": "autoskills-registry",
-      "computedHash": "e0248389b6ad8b07da953c5d790021b8f241e5769f9358ba03c2ec2bd3c8e423"
     },
     "use-dom": {
       "source": "expo/skills",

@@ -1,59 +1,66 @@
 # 02 · Stack tecnológico
 
+> El proyecto es **Lynx + ReactLynx + Rspeedy**. Sus raíces son `lynx/` (hoy) y la raíz del repo tras
+> el [`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md).
+
 ## Core
 
 | Capa | Tecnología | Por qué |
 |------|------------|---------|
-| Framework | **Expo SDK 52** + React Native 0.76 | New architecture habilitada, ecosistema maduro, EAS para builds |
-| Router | **expo-router 4** | File-based routing, deep linking nativo, typed routes |
-| Lenguaje | **TypeScript 5.3** (strict) | Type safety en todo el dominio |
-| Estado | **Zustand 5** | Stores pequeños, sin boilerplate, persistencia con AsyncStorage |
+| Motor | **Lynx** | Motor nativo multiplataforma (móvil y web) pensado para render rápido y arranque ligero |
+| UI | **ReactLynx** (`@lynx-js/react`) | Se escribe React, pero los elementos son `page` / `view` / `text` / `scroll-view` / `input`, no DOM |
+| Build | **Rspeedy** (`@lynx-js/rspeedy`) | Bundler oficial de Lynx; dos targets en un mismo proyecto: `lynx` (nativo) y `web` (Lynx for Web) |
+| Lenguaje | **TypeScript** (strict) | Type safety en todo el dominio; `tsc --noEmit` como puerta |
+| Estado | **Zustand** | Stores pequeños, sin boilerplate |
 
 ## Datos
 
 | Capa | Tecnología | Por qué |
 |------|------------|---------|
-| DB local | **expo-sqlite 15** + Drizzle ORM | SQL real, migrations versionadas, type-safe queries |
-| Migrations | **Sistema propio** (`src/db/migrations.ts`) | Array numerado, ejecuta en orden, idempotente |
-| Sync opcional | **Supabase** | Auth + Postgres cloud para backup multi-device |
-| Persistencia stores | **AsyncStorage** | Suficiente para preferencias y caches ligeras |
+| Almacenamiento | ***Seam* propia** (`Storage`) | Lynx no trae base de datos; la seam aísla la decisión. **Hoy no es durable** (memoria + session storage) y el [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md) la sustituye por un módulo nativo SQLite |
+| Repositorios | Factories sobre la seam (`exercises`, `routines`, `sessions`, `analytics`) | La UI nunca habla con el almacenamiento: habla con repos. Esa frontera permite cambiar la implementación sin tocar pantallas |
+| Sincronización | **InsForge** (opcional, por demanda) | Cuenta y backup multi-dispositivo; la nube nunca es la fuente de verdad ([`specs/003`](../specs/003-auth-y-cuenta-con-insforge.md)) |
 
 ## UI
 
 | Capa | Tecnología | Por qué |
 |------|------------|---------|
-| Estilos | **StyleSheet nativo** + theme tokens | Sin dependencias pesadas, theme centralizado en `src/lib/theme.ts` |
-| Iconos | **@expo/vector-icons** (Ionicons) | Set gigante, tree-shakeable |
-| Charts | **react-native-chart-kit** + **victory-native** | Heatmap custom con SVG |
-| Gestos | **react-native-gesture-handler** + **reanimated 3** | Drag-and-drop en reordenación de ejercicios |
-| Listas | **FlatList** estándar + draggable-flatlist | Suficiente para el tamaño de las colecciones |
+| Estilos | **Tokens por rol** + CSS de Lynx | Sin Tailwind: el sistema de tokens cubre color, tipografía, espaciado, radios y movimiento |
+| Componentes | **`@lynx-js/lynx-ui`** | Hoja, switch, input, sortable, overlay…; `lynx.config.ts` activa `enableNewGesture` |
+| Iconos | **Set propio** (`Icon`) | SVG inline sobre caja de 24; los glifos de texto dependían de la fuente de cada plataforma |
+| Gráficas | **Dibujadas a mano** (`view` + CSS) | Lynx no trae equivalente a las librerías de charts de React Native |
 
 ## Integraciones
 
-| Feature | Paquete | Notas |
-|---------|---------|-------|
-| Health Connect | **react-native-health-connect 3.5.3** | Único paquete oficial mantenido en npm (`@kingstinct/...` no existe) |
-| Notificaciones | **expo-notifications 0.29** | Canal Android custom, recordatorios de workout |
-| Compartir workout | **react-native-view-shot 5.1** + **expo-sharing 13** | Captura de la card resumen, fallback a `Share.share` |
-| Document picker | **expo-document-picker 13** | Importar/exportar backups JSON |
-| Auth | **expo-auth-session** + Supabase | OAuth y email/password |
-| Haptics | **expo-haptics 14** | Feedback en PRs y fin de serie |
+| Feature | Tecnología | Estado |
+|---------|------------|--------|
+| Health Connect | API nativa en el host propio | Pendiente ([`specs/002`](../specs/002-nativas-notificaciones-y-health-connect.md)) |
+| Notificaciones del descanso | Notificaciones locales + alarma exacta en el host | Pendiente ([`specs/002`](../specs/002-nativas-notificaciones-y-health-connect.md)) |
+| Cuenta y sync | InsForge | Pendiente ([`specs/003`](../specs/003-auth-y-cuenta-con-insforge.md)) |
+| Compartir workout | Captura en el host | Pendiente (nativo) |
 
 ## Tooling
 
 | Herramienta | Uso |
 |-------------|-----|
-| **bun 1.4.2** | Package manager y runtime de scripts (migrado desde pnpm — ver [07](./07-decisions.md#d12--gestor-de-paquetes-bun)) |
-| **drizzle-kit 0.28** | Generar SQL desde el schema TS |
-| **eas-cli 14** | Builds remotos y OTA |
-| **tsx** | Ejecutar scripts `.ts` (migrate, seed) |
-| **ESLint + eslint-config-expo** | Lint |
-| **TypeScript --noEmit** | Typecheck en CI |
+| **bun 1.4.2** | Gestor de paquetes y runtime de scripts (`bun.lock` en raíz y en `lynx/`) |
+| **Vitest** | Tests (`bun run test`), con arnés de JSX propio en `lynx/src/test/jsxCapture.ts` |
+| **TypeScript `--noEmit`** | Typecheck en CI |
+| **Lynx DevTool** | Paneles de consola, DOM/CSS, capturas y trazas (ver [12](./12-entorno-desarrollo-lynx.md)) |
+
+## Lo que Lynx no trae (y por eso está portado a mano o pendiente)
+
+| Pieza | Alternativa |
+|-------|-------------|
+| `Intl` (`toLocaleString`, `DateTimeFormat`) | `lynx/src/lib/format.ts` formatea a mano |
+| SQLite | Módulo nativo propio ([`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md)) |
+| Health Connect, notificaciones, hápticas, captura/compartir | Módulos nativos propios |
+| `tab-group` | No existe en la versión actual de `lynx-ui`: la tab bar es propia |
+| Librerías de gráficas | Heatmap y barras se dibujan con `view`/CSS |
 
 ## No usamos (deliberadamente)
 
 - **Redux/MobX** → Zustand cubre todo con menos código.
-- **Tailwind/NativeWind** → StyleSheet nativo + tokens es suficiente y más rápido.
-- **i18n libraries** → La app es solo en español por ahora.
-- **Storybook** → El componente set es pequeño y estable.
-- **Jest** para unit tests → Pendiente decidir entre Jest/Vitest; ahora sin tests.
+- **Tailwind/NativeWind** → los tokens por rol y el CSS de Lynx son suficientes y más rápidos.
+- **`Intl`** → no está implementado en Lynx; se formatea a mano en un único sitio.
+- **Librerías de charts** → sin equivalente directo; se dibujan a mano.

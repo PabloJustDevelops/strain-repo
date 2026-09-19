@@ -60,6 +60,11 @@ queremos llegar en funcionalidad**:
 
 ## 3. Nuestro punto de partida (verificado, no supuesto)
 
+> **Actualización (19 sep 2026)**: esta sección describe el punto de partida del plan. Desde entonces
+> se decidió **retirar la app Expo** ([D13](./07-decisions.md#d13--retirada-de-expo)) y que el port
+> Lynx —14 pantallas, **5 pestañas** y sistema de diseño v2— es la base. Las menciones a la app Expo
+> se leen como **estado inicial**, no como destino.
+
 - **Dominio ya modelado** en `CONTEXT.md`: `Exercise` (global o custom), `Routine`, `Routine Exercise`
   (con `targetSets`, `targetReps`, `targetWeight`, `restSeconds`, `orderIndex`, **`supersetGroup`**),
   `Session` (máquina de estados `active → completed | discarded` con agregados `totalVolume`,

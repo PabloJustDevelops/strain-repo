@@ -1,55 +1,62 @@
 # 04 · Roadmap
 
-Estado actual: **MVP funcional con features avanzadas**. Pendiente: pulir UX, tests, performance.
+## Estado actual
 
-## ✅ Entregado (este dev session)
+El **port a Lynx está funcional** en `lynx/`: 14 pantallas, 5 pestañas, sistema de diseño v2, capa de
+datos con repos y una suite de tests propia. Lo que falta no es UI: son las piezas que exigen **host
+nativo** y **persistencia durable**. El plan por fases completo está en
+[11-plan-app-tipo-hevy](./11-plan-app-tipo-hevy.md); este documento sigue su numeración.
 
-| Feature | Commit | Notas |
-|---------|--------|-------|
-| Assets regenerados (icon, splash, favicon) | `22667ef`, `a12caad` | Android-only, sin soporte iOS/Apple |
-| Auth (login/signup/forgot) | `1f0ae07` | Supabase email/password |
-| Import/Export JSON | `1f0ae07` | Backup completo del usuario |
-| Analytics locales | `1f0ae07` | Tracking de eventos UI |
-| **Supersets** | `a77b645` | Agrupar ejercicios en una serie |
-| **RPE + notas por set** | `a77b645` | Escala RPE 1–10, notas libres |
-| **Heatmap muscular** | `a77b645` | Visualización de volumen por grupo |
-| **Notificaciones push** | `a77b645` | Canal Android, recordatorios |
-| **Health Connect (lectura + escritura)** | `76f003c` | Android 14+ Health Connect |
-| **Compartir workout** | `76f003c` | PNG vía `react-native-view-shot` + `expo-sharing` |
-| **Migración a pnpm** | `76f003c` | Lockfile, `.npmrc`, `pnpm-workspace.yaml` |
+> La **app Expo** de la raíz es legado y no recibe features. Se retira por el
+> [`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md).
 
-## 🚧 En curso / próximo bloque
+## ✅ Entregado
 
-- [x] Pulir UX del sheet de detalles por set (drag handle + teclado) — issue #3
-- [x] Calcular 1RM estimado (Epley) en tiempo real al introducir peso/reps — issue #4
-- [ ] PRs automáticos: detectar nuevo PR al finalizar set
-- [ ] Heatmap con más granularidad (filtrar por rango temporal)
+| Fase | Qué | Notas |
+|------|-----|-------|
+| **F0 · Envolvente de desarrollo** | Preview web + target nativo; `bun run dev` sirve los dos | Ver [12](./12-entorno-desarrollo-lynx.md) |
+| **F1 · Base del port** | Scaffold, theme, lógica de dominio pura, repos sobre la *seam*, semilla de 47 ejercicios | Paridad de dominio con la app original |
+| **F2 · Shell y pantallas** | Registro de rutas, 7 pantallas iniciales con sus estados de carga/vacío/error | |
+| **F3 · Flujo de entrenamiento** | Workout activo, resumen, detalle de ejercicio, detalle de sesión, heatmap | Descanso con dueño único |
+| **F4 · Sistema de UI v2 (parte A)** | Tokens por rol, contraste medido, 8 componentes nuevos, 5 pestañas | |
+| **F5 · Editor de rutinas** | `routines/new`, `routines/[id]`, añadir ejercicios, reordenar arrastrando | `Sortable` de `lynx-ui` |
+
+## 🚧 Próximo bloque (specs aprobados)
+
+El orden no es negociable en un punto: **el host antes que todo** (registrar sin persistir es teatro).
+
+| Spec | Qué resuelve | Bloquea |
+|------|--------------|---------|
+| [`001`](../specs/001-host-nativo-y-almacenamiento-durable.md) | App Android propia con `LynxView` y almacenamiento durable | 002, 003 |
+| [`002`](../specs/002-nativas-notificaciones-y-health-connect.md) | Notificación del descanso y Health Connect | |
+| [`003`](../specs/003-auth-y-cuenta-con-insforge.md) | Las 3 pantallas de auth y cuenta/sync con InsForge | |
+| [`004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md) | Promover Lynx a la raíz y retirar Expo | |
+| [`005`](../specs/005-ci-cd.md) | CI del producto real + seguridad + release | |
 
 ## 🔮 Pendiente (post-MVP)
 
-- [ ] Tests E2E con Playwright (login → workout → finish → ver en history)
-- [ ] Tests unitarios del repositorio (Drizzle queries)
-- [ ] Sincronización Supabase: backup automático al finalizar sesión
-- [ ] Offline queue: queue de acciones cuando no hay red
-- [ ] Versión iOS (descartado por ahora — ver [07](./07-decisions.md))
-- [ ] Widget Android (1RM del ejercicio favorito en home)
-- [ ] Watch companion (Wear OS): registrar serie desde el reloj
+- **F3 (paridad de registro)**: valores de la vez anterior, tipos de serie, RPE, PRs en vivo.
+- **F4 (progreso)**: calendario, gráficas por ejercicio (peso/volumen/1RM), volumen por músculo.
+- **F5 (biblioteca)**: instrucciones y vídeo, ejercicios propios con imagen, historial por ejercicio.
+- **F6 (integraciones)**: Health Connect, widgets.
+- **F7 (cuenta, sync y social)**: registro de cuenta, sync multi-dispositivo, compartir entrenos.
+- Tests de extremo a extremo con Maestro en emulador ([`specs/005`](../specs/005-ci-cd.md)).
+- Compartir el resumen del entrenamiento como imagen (captura nativa).
 
 ## ❌ Descartado / fuera de scope
 
-- iOS nativo (coste de mantenimiento > valor para Android-first)
-- Red social de workouts
-- Integración con apps de running
-- Marketplace de rutinas
-- Plan gratuito / premium (todo gratis, sin monetización por ahora)
+- iOS nativo (coste de mantenimiento > valor para Android-first).
+- Red social de workouts.
+- Integración con apps de running.
+- Marketplace de rutinas.
+- Plan gratuito / premium: todo gratis, sin monetización por ahora.
 
 ## Métricas de éxito (criterio MVP)
 
-- [x] Registrar workout completo sin conexión
-- [x] Ver histórico y métricas
-- [x] Exportar/importar backup
-- [x] Compartir resultado
-- [x] Integrar con Health Connect
-- [ ] Latencia de apertura de app < 1s en Pixel 6a
-- [ ] Cobertura de tests > 60% en repos
-- [ ] Build de release reproducible desde EAS
+- [ ] **Cerrar y reabrir la app conserva lo registrado** (requisito duro del `specs/001`).
+- [x] Registrar workout completo sin conexión.
+- [x] Ver histórico y métricas.
+- [x] Compartir resultado (en la app legado; pendiente en Lynx).
+- [ ] Integrar con Health Connect desde el host propio.
+- [ ] Latencia de apertura de la app < 1 s en un dispositivo de referencia.
+- [ ] Presupuesto de *bundle* vigilado en CI (punto de partida: 549,9 kB nativo / 542,7 kB web).

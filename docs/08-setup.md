@@ -22,6 +22,7 @@ bun install
 | Comando | Qué hace |
 |---------|----------|
 | `bun run dev` | Dev server (puerto **3000**): compila los targets `web` y `lynx`, sirve la página de preview e imprime el QR para Lynx Explorer |
+| `bun run preview:web` | Abre la página de preview en el navegador (necesita `bun run dev` en marcha); `--port` si cambiaste el puerto |
 | `bun run build` | Build de producción: `dist/main.lynx.bundle` y `dist/main.web.bundle` |
 | `bun run preview` | Preview del build |
 | `bun run typecheck` | `tsc --noEmit` |
@@ -30,7 +31,8 @@ bun install
 
 ## Host nativo
 
-El host vive en [`host/android`](../host/android) y monta el bundle desde `dist/`. Requiere JDK 17 y
+El host vive en [`host/android`](../host/android) y monta el bundle desde `dist/`. Es el **artefacto de
+distribución**, no el bucle de trabajo (ver [12](./12-entorno-desarrollo-lynx.md)). Requiere JDK 17 y
 el Android SDK 36:
 
 ```bash
@@ -47,26 +49,36 @@ artefactos, el escaneo de secretos con gitleaks y, solo en propuestas, la compro
 del triaje. Detalle y umbrales en [`specs/005`](../specs/005-ci-cd.md); la decisión del presupuesto,
 en D16 (`docs/07-decisions.md`).
 
-## El bucle de trabajo (tres niveles)
+## El bucle de trabajo
 
 El detalle está en [12-entorno-desarrollo-lynx](./12-entorno-desarrollo-lynx.md). Resumen:
 
-1. **Navegador** — iterar en segundos. `bun run dev` y abrir la URL **∟ Preview** del dev server
-   (`/__web_preview?casename=main.web.bundle`). En `/` no hay HTML (da 404): la página es la del
-   preview. Sirve para composición, color y navegación; **no** para táctil ni rendimiento.
-2. **Móvil real** — validar de verdad. Móvil y PC en la misma Wi-Fi, escanear el QR de la terminal con
-   **Lynx Explorer**. Si el host no se anuncia solo: `bun run dev -- --host`.
-3. **Emulador Android** — automatizar y sacar evidencia. Único entorno donde corre `adb`/Maestro; se
-   expone el puerto con `adb reverse tcp:3000 tcp:3000`. Reservado a la comprobación final.
+1. **Iterar** — en el navegador. `bun run dev` y abrir la página de preview con `bun run preview:web`
+   (o directamente `http://localhost:3000/__web_preview?casename=main.web.bundle`). En `/` no hay HTML
+   (da 404): la página la sirve la ruta del preview. Sirve para composición, color y navegación;
+   **no** para táctil ni rendimiento.
+2. **Inspeccionar** — las DevTools del navegador para el target web; **Lynx DevTool** para lo nativo
+   (skill `.agents/skills/lynx-devtool`, CLI `agent-lynx`).
+3. **Validar en real** — móvil y PC en la misma Wi-Fi, escanear el QR de `bun run dev` con **Lynx
+   Explorer**. Si el host no se anuncia solo: `bun run dev -- --host`.
+
+`adb` y el emulador quedan **fuera** del bucle. La única prueba que necesita un dispositivo es la de
+**durabilidad entre procesos**, y se corre **a demanda** (comandos en
+[`host/android/README.md`](../host/android/README.md), sección *Durabilidad*).
 
 ## Depuración
 
-**Lynx DevTool Desktop** (`github.com/lynx-family/lynx-devtool/releases`) ofrece los paneles Elements,
-Console, Sources y Layers, más Trace. Se engancha activando **Lynx Debug** y **Lynx DevTool** en los
-ajustes de Lynx Explorer y conectándolo por cable. No se instala desde el repo.
+**Lynx DevTool** sirve a la app **nativa** (móvil, escritorio o host):
 
-La vía CLI/CDP existe como paquete (`@lynx-js/skill-lynx-devtool`) y **no está instalada** en este
-entorno; queda documentada y a cargo del usuario.
+- La **aplicación de escritorio** (`github.com/lynx-family/lynx-devtool/releases`) ofrece los paneles
+  Elements, Console, Sources y Layers, más Trace. Se engancha activando **Lynx Debug** y **Lynx DevTool**
+  en los ajustes de Lynx Explorer y conectándolo por cable.
+- La **vía CLI/CDP** es el CLI `agent-lynx`, documentado en la skill del repo
+  [`.agents/skills/lynx-devtool`](../.agents/skills/lynx-devtool/SKILL.md) (`list-clients`, `cdp`,
+  `evaluate`, `get-console`, `screenshot`, `trace`, `reactlynx tree`…). No se instala desde el repo.
+
+Para el **target web** no hace falta: la página de preview se inspecciona con las DevTools del
+navegador.
 
 ## Cuenta y backend (InsForge)
 
@@ -89,7 +101,7 @@ props que cada componente escribió.
 
 | Síntoma | Causa probable | Fix |
 |---------|----------------|-----|
-| `GET /` da **404** en el dev server | En `/` no hay página; la de desarrollo es la del preview | Abrir la URL **∟ Preview** (`/__web_preview?casename=main.web.bundle`) |
+| `GET /` da **404** en el dev server | En `/` no hay página; la de preview es la ruta `/__web_preview` | Abrir con `bun run preview:web` (o la URL `/__web_preview?casename=main.web.bundle`) |
 | La longitud no se aplica | Longitud sin unidad | En Lynx toda longitud distinta de 0 necesita unidad; usa los tokens (`'16px'`) o `px()` |
 | `Intl is not defined` / fechas raras | Se usó `toLocaleString` | Formatea con `src/lib/format.ts` |
 | El QR no conecta | Móvil y PC en redes distintas | Misma Wi-Fi, o `bun run dev -- --host` |

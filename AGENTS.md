@@ -83,7 +83,8 @@ bun install
 bun run typecheck   # tsc --noEmit
 bun run test        # vitest run
 bun run build       # dist/main.lynx.bundle + dist/main.web.bundle
-bun run dev         # dev server (puerto 3000): target web + QR para Lynx Explorer
+bun run dev         # dev server (puerto 3000): preview web + QR para Lynx Explorer
+bun run preview:web # abre la preview en el navegador (con `bun run dev` en marcha)
 ```
 
 Host nativo (`specs/001`):
@@ -94,9 +95,11 @@ cd host/android
 ./gradlew assembleDebug   # Windows: .\gradlew.bat assembleDebug
 ```
 
-El bucle de trabajo tiene tres niveles: **navegador** (iterar, vía la URL *Preview* del dev server),
-**móvil real** con Lynx Explorer por QR (validar táctil y rendimiento) y **emulador** (automatizar y
-sacar evidencia). Detalle en `docs/12-entorno-desarrollo-lynx.md`.
+El bucle de trabajo es **navegador → DevTool → móvil real**: iterar con la preview del dev server
+(`bun run dev` + `bun run preview:web`), inspeccionar con las DevTools del navegador o con **Lynx
+DevTool** para lo nativo, y validar con el **QR** y Lynx Explorer. `adb` y el emulador **no** forman
+parte del bucle; la única prueba con dispositivo (durabilidad entre procesos) va aparte y a demanda.
+Detalle en `docs/12-entorno-desarrollo-lynx.md`.
 
 ## Agent skills (documentación del proyecto)
 

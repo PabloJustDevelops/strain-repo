@@ -35,15 +35,15 @@ describe('PrimaryActionBar', () => {
   });
 
   it('es una barra a ancho completo con una sola acción', () => {
-    PrimaryActionBar({ label: 'Empezar workout', onPress: () => {} });
+    PrimaryActionBar({ label: 'Empezar entrenamiento', onPress: () => {} });
 
     expect(byClass('PrimaryActionBar')).toHaveLength(1);
     expect(byClass('PrimaryAction')).toHaveLength(1);
-    expect(byType(Text).map(textOf)).toEqual(['Empezar workout']);
+    expect(byType(Text).map(textOf)).toEqual(['Empezar entrenamiento']);
   });
 
   it('el objetivo táctil llega a 44 pt y el radio es el del control', () => {
-    PrimaryActionBar({ label: 'Empezar workout', onPress: () => {} });
+    PrimaryActionBar({ label: 'Empezar entrenamiento', onPress: () => {} });
 
     expect(byClass('PrimaryAction')[0].props.style).toMatchObject({
       minHeight: TOUCH_TARGET,

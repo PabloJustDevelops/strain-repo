@@ -90,7 +90,7 @@ export function WorkoutSummaryCard({ session, width = 360, height = 540 }: Worko
       </view>
 
       <Text role="detail" tone="textSecondary">
-        strain.app · workout #{session.id.slice(-4)}
+        strain.app · entrenamiento #{session.id.slice(-4)}
       </Text>
     </view>
   );

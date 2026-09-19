@@ -42,7 +42,7 @@ export function HistoryList({ limit = 100 }: HistoryListProps) {
       {!sessions.loading && sessions.data.length === 0 ? (
         <EmptyState
           icon="clock"
-          title="Aún no has completado ningún workout"
+          title="Aún no has completado ningún entrenamiento"
           body="Cuando termines el primero, aparecerá acá con su volumen y duración."
         />
       ) : null}

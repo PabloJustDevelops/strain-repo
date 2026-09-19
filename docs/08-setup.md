@@ -30,6 +30,15 @@ bun install
 | `bun run preview` | Preview del build |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run test` | `vitest run` |
+| `bun run budget` | Comprueba que los dos *bundles* no superan el presupuesto de 650 kB (ver `specs/005` y D16) |
+
+## Integración continua
+
+Cada propuesta de cambio y cada envío a `main` corren cinco trabajos (`.github/workflows/ci.yml`):
+la raíz Expo (lint, tipos y pruebas), Lynx (tipos, pruebas y build), el presupuesto de bundle sobre los
+dos artefactos, el escaneo de secretos con gitleaks y, solo en propuestas, la comprobación del título
+y del triaje. Detalle y umbrales en [`specs/005`](../specs/005-ci-cd.md); la decisión del presupuesto,
+en D16 (`docs/07-decisions.md`).
 
 ## El bucle de trabajo (tres niveles)
 
@@ -78,6 +87,5 @@ props que cada componente escribió.
 | `GET /` da **404** en el dev server | En `/` no hay página; la de desarrollo es la del preview | Abrir la URL **∟ Preview** (`/__web_preview?casename=main.web.bundle`) |
 | La longitud no se aplica | Longitud sin unidad | En Lynx toda longitud distinta de 0 necesita unidad; usa los tokens (`'16px'`) o `px()` |
 | `Intl is not defined` / fechas raras | Se usó `toLocaleString` | Formatea con `lynx/src/lib/format.ts` |
-| El proyecto Lynx no compila y la raíz no tiene dependencias | Fuga conocida de `drizzle-orm` | Instala la raíz mientras exista; se limpia con el [`specs/004`](../specs/004-reestructura-del-repo-y-retirada-de-expo.md) |
 | El QR no conecta | Móvil y PC en redes distintas | Misma Wi-Fi, o `bun run dev -- --host` |
 | Los datos desaparecen al cerrar | Persistencia no durable (known-issue 1) | Es el pendiente del [`specs/001`](../specs/001-host-nativo-y-almacenamiento-durable.md) |

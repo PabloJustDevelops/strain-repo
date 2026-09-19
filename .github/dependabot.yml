@@ -1,0 +1,67 @@
+# Dependabot (specs/005, ticket 4).
+#
+# Ecosistemas que existen de verdad en el repo:
+#   - npm: la raíz (app Expo, legado) y `lynx/` (el producto).
+#   - gradle: el host Android (`lynx/host/android`).
+#   - github-actions: las acciones de `.github/workflows/`.
+#
+# Los cambios menores y de parche se agrupan en una sola propuesta por
+# ecosistema; los mayores van sueltos porque exigen lectura. Horario semanal:
+# las dependencias nativas y de Lynx se mueven rápido, pero no tanto como para
+# justificar ruido diario.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      root-minor-y-parche:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: npm
+    directory: "/lynx"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      lynx-minor-y-parche:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: gradle
+    directory: "/lynx/host/android"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      host-android-minor-y-parche:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      github-actions:
+        patterns: ["*"]

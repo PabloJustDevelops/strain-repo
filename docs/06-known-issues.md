@@ -68,20 +68,7 @@ resuelve y tiene tests—.
 
 ---
 
-## 7. Fuga de `drizzle-orm` desde las dependencias de la raíz
-
-**Síntoma**: el proyecto Lynx importa `drizzle-orm` en `lynx/src/lib/metrics.ts` (los helpers SQL que
-Lynx no usa) y lo resuelve desde el `node_modules` de **la raíz**, no desde `lynx/`.
-
-**Consecuencia**: el *bundle* lo elimina (0 kB), pero Lynx **no compila si la raíz no tiene las
-dependencias instaladas**.
-
-**Fix**: sacar los helpers SQL de esa ruta cuando el `specs/004` retire la app Expo (que es quien
-instala `drizzle-orm`).
-
----
-
-## 8. Piezas que aún no están portadas
+## 7. Piezas que aún no están portadas
 
 Health Connect, notificaciones, captura/compartir y hápticas dependen de un módulo nativo. En el port
 están como **puentes**; su implementación son los specs
@@ -90,7 +77,7 @@ están como **puentes**; su implementación son los specs
 
 ---
 
-## 9. Límites de fidelidad del preview web
+## 8. Límites de fidelidad del preview web
 
 **Síntoma**: el preview en navegador (Lynx for Web) parece la app, pero no lo es.
 

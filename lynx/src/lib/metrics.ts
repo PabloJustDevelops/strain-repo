@@ -1,12 +1,9 @@
-import { sql, type AnyColumn, type SQL } from 'drizzle-orm';
-
 /**
  * Métricas derivadas del entrenamiento (C1 del review de arquitectura).
  *
- * Una sola definición por fórmula, con dos consumidores que no pueden divergir:
- * las funciones puras (TS) y los fragmentos SQL. El test de equivalencia
- * (`metrics.test.ts`) corre ambos caminos sobre la misma tabla de casos, así que
- * tocar uno y no el otro rompe el test.
+ * Una sola definición por fórmula: estas funciones puras son la única fuente de
+ * las agregaciones (1RM, volumen, mejores sets). Las consumen el resumen de
+ * sesión, los repos sobre la seam de almacenamiento y la UI en vivo.
  *
  * Invariante: **todas las métricas de agregación cuentan sólo sets completados**.
  * `isCompleted` es obligatorio justamente para que no se pueda pasar una lista
@@ -113,21 +110,4 @@ export function topByVolume<T extends { sets: readonly SetLike[] }>(
     .map((exercise) => ({ exercise, volume: sessionTotals(exercise.sets).volume }))
     .sort((a, b) => b.volume - a.volume)
     .slice(0, limit);
-}
-
-/**
- * La expresión de 1RM como fragmento SQL.
- *
- * Espeja `estimateOneRm` exacto, incluidos los bordes — de ahí el `CASE`. Es una
- * factory que recibe las columnas (en vez de referenciar el schema) para que
- * `src/lib/` no dependa de la base y el fragmento sirva para cualquier tabla con
- * `weight`/`reps`.
- */
-export function oneRmSql(weight: AnyColumn, reps: AnyColumn): SQL<number> {
-  return sql<number>`CASE WHEN ${reps} <= 0 THEN 0 WHEN ${reps} = 1 THEN ${weight} ELSE ${weight} * (1 + ${reps} / 30.0) END`;
-}
-
-/** La expresión de volumen como fragmento SQL. Espeja `setVolume`. */
-export function setVolumeSql(weight: AnyColumn, reps: AnyColumn): SQL<number> {
-  return sql<number>`${weight} * ${reps}`;
 }

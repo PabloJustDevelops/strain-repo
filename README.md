@@ -78,6 +78,10 @@ automatizar— y está explicado en
 [`docs/12-entorno-desarrollo-lynx.md`](./docs/12-entorno-desarrollo-lynx.md). El setup completo, en
 [`docs/08-setup.md`](./docs/08-setup.md).
 
+La integración continua (`.github/workflows/ci.yml`) conserva el trabajo de la raíz y añade el de
+Lynx (tipos, pruebas y build), el presupuesto de bundle, el escaneo de secretos y la comprobación de
+título y triaje de la propuesta ([`specs/005`](./specs/005-ci-cd.md)).
+
 ## Documentación y specs
 
 - **Documentación**: [`docs/README.md`](./docs/README.md) (índice).

@@ -9,8 +9,16 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  # ---------------------------------------------------------------------------
+  # Raíz: app Expo (legado). Mientras exista es la app que se usa, así que su
+  # red de seguridad no se toca. Se retira con el specs/004.
+  # ---------------------------------------------------------------------------
+  root:
+    name: Raíz (Expo) · lint, tipos y pruebas
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -30,3 +38,117 @@ jobs:
 
       - name: Test
         run: bun run test
+
+  # ---------------------------------------------------------------------------
+  # Lynx: el producto. Tipos, pruebas y build de los dos targets.
+  # ---------------------------------------------------------------------------
+  lynx:
+    name: Lynx · tipos, pruebas y build
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: lynx
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      # La caché de descargas de bun (`~/.bun/install/cache`) evita volver a
+      # bajar los paquetes. `bun install` sigue validando el lockfile.
+      - name: Cache de bun
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('lynx/bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck (tsc --noEmit)
+        run: bun run typecheck
+
+      - name: Test (vitest)
+        run: bun run test
+
+      - name: Build (targets lynx y web)
+        run: bun run build
+
+      # El presupuesto de bundle corre en un trabajo aparte que solo descarga
+      # estos dos ficheros, para no repetir el build.
+      - name: Subir bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: lynx-bundles
+          path: |
+            lynx/dist/main.lynx.bundle
+            lynx/dist/main.web.bundle
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Presupuesto de bundle: falla si los artefactos superan el umbral.
+  #
+  # UMBRALES: 650 kB nativo y 650 kB web (1 kB = 1000 bytes). Subirlos EXIGE una
+  # decisión registrada en docs/07-decisions.md (hoy D16). No los ajustes aquí a
+  # la ligera: el presupuesto solo sirve si crecer cuesta una decisión.
+  # ---------------------------------------------------------------------------
+  bundle-budget:
+    name: Lynx · presupuesto de bundle
+    needs: lynx
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descargar bundles
+        uses: actions/download-artifact@v4
+        with:
+          name: lynx-bundles
+          path: lynx/dist
+
+      - name: Comprobar tamaño
+        run: node lynx/scripts/check-bundle-size.mjs
+
+  # ---------------------------------------------------------------------------
+  # Seguridad: escaneo de secretos. El fallo más caro y más fácil de cometer.
+  # ---------------------------------------------------------------------------
+  secret-scan:
+    name: Seguridad · escaneo de secretos
+    runs-on: ubuntu-24.04
+    # gitleaks lee los commits de la propuesta a través de la API: necesita
+    # `pull-requests: read` además del contenido.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # Historial completo: gitleaks necesita el rango del cambio para
+      # compararlo con la base.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Versión fijada: la sintaxis de `.gitleaks.toml` ([allowlists]) cambia
+          # entre mayores, y un salto silencioso no debe alterar lo que se detecta.
+          GITLEAKS_VERSION: "8.30.1"
+
+  # ---------------------------------------------------------------------------
+  # Propuesta de cambio: título con Conventional Commits y etiquetas de triaje.
+  #
+  # Fase 1: AVISA, no bloquea. El repo todavía no tiene reglas de protección de
+  # rama; por eso el script termina en verde y deja los avisos como anotaciones.
+  # Ver docs/agents/triage-labels.md.
+  # ---------------------------------------------------------------------------
+  pr:
+    name: PR · título y triaje
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comprobar título y etiquetas
+        run: node .github/scripts/check-pr.mjs

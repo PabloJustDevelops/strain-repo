@@ -1,0 +1,18 @@
+# Configuración de gitleaks (specs/005, ticket 3).
+#
+# Parte de las reglas por defecto y solo añade exclusiones justificadas. La idea
+# es no perder dientes: se excluye lo que no puede contener un secreto propio del
+# proyecto, y nada más.
+title = "Strain"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Dependencias, artefactos de build, lockfiles y plantillas de entorno"
+paths = [
+  '''node_modules/''',
+  '''dist/''',
+  '''\.env\.example$''',
+  '''bun\.lock$''',
+]

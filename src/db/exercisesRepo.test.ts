@@ -1,7 +1,7 @@
 ﻿import { beforeEach, describe, expect, it } from 'vitest';
 
 import { createExercisesRepo } from './exercisesRepo';
-import { createSessionStorage, setStorageForTesting } from './storage';
+import { createPreviewStorage, setStorageForTesting } from './storage';
 
 const base = {
   name: 'Press banca', muscleGroup: 'chest', secondaryMuscles: ['triceps'],
@@ -10,7 +10,7 @@ const base = {
 };
 
 function freshRepo() {
-  const storage = createSessionStorage();
+  const storage = createPreviewStorage();
   setStorageForTesting(storage);
   return createExercisesRepo(storage);
 }

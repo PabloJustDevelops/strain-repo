@@ -5,9 +5,14 @@ import { createNativeStorage, type StorageModule } from './nativeStorage';
  *
  * Lynx NO trae SQLite out-of-the-box. La implementación de producción es el
  * módulo nativo SQLite del host (`specs/001`), adaptado en `nativeStorage.ts`.
- * El respaldo de sesión (`setSessionStorageItem`/`getSessionStorageItem`) se
- * conserva solo para donde no hay puente nativo: Lynx for Web y el runner de
- * tests.
+ *
+ * **No hay respaldo.** Si el módulo nativo falta fuera del modo preview, abrir
+ * el almacenamiento **falla con su causa** (ticket 5): arrancar en memoria y
+ * seguir como si tal cosa era el fallo silencioso que este ticket retira. El
+ * almacén efímero se conserva solo como **modo preview** declarado, para los
+ * targets que no pueden tener el puente nativo: Lynx for Web y Lynx Explorer
+ * sobre el servidor de desarrollo. El reparto está documentado en
+ * `docs/12-entorno-desarrollo-lynx.md`.
  *
  * La seam es **asíncrona** porque el puente también lo es: los métodos de un
  * `LynxModule` contestan por callback y no se puede fingir lo contrario sin
@@ -23,13 +28,23 @@ export interface Storage {
   keys(prefix: string): Promise<string[]>;
 }
 
-/** Declaración mínima del objeto global `lynx` que expone el engine. */
-interface LynxGlobal {
-  getSessionStorageItem(key: string): string | null;
-  setSessionStorageItem(key: string, value: string): void;
-}
+/**
+ * Bandera de compilación que declara el **modo preview**.
+ *
+ * La fija `lynx.config.ts` por entorno: `true` en `web` (que nunca tiene el
+ * módulo nativo) y en el build de desarrollo del target `lynx` —el que sirve
+ * `bun run dev` al QR de Lynx Explorer—, y `false` en el bundle de producción
+ * que embebe el APK del host. En el runner de tests la fija `vitest.config.mts`.
+ *
+ * Se consulta con `typeof` para que un build sin la bandera caiga en producción
+ * (que falla ruidosamente) y nunca en preview por accidente.
+ */
+declare const __PREVIEW_STORAGE__: boolean;
 
-declare const lynx: LynxGlobal | undefined;
+/** `true` solo en un build de preview (Lynx for Web o el dev server). */
+export function isPreviewStorage(): boolean {
+  return typeof __PREVIEW_STORAGE__ !== 'undefined' && __PREVIEW_STORAGE__ === true;
+}
 
 /**
  * Los módulos nativos registrados por el host se alcanzan por el global
@@ -39,46 +54,22 @@ declare const lynx: LynxGlobal | undefined;
 declare const NativeModules: Record<string, StorageModule | undefined> | undefined;
 
 /**
- * Storage en memoria + espejo en el session storage de Lynx cuando está
- * disponible. **No es durable**: se pierde al cerrar la card. Vive solo para el
- * runner de tests y el target web, donde no hay módulo nativo.
+ * Almacenamiento **efímero** del modo preview: un `Map` que se pierde al cerrar
+ * la card. No es durable y no lo pretende; existe para que el bucle de preview
+ * (navegador y Lynx Explorer por QR) pueda arrancar sin el módulo nativo.
  */
-export function createSessionStorage(): Storage {
+export function createPreviewStorage(): Storage {
   const memory = new Map<string, string>();
-
-  const hasLynx = typeof lynx !== 'undefined';
 
   return {
     async getItem(key) {
-      if (memory.has(key)) return memory.get(key) ?? null;
-      if (hasLynx) {
-        try {
-          return lynx!.getSessionStorageItem(key);
-        } catch {
-          return null;
-        }
-      }
-      return null;
+      return memory.get(key) ?? null;
     },
     async setItem(key, value) {
       memory.set(key, value);
-      if (hasLynx) {
-        try {
-          lynx!.setSessionStorageItem(key, value);
-        } catch {
-          /* el espejo es best-effort */
-        }
-      }
     },
     async removeItem(key) {
       memory.delete(key);
-      if (hasLynx) {
-        try {
-          lynx!.setSessionStorageItem(key, '');
-        } catch {
-          /* noop */
-        }
-      }
     },
     async keys(prefix) {
       const out: string[] = [];
@@ -93,35 +84,67 @@ export function createSessionStorage(): Storage {
 /** Resuelve el módulo nativo registrado por el host; `null` si no hay puente. */
 function nativeModule(): StorageModule | null {
   if (typeof NativeModules === 'undefined') return null;
-  try {
-    return NativeModules.StorageModule ?? null;
-  } catch {
-    // Sin host que lo registre (Lynx for Web): no es un fallo de durabilidad,
-    // es una capacidad ausente, así que se cae al respaldo.
-    return null;
+  return NativeModules.StorageModule ?? null;
+}
+
+/** Arranque sin módulo nativo y fuera de preview: no hay dónde escribir. */
+export class StorageUnavailableError extends Error {
+  constructor() {
+    super(
+      'StorageModule no está registrado y este build no es de preview: la app ' +
+        'nativa solo arranca con almacenamiento durable. El host lo registra en ' +
+        'StrainApplication; para el bucle de preview, usa `bun run dev`.',
+    );
+    this.name = 'StorageUnavailableError';
   }
 }
 
 /**
- * Storage de producción: el adaptador durable cuando el host registró el módulo
- * nativo; el respaldo de sesión solo donde no hay puente. Un fallo al **abrir**
- * la base no cae al respaldo: se propaga, para que perder durabilidad no pase
- * inadvertido.
+ * Storage de producción: el adaptador durable sobre el módulo nativo. Si el
+ * módulo no está, **lanza**; no hay camino a memoria. Un fallo al abrir la base
+ * tampoco se traga: sube con su código y su mensaje.
  */
-async function createProductionStorage(): Promise<Storage> {
-  const module = nativeModule();
-  if (!module) return createSessionStorage();
+export async function createProductionStorage(module: StorageModule | null): Promise<Storage> {
+  if (!module) throw new StorageUnavailableError();
   return createNativeStorage(module);
+}
+
+/**
+ * Elige el storage del arranque. El módulo nativo **siempre gana**: cuando el
+ * host lo registró, hasta un build de preview usa el almacén durable. El modo
+ * preview solo entra donde no hay puente; fuera del modo preview, su ausencia es
+ * un fallo de arranque, no un respaldo.
+ */
+export async function selectStorage(
+  preview: boolean,
+  module: StorageModule | null,
+): Promise<Storage> {
+  if (module) return createNativeStorage(module);
+  if (preview) return createPreviewStorage();
+  return createProductionStorage(module);
 }
 
 let injected: Storage | null = null;
 let opening: Promise<Storage> | null = null;
 
-/** Storage compartido de la app (singleton perezoso). */
+/**
+ * Storage compartido de la app (singleton perezoso). Se resuelve una vez.
+ *
+ * En modo preview avisa por consola de que el almacén es efímero: que el modo
+ * sea declarado y **visible**, no un respaldo que pasa desapercibido (ticket 5).
+ */
 export function getStorage(): Promise<Storage> {
   if (injected) return Promise.resolve(injected);
   if (!opening) {
-    opening = createProductionStorage().catch((err: unknown) => {
+    const module = nativeModule();
+    const preview = !module && isPreviewStorage();
+    if (preview) {
+      console.warn(
+        '[strain] almacenamiento de PREVIEW: efímero, se pierde al cerrar. ' +
+          'Los datos solo sirven para previsualizar (Lynx for Web o Lynx Explorer).',
+      );
+    }
+    opening = selectStorage(preview, module).catch((err: unknown) => {
       opening = null;
       throw err;
     });

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { createRepos } from './index';
-import { createSessionStorage } from './storage';
+import { createPreviewStorage } from './storage';
 
 /** Recorrido completo: rutina → sesión desde rutina → completar sets → PR → analytics. */
 describe('data layer (integración KV)', () => {
   it('flujo rutina → sesión → PR → analytics', async () => {
-    const repos = createRepos(createSessionStorage());
+    const repos = createRepos(createPreviewStorage());
 
     const ex = await repos.exercises.create({
       name: 'Press banca',

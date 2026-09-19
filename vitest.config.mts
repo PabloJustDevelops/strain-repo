@@ -18,6 +18,10 @@ export default defineConfig({
     __JS__: 'true',
     __DEV__: 'true',
     __PROFILE__: 'false',
+    // Sin host no hay módulo nativo, así que el runner corre como un target de
+    // preview: `getStorage()` usa el almacén efímero en vez de fallar (ver
+    // `src/db/storage.ts`). La bandera de producción la fija `lynx.config.ts`.
+    __PREVIEW_STORAGE__: 'true',
   },
   resolve: {
     alias: {

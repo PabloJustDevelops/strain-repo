@@ -56,8 +56,9 @@ let bootstrapping: Promise<Repos> | null = null;
  * podría leer la biblioteca todavía vacía. Un fallo (de siembra incluido) no se
  * traga: se propaga con su causa y limpia el cache para poder reintentar.
  *
- * El primer `await getStorage()` abre la base durable del host; si el módulo
- * nativo no está, cae al respaldo de sesión (ver `storage.ts`).
+ * El primer `await getStorage()` abre la base durable del host. Sin módulo
+ * nativo, el único camino es el modo preview declarado; fuera de él, el fallo se
+ * propaga (ver `storage.ts`, ticket 5 de `specs/001`).
  */
 export function bootstrapDatabase(): Promise<Repos> {
   if (!bootstrapping) {

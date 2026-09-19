@@ -4,9 +4,10 @@ node_modules/
 .pnp.js
 .pnpm-store/
 
-# Lockfiles: usamos pnpm, el resto se ignora
+# Lockfiles: usamos bun (bun.lock), el resto se ignora
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 
 # Expo
 .expo/

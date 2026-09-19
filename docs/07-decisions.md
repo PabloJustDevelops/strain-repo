@@ -326,3 +326,31 @@ que ya existe. El almacén actual (memoria + *session storage*) es solo un puent
 **Consecuencia**: el host propio desbloquea además las nativas (`specs/002`), la cuenta
 (`specs/003`), el build del host en CI (`specs/005`) y es la **puerta** del borrado de Expo (D13). El
 desarrollo detallado está en `specs/001-host-nativo-y-almacenamiento-durable.md`.
+
+## D15 · Identidad y empaquetado de la app nativa
+
+**Decisión**: el host nativo (D14) se empaqueta como **`com.strain.app`**, con **`minSdk 26`** y
+`compileSdk`/`targetSdk` **36**, firmado en **debug** mientras se construye el port, y **versionado
+desde el primer ticket** en `lynx/host/android/`.
+
+**Por qué**:
+
+- **Identidad heredada**: `com.strain.app` es la identidad de la app de siempre, y renombrarla después
+  rompe firma, rutas y hábitos. Consecuencia asumida: en un mismo dispositivo el host **sustituye** a la
+  app Expo (mismo paquete), así que durante la transición solo puede estar instalada una de las dos; el
+  APK del legado queda guardado y es reinstalable.
+- **`minSdk 26`** (Android 8.0, 2017): lo exige `androidx.health.connect` (`specs/002`) y ya era el
+  mínimo efectivo del legado. El coste en cobertura es nulo y evita `tools:overrideLibrary`.
+  `compileSdk`/`targetSdk` **36**, que es lo que usan el tooling actual y el emulador.
+- **Debug ahora, release después**: no hay nada que distribuir mientras falten persistencia, nativas y
+  cuenta. Un *keystore* de release antes de tiempo es un secreto más que custodiar sin destinatario; se
+  crea cuando el port tenga paridad y **nunca se commitea**.
+- **Versionado desde el ticket 1**: el host es código del producto, no un artefacto de build. Nace en
+  `lynx/host/android/` para sobrevivir a la promoción del proyecto Lynx a la raíz (`specs/004`) y para
+  no caer en `android/`, que está en `.gitignore` por ser el *prebuild* de Expo.
+
+**Descartado**: un `applicationId` nuevo (rompe la continuidad y obliga a renombrar todo al retirar
+Expo); release firmada desde el principio (un secreto más sin destinatario); alojar el host en
+`android/` (ignorado por git).
+
+**Consecuencia**: los tickets 1-5 del `specs/001` arrancan sin decisiones de producto pendientes.

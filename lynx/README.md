@@ -502,12 +502,58 @@ iconos.
 cd lynx
 bun run typecheck   # typecheck (tsc --noEmit)
 bun run test        # tests (vitest run)
-bun run dev         # dev server (página web + QR para Lynx Explorer)
-bun run build       # build → dist/main.lynx.bundle
+bun run dev         # dev server: página web + QR para Lynx Explorer
+bun run build       # build → dist/main.lynx.bundle + dist/main.web.bundle
 ```
 
-Para ver la app: instala **Lynx Explorer** en el emulador/dispositivo y escanea el QR
-que muestra `bun run dev`.
+### Entornos de desarrollo (F0)
+
+`lynx.config.ts` declara dos entornos, `web` y `lynx`, así que `bun run dev` compila y
+sirve los dos a la vez en el puerto **3000** (`--port` para cambiarlo) e imprime una URL
+por target:
+
+```
+➜  Web        http://<host>:3000/main.web.bundle
+➜  ∟ Preview  http://<host>:3000/__web_preview?casename=main.web.bundle
+➜  Lynx       http://<host>:3000/main.lynx.bundle
+```
+
+El bucle de trabajo tiene tres niveles:
+
+| Nivel | Para qué | Comando | Cómo se ve |
+|---|---|---|---|
+| **Navegador** (Lynx for Web) | Iterar en segundos; inspeccionar DOM/CSS | `bun run dev` | Abrir la URL `∟ Preview` (`/__web_preview?casename=main.web.bundle`) en el navegador |
+| **Móvil real** (Lynx Explorer) | Validar el táctil y el rendimiento de verdad | `bun run dev` | Escanear el QR de la terminal con **Lynx Explorer** (móvil y PC en la misma Wi-Fi) |
+| **Emulador Android** | Automatizar y sacar evidencia (adb/Maestro) | `bun run dev` + `adb reverse` | Lynx Explorer en el AVD apuntando a `http://localhost:<puerto>/main.lynx.bundle` |
+
+**1 · Navegador (iterar).** La línea `∟ Preview` es la página de desarrollo: Rspeedy sirve
+un HTML que arranca el bundle `web` en el runtime de Lynx for Web. `bun run build` genera
+además `dist/main.web.bundle` (para el Web Explorer o para incrustar con
+`@lynx-js/web-core`). No es fidelidad nativa: sirve para composición, tipografía, color y
+navegación, **no** para dar por bueno el táctil ni el rendimiento.
+
+**2 · Móvil real (validar).** Instalar **Lynx Explorer** (APK oficial en
+`github.com/lynx-family/lynx/releases`), poner móvil y PC en la misma red y escanear el QR.
+Si el host no se anuncia solo, `bun run dev -- --host` lo expone en la LAN.
+
+**3 · Emulador (automatizar).** Único entorno automatizable (`adb`, Maestro). Se expone el
+puerto del dev server al emulador con `adb reverse tcp:<puerto> tcp:<puerto>` (por defecto
+**3000**) y Lynx Explorer carga `http://localhost:<puerto>/main.lynx.bundle`. Se reserva
+para la comprobación final y la regresión, no para iterar.
+
+### DevTool
+
+El **Lynx DevTool Desktop** (`github.com/lynx-family/lynx-devtool/releases`) da los paneles
+Elements / Console / Sources / Layers y Trace. Se engancha activando **Lynx Debug** y
+**Lynx DevTool** en los ajustes de Lynx Explorer y conectándolo por cable (daemon). No se
+instala desde este repo.
+
+La vía CLI/CDP es el paquete **`@lynx-js/skill-lynx-devtool`** (existe en npm; en el
+entorno de este run **no está instalado**). Ofrece consola, DOM/CSS, capturas, árbol de
+componentes y toques desde fuera. Enganche documentado; la instalación queda a cargo del
+usuario.
+
+Referencia completa: [`docs/12-entorno-desarrollo-lynx.md`](../docs/12-entorno-desarrollo-lynx.md).
 
 ## Próximas fases (propuesta)
 

@@ -85,30 +85,30 @@ strain-repo/
 ### 1. Instalar dependencias
 
 ```bash
-npm install
+bun install
 ```
 
 ### 2. Ejecutar en desarrollo
 
 ```bash
 # Web
-npm run web
+bun run web
 
 # iOS
-npm run ios
+bun run ios
 
 # Android
-npm run android
+bun run android
 ```
 
 ### 3. Build de producción
 
 ```bash
 # Web (Vercel / estático)
-npm run build:web
+bun run build:web
 
 # Mobile (iOS + Android)
-npm run build:production
+bun run build:production
 ```
 
 ### 4. Configurar Supabase (opcional)

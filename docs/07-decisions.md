@@ -22,6 +22,8 @@ Documento de registro de decisiones (ADR-light). Cada decisión explica **qué**
 
 ## D2 · pnpm como package manager
 
+> **Superado por [D12](#d12--gestor-de-paquetes-bun) (19 sep 2026)**: el repo volvió a bun.
+
 **Decisión**: usar pnpm 11.5.1 (antes npm).
 
 **Por qué**:
@@ -218,3 +220,41 @@ plan por defecto.
 preferencia del usuario, no una constante de dominio), y el timer tiene un solo dueño —
 `activeWorkoutStore.completeSet`, no la pantalla. El espejo de Supabase no se replica: la divergencia
 queda anotada en [06-known-issues](./06-known-issues.md).
+
+---
+
+## D12 · Gestor de paquetes: bun
+
+**Decisión**: usar **bun 1.4.2** como gestor de paquetes (y runtime de scripts) en los dos árboles del
+repo: la raíz (app Expo) y `lynx/`. Sustituye a pnpm en la raíz (D2) y a npm en `lynx/`.
+
+**Por qué**:
+
+- **Petición de Pablo**: una sola herramienta para todo el repo. Antes convivían pnpm (raíz, con
+  `pnpm-lock.yaml` + `.npmrc` + `pnpm-workspace.yaml`) y npm (`lynx/`, con `package-lock.json`): dos
+  lockfiles y dos formas de instalar.
+- **Instalación plana**: bun enlaza en un `node_modules` plano, sin el anidamiento
+  `.pnpm/<pkg>@<ver>_<hash>/node_modules/` de pnpm. El hoisting explícito del `.npmrc`
+  (`public-hoist-pattern[]=…`) deja de hacer falta: todas las dependencias quedan visibles para Metro.
+
+**Descartado**: seguir con pnpm (dos herramientas, dos lockfiles), npm (legacy en la raíz).
+
+**Migración**:
+
+- `bun.lock` reemplaza a `pnpm-lock.yaml` (raíz) y `package-lock.json` (`lynx/`). Se borran `.npmrc` y
+  `pnpm-workspace.yaml`; el `allowBuilds` de este último se traduce a `trustedDependencies`.
+- **Postinstall**: bun no ejecuta los scripts de dependencias no confiadas. En la raíz el único que bun
+  reportó bloqueado fue **`unrs-resolver`**; se declaran además **`better-sqlite3`** y **`esbuild`**
+  porque el `allowBuilds` de pnpm los construía (bun ya los ejecutaba, pero quedan explícitos). En
+  `lynx/` no hizo falta ninguno (`bun pm untrusted` → 0).
+- El script `lint` invocaba `pnpm lint:anti-slop`; ahora invoca `bun run lint:anti-slop`.
+- CI: `oven-sh/setup-bun@v2` con `bun-version: 1.4.2` en vez de `pnpm/action-setup@v4`, y
+  `bun install --frozen-lockfile`.
+
+**Verificación (este run, 19 sep 2026)**: en la raíz, `bun run lint`, `bun run typecheck` y
+`bun run test` (**135/135**) en verde, y **la build Android sigue produciendo el APK**:
+`cd android && ./gradlew assembleDebug` → `BUILD SUCCESSFUL`, con
+`android/app/build/outputs/apk/debug/app-debug.apk` (~249 MB, `minSdk 26`). El arreglo de
+`ninja: build.ninja still dirty` había sido precisamente el hoisting de pnpm; con bun la instalación es
+plana y el build nativo (reanimated, worklets, gesture-handler, expo-modules-core) compiló sin ese
+problema.

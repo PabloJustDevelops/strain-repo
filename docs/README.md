@@ -45,6 +45,7 @@ la arquitectura, las decisiones técnicas y el estado actual del desarrollo.
   lectura/gestión en escritorio.
 - **Base**: Lynx + ReactLynx + Rspeedy, en la **raíz del repositorio**.
 - **Package manager**: bun 1.4.2 (`bun.lock`).
-- **Persistencia**: **no durable todavía** — el host y su módulo SQLite ya existen; falta conectarlos
-  a la app (`specs/001`, ticket 3).
+- **Persistencia**: **durable** — el adaptador conecta la app al módulo SQLite del host y la
+  durabilidad está probada en tres capas, incluida la de **entre procesos** (`specs/001`, ticket 4;
+  comandos en [`host/android/README.md`](../host/android/README.md)).
 - **Modo**: single-user offline-first, con sincronización opcional a InsForge (cuenta).

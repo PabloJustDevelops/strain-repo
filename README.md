@@ -11,9 +11,11 @@ que embebe el bundle.
   [`specs/004`](./specs/004-reestructura-del-repo-y-retirada-de-expo.md); su versión intacta queda en
   la etiqueta de respaldo, y lo que aún no está migrado se lista en
   [`docs/13-pendiente-de-migrar-desde-expo.md`](./docs/13-pendiente-de-migrar-desde-expo.md).
-- **La persistencia todavía no es durable**: cerrar la app pierde lo registrado. El host y el módulo
-  nativo SQLite ya existen; falta el adaptador que los conecta (ticket 3 del
-  [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md)).
+- **La persistencia es durable**: el adaptador conecta la *seam* con el módulo nativo SQLite del host,
+  y la durabilidad está demostrada en tres capas —lógica (vitest), módulo instrumentado y **entre
+  procesos** (matar el proceso y reabrir)— en el ticket 4 del
+  [`specs/001`](./specs/001-host-nativo-y-almacenamiento-durable.md); las pruebas y sus comandos están
+  en [`host/android/README.md`](./host/android/README.md).
 - **Faltan tres piezas de producto**: las pantallas de auth y la cuenta ([`specs/003`](./specs/003-auth-y-cuenta-con-insforge.md)),
   y Health Connect y las notificaciones ([`specs/002`](./specs/002-nativas-notificaciones-y-health-connect.md)).
 

@@ -4,8 +4,13 @@ kotlin = "2.1.21"
 # Versiones del SDK nativo de Lynx, fijadas a las del motor 4.1.0 que usa Lynx Explorer.
 lynx = "4.1.0"
 primjs = "4.1.1"
+coreKtx = "1.16.0"
 
 [libraries]
+# Lynx 4.1.0 usa `androidx.core.util.Consumer` en runtime pero no lo declara en
+# su POM: sin esto el host crashea con NoClassDefFoundError al construir el
+# LynxView. Lo aporta el anfitrión.
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 lynx = { group = "org.lynxsdk.lynx", name = "lynx", version.ref = "lynx" }
 lynx-jssdk = { group = "org.lynxsdk.lynx", name = "lynx-jssdk", version.ref = "lynx" }
 lynx-trace = { group = "org.lynxsdk.lynx", name = "lynx-trace", version.ref = "lynx" }

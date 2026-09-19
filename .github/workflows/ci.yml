@@ -9,8 +9,16 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  # ---------------------------------------------------------------------------
+  # Raíz: app Expo (legado). Mientras exista es la app que se usa, así que su
+  # red de seguridad no se toca. Se retira con el specs/004.
+  # ---------------------------------------------------------------------------
+  root:
+    name: Raíz (Expo) · lint, tipos y pruebas
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -30,3 +38,40 @@ jobs:
 
       - name: Test
         run: bun run test
+
+  # ---------------------------------------------------------------------------
+  # Lynx: el producto. Tipos, pruebas y build de los dos targets.
+  # ---------------------------------------------------------------------------
+  lynx:
+    name: Lynx · tipos, pruebas y build
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: lynx
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      # La caché de descargas de bun (`~/.bun/install/cache`) evita volver a
+      # bajar los paquetes. `bun install` sigue validando el lockfile.
+      - name: Cache de bun
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('lynx/bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck (tsc --noEmit)
+        run: bun run typecheck
+
+      - name: Test (vitest)
+        run: bun run test
+
+      - name: Build (targets lynx y web)
+        run: bun run build

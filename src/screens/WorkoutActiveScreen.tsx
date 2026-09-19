@@ -6,6 +6,7 @@ import { EmptyState } from '@components/EmptyState';
 import { ExercisePickerModal } from '@components/ExercisePickerModal';
 import { NumericKeypad } from '@components/NumericKeypad';
 import { PlateCalculatorSheet } from '@components/PlateCalculatorSheet';
+import { PrimaryActionBar } from '@components/PrimaryActionBar';
 import { RestTimer } from '@components/RestTimer';
 import { SetDetailsSheet } from '@components/SetDetailsSheet';
 import { SetRow } from '@components/SetRow';
@@ -67,6 +68,7 @@ export function WorkoutActiveScreen() {
   const [editingSet, setEditingSet] = useState<EditingSet | null>(null);
   const [detailsSet, setDetailsSet] = useState<SetView | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -170,23 +172,39 @@ export function WorkoutActiveScreen() {
     router.replace('workout/finish');
   }
 
+  function handleDiscard() {
+    // Dos toques: el primero pide confirmación, el segundo ejecuta.
+    if (!confirmDiscard) {
+      setConfirmDiscard(true);
+      return;
+    }
+
+    discardWorkout();
+    router.back();
+  }
+
+  const totalSets = session.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+  // Sin series completadas no hay nada que cerrar: Finalizar no puede dispararse.
+  const canFinish = session.completedSets > 0;
+
   return (
     <view className="Screen" style={{ backgroundColor: colors.bg }}>
       <view className="WorkoutHeader" style={{ borderColor: colors.line }}>
         <view className="WorkoutHeaderText">
-          <Text role="title" tone="textPrimary">
+          <Text role="title" tone="textPrimary" maxLines={1} className="WorkoutHeaderTitle">
             {session.name}
           </Text>
           <Text role="detail" tone="textSecondary">
-            {session.completedSets} de {session.exercises.reduce((sum, ex) => sum + ex.sets.length, 0)}{' '}
-            series · {formatDuration(elapsed)}
+            {totalSets === 0
+              ? `Sin series · ${formatDuration(elapsed)}`
+              : `${session.completedSets} de ${totalSets} series · ${formatDuration(elapsed)}`}
           </Text>
         </view>
 
         <view
-          className="WorkoutFinish"
+          className={canFinish ? 'WorkoutFinish' : 'WorkoutFinish WorkoutFinishDisabled'}
           style={{ backgroundColor: colors.success }}
-          bindtap={handleFinish}
+          bindtap={canFinish ? handleFinish : undefined}
         >
           <Text role="support" tone="onAccent">Finalizar</Text>
         </view>
@@ -197,7 +215,7 @@ export function WorkoutActiveScreen() {
           {session.exercises.length === 0 ? (
             <EmptyState
               title="Este entrenamiento no tiene ejercicios"
-              body="Añade el primero con el botón + para empezar a registrar series."
+              body="Añade el primero con el botón de abajo para empezar a registrar series."
             />
           ) : null}
 
@@ -304,26 +322,19 @@ export function WorkoutActiveScreen() {
             );
           })}
 
-          <Button
-            title="Descartar entrenamiento"
-            variant="danger"
-            onPress={() => {
-              discardWorkout();
-              router.back();
-            }}
-          />
+          <view className="WorkoutDiscard" bindtap={handleDiscard}>
+            <Text role="support" tone={confirmDiscard ? 'danger' : 'textSecondary'}>
+              {confirmDiscard
+                ? 'Toca otra vez para confirmar el descarte'
+                : 'Descartar entrenamiento'}
+            </Text>
+          </view>
         </view>
       </scroll-view>
 
-      <RestTimer />
+      <PrimaryActionBar label="Añadir ejercicio" onPress={() => setPickerOpen(true)} />
 
-      <view
-        className="Fab"
-        style={{ backgroundColor: colors.accent }}
-        bindtap={() => setPickerOpen(true)}
-      >
-        <Text role="display" tone="onAccent">+</Text>
-      </view>
+      <RestTimer />
 
       <PlateCalculatorSheet result={platesFor} onClose={() => setPlatesFor(null)} />
 

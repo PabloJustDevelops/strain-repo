@@ -247,7 +247,13 @@
 
 .WorkoutHeaderText { flex: 1; display: flex; flex-direction: column; padding-left: 4px; padding-right: 16px; }
 
+/* El nombre largo no parte en dos líneas: trunca con elipsis. */
+.WorkoutHeaderTitle { overflow: hidden; text-overflow: ellipsis; }
+
 .WorkoutFinish { display: flex; align-items: center; justify-content: center; min-height: 44px; padding-left: 16px; padding-right: 16px; border-radius: 999px; }
+
+/* Sin series que cerrar, Finalizar queda apagado (ver WorkoutActiveScreen). */
+.WorkoutFinishDisabled { opacity: 0.5; }
 
 .SupersetBanner { display: flex; flex-direction: row; align-items: center; border-radius: 10px; padding: 8px 16px 8px 16px; margin-bottom: 8px; }
 
@@ -257,7 +263,8 @@
 
 .SupersetToggle { display: flex; flex-direction: row; align-items: center; min-height: 44px; }
 
-.Fab { position: absolute; right: 16px; bottom: 36px; width: 56px; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
+/* Descartar es secundario: texto discreto, no un botón ancho. */
+.WorkoutDiscard { display: flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 8px; }
 
 /* --- Pantalla de cierre del workout --------------------------------------- */
 

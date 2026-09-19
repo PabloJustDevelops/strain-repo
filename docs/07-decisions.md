@@ -415,3 +415,37 @@ commits por tema (borrado, promoción, configuración, CI, documentación), y `d
 lista de trabajo de `002`/`003`. `D13` se cumple con su criterio de borrado ya satisfecho: el host
 existe y el proyecto es la raíz; lo único que se adelanta es la paridad de las cinco piezas, cubierta
 por la etiqueta.
+
+---
+
+## D18 · La seam de almacenamiento pasa a asíncrona
+
+**Decisión**: el `interface Storage` de la capa de datos (ticket 3 de `specs/001`)
+pasa a devolver promesas (`getItem`/`setItem`/`removeItem`/`keys`). El adaptador
+durable (`src/db/nativeStorage.ts`) implementa esa seam sobre el módulo nativo
+SQLite del host; el respaldo en memoria + *session storage* se conserva **solo**
+para tests y el target web, donde no hay puente nativo.
+
+**Por qué**:
+
+- El puente nativo es genuinamente asíncrono: los métodos de un `LynxModule`
+  contestan por callback. Mantener la seam síncrona obligaría a fingir la
+  escritura o a bloquear el hilo de UI esperando a SQLite, y ninguna de las dos
+  vale.
+- Los repos ya devolvían promesas, así que el cambio es mecánico y el tipo deja de
+  mentir: la frontera ahora dice lo que de verdad cuesta cada operación.
+- `keys(prefix)` ya existía en la seam, así que el store KV (`kv.ts`) deja de
+  mantener un índice aparte (`__index__`) con una lectura-modificación por
+  escritura, que además era racy. `put` pasa a ser una sola sentencia.
+
+**Descartado**:
+
+- **Espejo en memoria con escritura diferida** (opción b): las lecturas seguirían
+  siendo síncronas, pero la durabilidad dejaría de estar garantizada en el momento
+  del `setItem` y haría falta un protocolo de confirmación que el tipo no expresa.
+- **Bloquear el hilo de UI** esperando a SQLite: prohibido por el spec.
+
+**Consecuencia**: los únicos consumidores directos de `getStorage()` —el
+`bootstrapDatabase` y el adaptador `StateStorage` de Zustand— pasan a esperar;
+ninguna pantalla cambia. `getStorage()` devuelve una promesa memoizada que abre la
+base una sola vez, y un fallo al abrir se propaga en vez de caer al respaldo.

@@ -20,7 +20,7 @@ etiqueta **`expo-final`**, y lo que aún no está migrado se lista en
 | Componentes | **`@lynx-js/lynx-ui`** (hoja, switch, input, sortable, overlay…). `lynx.config.ts` activa `enableNewGesture` |
 | Estado | **Zustand** |
 | Host | **`host/android/`**: app Android propia (`LynxView` + módulo nativo SQLite). El bundle lo copia una tarea de Gradle desde `dist/` |
-| Persistencia | *Seam* de almacenamiento propio. **Hoy no es durable** (memoria + session storage): el `specs/001` la conecta al módulo nativo SQLite del host |
+| Persistencia | *Seam* de almacenamiento propio, **asíncrona**. En producción es durable, sobre el módulo nativo SQLite del host (`src/db/nativeStorage.ts`, tickets 2-3 del `specs/001`); el respaldo memoria + session storage queda solo para tests y web |
 | Testing | **Vitest** (`bun run test`), arnés de JSX propio en `src/test/jsxCapture.ts` |
 | Paquetes | **bun 1.4.2** (`bun.lock`) |
 

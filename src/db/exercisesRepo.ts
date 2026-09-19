@@ -33,7 +33,7 @@ export function createExercisesRepo(storage: Storage): ExercisesRepo {
 
   const repo: ExercisesRepo = {
     async list() {
-      return store.all().sort(byName);
+      return (await store.all()).sort(byName);
     },
 
     async byId(id) {
@@ -41,16 +41,14 @@ export function createExercisesRepo(storage: Storage): ExercisesRepo {
     },
 
     async byMuscleGroup(group) {
-      return store
-        .all()
+      return (await store.all())
         .filter((e) => e.muscleGroup === group)
         .sort(byName);
     },
 
     async search(query) {
       const q = query.toLowerCase();
-      return store
-        .all()
+      return (await store.all())
         .filter((e) => e.name.toLowerCase().includes(q))
         .sort(byName);
     },
@@ -62,18 +60,18 @@ export function createExercisesRepo(storage: Storage): ExercisesRepo {
     async create(input) {
       const now = new Date();
       const exercise: Exercise = { ...input, id: newId(), createdAt: now, updatedAt: now };
-      store.put(exercise);
+      await store.put(exercise);
       return exercise;
     },
 
     async update(id, patch) {
-      const current = store.byId(id);
+      const current = await store.byId(id);
       if (!current) return;
-      store.put({ ...current, ...patch, id, updatedAt: new Date() });
+      await store.put({ ...current, ...patch, id, updatedAt: new Date() });
     },
 
     async delete(id) {
-      store.remove(id);
+      await store.remove(id);
     },
 
     async bulkCreate(items) {

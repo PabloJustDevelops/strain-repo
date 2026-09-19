@@ -48,19 +48,21 @@ export function createAnalyticsRepo(storage: Storage): AnalyticsRepo {
   const sets = createKvStore<DbSet>(storage, 'set', ['completedAt']);
   const personalRecords = createKvStore<PersonalRecord>(storage, 'personalRecord', ['achievedAt']);
 
-  const completedSessions = () => sessions.all().filter((s) => s.status === 'completed');
+  async function completedSessions(): Promise<WorkoutSession[]> {
+    return (await sessions.all()).filter((s) => s.status === 'completed');
+  }
 
   /** Sets completados de un ejercicio con su sesión (ya completada) asociada. */
-  function completedSetsOfExercise(exerciseId: string, sinceDays?: number) {
+  async function completedSetsOfExercise(exerciseId: string, sinceDays?: number) {
     const since = sinceDays !== undefined ? daysAgo(sinceDays) : null;
     const seIds = new Set(
-      sessionExercises.all().filter((se) => se.exerciseId === exerciseId).map((se) => se.id),
+      (await sessionExercises.all()).filter((se) => se.exerciseId === exerciseId).map((se) => se.id),
     );
-    const sessionById = new Map(completedSessions().map((s) => [s.id, s]));
-    const seById = new Map(sessionExercises.all().map((se) => [se.id, se]));
+    const sessionById = new Map((await completedSessions()).map((s) => [s.id, s]));
+    const seById = new Map((await sessionExercises.all()).map((se) => [se.id, se]));
 
     const out: { set: DbSet; session: WorkoutSession }[] = [];
-    for (const s of sets.all()) {
+    for (const s of await sets.all()) {
       if (!s.isCompleted || !seIds.has(s.sessionExerciseId)) continue;
       const se = seById.get(s.sessionExerciseId);
       if (!se) continue;
@@ -76,7 +78,7 @@ export function createAnalyticsRepo(storage: Storage): AnalyticsRepo {
     async volumePerWeek(weeks = 12) {
       const since = daysAgo(weeks * 7);
       const byWeek = new Map<string, number>();
-      for (const s of completedSessions()) {
+      for (const s of await completedSessions()) {
         if (s.startedAt < since) continue;
         const key = weekKey(s.startedAt);
         byWeek.set(key, (byWeek.get(key) ?? 0) + s.totalVolume);
@@ -85,7 +87,9 @@ export function createAnalyticsRepo(storage: Storage): AnalyticsRepo {
     },
 
     async currentStreak() {
-      const days = [...new Set(completedSessions().map((s) => dayKey(s.startedAt)))].sort().reverse();
+      const days = [
+        ...new Set((await completedSessions()).map((s) => dayKey(s.startedAt))),
+      ].sort().reverse();
       if (days.length === 0) return 0;
 
       let streak = 0;
@@ -111,13 +115,13 @@ export function createAnalyticsRepo(storage: Storage): AnalyticsRepo {
     },
 
     async personalRecords(exerciseId) {
-      const all = personalRecords.all();
+      const all = await personalRecords.all();
       return exerciseId ? all.filter((pr) => pr.exerciseId === exerciseId) : all;
     },
 
     async exerciseTimeline(exerciseId, sinceDays = 180) {
       const bySession = new Map<string, { session: WorkoutSession; sets: DbSet[] }>();
-      for (const { set, session } of completedSetsOfExercise(exerciseId, sinceDays)) {
+      for (const { set, session } of await completedSetsOfExercise(exerciseId, sinceDays)) {
         const entry = bySession.get(session.id) ?? { session, sets: [] };
         entry.sets.push(set);
         bySession.set(session.id, entry);
@@ -137,12 +141,8 @@ export function createAnalyticsRepo(storage: Storage): AnalyticsRepo {
 
     async monthlyBest(exerciseId, sinceDays = 365) {
       const byMonth = new Map<string, { bestOneRm: number; bestWeight: number; bestReps: number }>();
-      for (const { set } of completedSetsOfExercise(exerciseId, sinceDays)) {
-        const session = completedSessions().find((s) => {
-          const se = sessionExercises.byId(set.sessionExerciseId);
-          return se && se.sessionId === s.id;
-        });
-        if (!session) continue;
+      // El par ya trae su sesión, así que no hace falta volver a resolverla.
+      for (const { set, session } of await completedSetsOfExercise(exerciseId, sinceDays)) {
         const key = monthKey(session.startedAt);
         const cur = byMonth.get(key) ?? { bestOneRm: 0, bestWeight: 0, bestReps: 0 };
         cur.bestOneRm = Math.max(cur.bestOneRm, estimateOneRm(set.weight, set.reps));
@@ -156,15 +156,14 @@ export function createAnalyticsRepo(storage: Storage): AnalyticsRepo {
     },
 
     async exercisePrHistory(exerciseId) {
-      return personalRecords
-        .all()
+      return (await personalRecords.all())
         .filter((pr) => pr.exerciseId === exerciseId)
         .sort((a, b) => a.achievedAt.getTime() - b.achievedAt.getTime())
         .map(({ id, recordType, value, reps, weight, achievedAt }) => ({ id, recordType, value, reps, weight, achievedAt }));
     },
 
     async exerciseStats(exerciseId) {
-      const rows = completedSetsOfExercise(exerciseId);
+      const rows = await completedSetsOfExercise(exerciseId);
       const sessionIds = new Set(rows.map((r) => r.session.id));
       return {
         sessions: sessionIds.size,
@@ -176,7 +175,7 @@ export function createAnalyticsRepo(storage: Storage): AnalyticsRepo {
     async dailyVolume(sinceDays = 365) {
       const since = daysAgo(sinceDays);
       const byDay = new Map<string, { count: number; volume: number; ids: Set<string> }>();
-      for (const s of completedSessions()) {
+      for (const s of await completedSessions()) {
         if (s.startedAt < since) continue;
         const key = dayKey(s.startedAt);
         const cur = byDay.get(key) ?? { count: 0, volume: 0, ids: new Set<string>() };

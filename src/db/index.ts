@@ -7,7 +7,7 @@ import { getStorage } from './storage';
 import type { Storage } from './storage';
 
 /**
- * La seam completa del data layer Lynx. Misma superficie que la app Expo:
+ * La seam completa del data layer Lynx. Misma superficie que la app anterior:
  * `createRepos` compone los cuatro repos sobre un `Storage`; `getRepos` es el
  * punto de acceso de los call sites. Persistencia KV (ver `storage.ts`).
  */

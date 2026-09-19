@@ -17,7 +17,7 @@ export type { HeatmapDay };
  * `@lib/heatmap` (pura y testeada); acá sólo se pinta.
  *
  * El rango de color usa `withAlpha` sobre el primario del tema, porque el CSS de
- * Lynx no acepta el hex de 8 dígitos (`#rrggbbaa`) que usaba la app Expo.
+ * Lynx no acepta el hex de 8 dígitos (`#rrggbbaa`) que usaba la app anterior.
  */
 interface HeatmapProps {
   data: readonly HeatmapDay[];

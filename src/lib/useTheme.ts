@@ -4,7 +4,7 @@ import { darkTheme, lightTheme, type ThemeColors } from './theme';
 /**
  * Resuelve el tema activo (claro/oscuro) según la preferencia del usuario.
  *
- * En Expo se cruzaba con `useColorScheme()` del sistema. En Lynx el tema del
+ * En la app anterior se cruzaba con `useColorScheme()` del sistema. En Lynx el tema del
  * sistema se lee de `lynx.getJSModule` / SystemInfo cuando haya native module;
  * por ahora `system` cae a oscuro (el tema por defecto de la marca Strain).
  * Centralizado aquí para que activar el tema del sistema más tarde sea un

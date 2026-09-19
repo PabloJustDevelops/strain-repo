@@ -21,7 +21,7 @@ import { WorkoutFinishScreen } from '@/screens/WorkoutFinishScreen';
  *
  * Lynx no trae file-based routing, así que el nombre de ruta que guarda
  * `@lib/router` se resuelve acá contra un componente. Los nombres son los de la
- * app Expo (`app/(tabs)` y las rutas de pila) para que migrar pantallas no
+ * app anterior (`app/(tabs)` y las rutas de pila) para que migrar pantallas no
  * obligue a reescribir los `push` de los llamadores.
  *
  * `(tabs)` no es una pantalla sino el contenedor: su componente es el `Shell`,

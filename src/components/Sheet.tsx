@@ -20,7 +20,7 @@ import { useTheme } from '@lib/useTheme';
  * El dibujo (color, borde, radio, cabecera) sigue siendo nuestro: la librería es
  * headless.
  *
- * `@lib/bottomSheet` (la política de arrastre portada de la app Expo) sigue sin
+ * `@lib/bottomSheet` (la política de arrastre portada de la app anterior) sigue sin
  * consumidor: la librería resuelve el gesto por su cuenta.
  */
 interface SheetProps {

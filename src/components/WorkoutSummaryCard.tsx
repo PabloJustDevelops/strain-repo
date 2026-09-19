@@ -9,7 +9,7 @@ import { Text } from '@components/Text';
 /**
  * Tarjeta resumen de un workout finalizado, pensada para verse y compartirse.
  *
- * En la app Expo esta tarjeta se capturaba con ViewShot para compartirla como
+ * En la app anterior esta tarjeta se capturaba con ViewShot para compartirla como
  * imagen. En Lynx la captura de vistas sería un native module (fuera de alcance
  * de esta fase), así que acá queda como tarjeta presentacional: la usa la
  * pantalla de detalle de sesión y el día que exista el módulo de captura se le

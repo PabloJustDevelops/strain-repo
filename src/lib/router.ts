@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
 /**
- * Router mínimo para Lynx, con la API que las pantallas esperan de expo-router
- * (`useRouter().push/back/replace`, `useLocalSearchParams`, `usePathname`).
+ * Router mínimo para Lynx, con la API que las pantallas esperan del enrutador de
+ * la app anterior (`useRouter().push/back/replace`, `useLocalSearchParams`, `usePathname`).
  *
  * Lynx no trae file-based routing: cada "pantalla" es un componente registrado
  * por nombre de ruta, y este store mantiene la pila de navegación + params.
@@ -43,7 +43,7 @@ export const useRouterStore = create<RouterState>((set) => ({
   reset: (route, params) => set({ stack: [toRouteState(route, params)] }),
 }));
 
-/** API compatible con `useRouter()` de expo-router. */
+/** API compatible con `useRouter()` del enrutador anterior. */
 export function useRouter() {
   const push = useRouterStore((s) => s.push);
   const replace = useRouterStore((s) => s.replace);
@@ -54,7 +54,7 @@ export function useRouter() {
     replace: (route: string, params?: Record<string, string>) => replace(route, params),
     back,
     reset,
-    /** expo-router permite `router.push({ pathname, params })`. */
+    /** El enrutador anterior permite `router.push({ pathname, params })`. */
     navigate: (route: string, params?: Record<string, string>) => push(route, params),
   };
 }

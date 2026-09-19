@@ -5,7 +5,7 @@ import { bootstrapDatabase, getRepos } from './index';
 import { seedExercises } from './seed';
 import { createSessionStorage, setStorageForTesting } from './storage';
 
-/** Los 47 ejercicios predefinidos de la app Expo. */
+/** Los 47 ejercicios predefinidos de la app anterior. */
 const CATALOG_SIZE = 47;
 
 describe('seedExercises (catálogo Lynx)', () => {

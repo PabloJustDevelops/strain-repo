@@ -10,7 +10,7 @@ import { shortId } from './id';
  * nativo se enchufa en un solo sitio (`getDriver`).
  *
  * Sin driver nativo registrado, todo es un no-op seguro que devuelve
- * "no disponible", igual que el guard de Expo Go en la app original.
+ * "no disponible", igual que en la app original.
  */
 
 export interface ReminderConfig {

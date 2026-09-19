@@ -5,7 +5,7 @@
  * (https://lynxjs.org/guide/inclusion/internationalization), así que `Intl`
  * es `undefined` en runtime y cualquier `new Intl.DateTimeFormat(...)` tira.
  * Las fechas se formatean a mano, con los mismos formatos que producía la
- * versión con `Intl` de la app Expo.
+ * versión con `Intl` de la app anterior.
  */
 
 const WEEKDAYS_ES = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];

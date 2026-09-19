@@ -1,13 +1,13 @@
 /**
- * Generación de IDs únicos para filas, archivos y recordatorios.
+ * Generaciï¿½n de IDs ï¿½nicos para filas, archivos y recordatorios.
  *
- * Versión Lynx: el runtime PrimJS no garantiza `crypto.getRandomValues()`
- * (mismo problema que Hermes en Expo), así que usamos un generador UUID v4
+ * Versiï¿½n Lynx: el runtime PrimJS no garantiza `crypto.getRandomValues()`
+ * (mismo problema que el runtime anterior), asï¿½ que usamos un generador UUID v4
  * propio basado en `Math.random()`. Suficiente para claves locales offline;
- * no es criptográficamente seguro, pero aquí solo se usa para unicidad.
+ * no es criptogrï¿½ficamente seguro, pero aquï¿½ solo se usa para unicidad.
  *
  * Cuando haya un native module de crypto en Lynx, se puede cambiar la
- * implementación sin tocar a los consumidores (misma firma).
+ * implementaciï¿½n sin tocar a los consumidores (misma firma).
  */
 function uuidv4(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {

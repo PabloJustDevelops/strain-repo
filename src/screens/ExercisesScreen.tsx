@@ -24,7 +24,7 @@ import type { Exercise } from '@/types/domain';
  * Biblioteca de ejercicios sobre `exercisesRepo`.
  *
  * La búsqueda y el filtro se resuelven en memoria sobre la lista ya cargada
- * (igual que en la app Expo), así que no vuelven a consultar la seam KV.
+ * (igual que en la app anterior), así que no vuelven a consultar la seam KV.
  */
 export function ExercisesScreen() {
   const { colors } = useTheme();

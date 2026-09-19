@@ -1,7 +1,7 @@
 /**
  * Cliente Supabase — versión Lynx (seam).
  *
- * En la app Expo esto usa `@supabase/supabase-js` con SecureStore/auth-session.
+ * En la app anterior esto usaba `@supabase/supabase-js` con SecureStore/auth-session.
  * En Lynx el SDK JS funciona (es fetch + storage), pero el storage seguro y el
  * flujo OAuth con WebBrowser requieren módulos nativos. Esta seam conserva las
  * firmas y deja el cliente desactivado hasta configurar el backend nativo,

@@ -302,8 +302,8 @@ export function pressedStyle(pressed: boolean): PressedStyle {
 /**
  * El mismo color con alfa, como `rgba(...)`.
  *
- * El CSS de Lynx no acepta el hex de 8 dígitos (`#rrggbbaa`) que usa la app
- * Expo: todo color con transparencia pasa a `rgba` explícito. Si el hex no se
+ * El CSS de Lynx no acepta el hex de 8 dígitos (`#rrggbbaa`) que usaba la app
+ * anterior. Todo color con transparencia pasa a `rgba` explícito. Si el hex no se
  * entiende, devuelve el original en vez de un color roto.
  */
 export function withAlpha(hex: string, alpha: number): string {

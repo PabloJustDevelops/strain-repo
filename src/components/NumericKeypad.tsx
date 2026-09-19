@@ -22,7 +22,7 @@ import { Text } from '@components/Text';
  *
  * Todo el estado del valor es el buffer de `@lib/keypad`: lo que se muestra y lo
  * que se confirma salen del mismo lugar, así que no pueden divergir (era el
- * known-issue K de la app Expo). El 1RM estimado en vivo usa `oneRmPreview`, la
+ * known-issue K de la app anterior). El 1RM estimado en vivo usa `oneRmPreview`, la
  * misma fórmula que deciden los PRs.
  *
  * Sin háptica (native module) y sin animación del número (`reanimated`): la

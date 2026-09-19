@@ -6,7 +6,7 @@ import { Text } from '@components/Text';
 /**
  * Fila de un set dentro del workout activo.
  *
- * Qué cambia respecto de la app Expo:
+ * Qué cambia respecto de la app anterior:
  * - **No hay swipe.** Lynx no trae `gesture-handler`/`reanimated`, y el elemento
  *   `<SwipeAction>` de Lynx UI no está en `@lynx-js/types` (ni instalado). Las
  *   acciones de swipe ("completar" / "eliminar") pasan a ser botones explícitos

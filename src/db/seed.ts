@@ -2,7 +2,7 @@
  * Catálogo inicial de ejercicios predefinidos.
  * Ejecutar solo la primera vez (o si la BD está vacía).
  *
- * Port 1:1 de `src/db/seed.ts` de la app Expo: los mismos 47 ejercicios, en el
+ * Port 1:1 de `src/db/seed.ts` de la app anterior: los mismos 47 ejercicios, en el
  * mismo orden y con los mismos campos (paridad de dominio). La diferencia es la
  * seam: sobre KV no hay defaults de tabla, así que `secondaryMuscles`, `notes` e
  * `instructions` se completan acá con el mismo valor que el esquema Drizzle

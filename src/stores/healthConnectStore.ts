@@ -10,7 +10,7 @@ import {
 } from '@/lib/healthConnect';
 
 /**
- * Estado global de la conexión con Health Connect (mismo contrato que en Expo).
+ * Estado global de la conexión con Health Connect (mismo contrato que en la app anterior).
  * Status: unknown | unavailable | needsInstall | notAuthorized | ready.
  */
 export type HealthConnectStatus =

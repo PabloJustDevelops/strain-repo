@@ -6,7 +6,7 @@ import { Text } from '@components/Text';
  * Pill seleccionable para filtrar por grupo muscular.
  *
  * `label` permite usarlo como chip "Todos" sin inventar un `MuscleGroup` que no
- * existe (la app Expo resolvía el filtro "all" pasando un grupo cualquiera).
+ * existe (la app anterior resolvía el filtro "all" pasando un grupo cualquiera).
  */
 interface MuscleChipProps {
   group: MuscleGroup;

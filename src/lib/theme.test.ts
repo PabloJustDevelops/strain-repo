@@ -4,7 +4,7 @@ import { withAlpha } from './theme';
 
 /**
  * `withAlpha` existe porque el CSS de Lynx no acepta el hex de 8 dígitos
- * (`#rrggbbaa`) que sí usaba la app Expo: todo color con transparencia pasa por
+ * (`#rrggbbaa`) que sí usaba la app anterior: todo color con transparencia pasa por
  * acá, y si el hex no se entiende preferimos el color opaco antes que uno roto.
  *
  * El test usa hex literales a propósito: `withAlpha` es una función de color, no

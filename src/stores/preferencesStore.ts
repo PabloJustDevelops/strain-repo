@@ -8,7 +8,7 @@ import { createStateStorage } from '@/lib/storage';
 
 /**
  * Preferencias persistentes del usuario. Vive en la seam `Storage` (Lynx) para
- * no mezclarse con la BD de entrenamiento. Idéntico contrato al de la app Expo.
+ * no mezclarse con la BD de entrenamiento. Idéntico contrato al de la app anterior.
  */
 interface PreferencesState {
   themeMode: ThemeMode;

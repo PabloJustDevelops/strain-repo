@@ -7,7 +7,7 @@ import type { Storage } from './storage';
 /**
  * Repositorio de ejercicios sobre la seam `Storage` (clave-valor).
  *
- * Mantiene la MISMA interfaz pública que el repo Drizzle de la app Expo, de
+ * Mantiene la MISMA interfaz pública que el repo Drizzle de la app anterior, de
  * modo que la UI y los stores no cambian al migrar. Lo relacional lo resuelve
  * en memoria (ordenar/filtrar), suficiente para una biblioteca de ejercicios.
  */

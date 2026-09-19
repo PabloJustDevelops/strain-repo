@@ -41,6 +41,12 @@ Documento de registro de decisiones (ADR-light). Cada decisión explica **qué**
 
 ## D3 · SQLite local con Drizzle + sync opcional Supabase
 
+> **Matizada por [D14](#d14--host-nativo-y-almacenamiento-durable) y [D13](#d13--retirada-de-expo)
+> (19 sep 2026)**: la parte de «SQLite local como fuente de verdad» sigue vigente —D14 la lleva al
+> host nativo propio—, pero **Supabase deja de ser el backend de sync**: pasa a ser **InsForge**
+> (ver D13 y `specs/003`), y su retirada la gobierna `specs/004`. Lo que aquí se dice de Drizzle
+> también queda matizado: en Lynx el acceso es un módulo nativo, no Drizzle.
+
 **Decisión**: SQLite on-device como fuente de verdad; Supabase solo para backup y multi-device.
 
 **Por qué**:
@@ -258,3 +264,65 @@ repo: la raíz (app Expo) y `lynx/`. Sustituye a pnpm en la raíz (D2) y a npm e
 `ninja: build.ninja still dirty` había sido precisamente el hoisting de pnpm; con bun la instalación es
 plana y el build nativo (reanimated, worklets, gesture-handler, expo-modules-core) compiló sin ese
 problema.
+
+---
+
+## D13 · Retirada de Expo
+
+**Decisión**: la app Expo sale del repositorio. El proyecto Lynx se promueve a la raíz y los
+artefactos de Expo se borran siguiendo el `specs/004`, con un **criterio de borrado explícito**: no se
+borra nada hasta que exista el host nativo del `specs/001` y estén migradas las cinco piezas del
+inventario —las 3 pantallas de auth, la capa durable, Health Connect, las notificaciones y la cuenta—.
+
+**Por qué**:
+
+- Dos aplicaciones en el mismo repositorio confunden a personas y a agentes: la documentación, la
+  integración continua y las skills apuntaban a la app vieja.
+- Lynx es el destino; mantener Expo cuesta (SDK, EAS, dependencias nativas) sin aportar producto.
+- La transición es reversible **mientras no se borre**: la etiqueta `expo-final` marca el último
+  commit con Expo intacta.
+
+**Descartado**:
+
+- **Borrado *big-bang*** (borrar primero y portar después): dejaría el repositorio sin una app que
+  arranca, y el *prebuild* nativo no es recuperable desde git.
+- **Convivencia indefinida**: duplica mantenimiento y mantiene la ambigüedad de cuál es la base.
+
+**Criterio de borrado** (los cuatro, en orden):
+
+1. El host del `specs/001` existe y funciona.
+2. Las cinco piezas del inventario están migradas y verificadas.
+3. El proyecto Lynx está promovido a la raíz y la integración continua y la documentación apuntan a
+   él.
+4. Límite declarado: `android/` de la raíz **no está versionado**, así que el *prebuild* nativo de
+   Expo no se recupera desde la etiqueta.
+
+**Consecuencia**: el borrado deja de ser un evento arriesgado y pasa a ser el último paso de una
+secuencia con puertas.
+
+---
+
+## D14 · Host nativo y almacenamiento durable
+
+**Decisión**: Strain pasa a ser una **app Android propia** que embebe el bundle Lynx en un `LynxView`,
+y la persistencia se resuelve con un **módulo nativo SQLite** detrás de la *seam* de almacenamiento
+que ya existe. El almacén actual (memoria + *session storage*) es solo un puente temporal.
+
+**Por qué**:
+
+- El requisito duro es que **cerrar la app no puede perder lo registrado**; hoy lo pierde.
+- El dominio es relacional (sesiones → ejercicios → sets → PRs) y las agregaciones de analytics se
+  resuelven como consultas, no trayendo el histórico completo a memoria.
+- El offline-first es un principio de producto: la nube no puede ser la fuente de verdad.
+- La *seam* ya aísla la decisión, así que cambiar la implementación **no toca ninguna pantalla**.
+
+**Descartado**:
+
+- **Ficheros durables tras la *seam* KV**: mucho menos trabajo nativo, pero obliga a agregar en
+  memoria y a migrar formatos a mano. Queda como *stopgap* si el módulo nativo se retrasa.
+- **InsForge como fuente de verdad**: rompe el offline-first y deja la app inútil en un gimnasio sin
+  cobertura.
+
+**Consecuencia**: el host propio desbloquea además las nativas (`specs/002`), la cuenta
+(`specs/003`), el build del host en CI (`specs/005`) y es la **puerta** del borrado de Expo (D13). El
+desarrollo detallado está en `specs/001-host-nativo-y-almacenamiento-durable.md`.

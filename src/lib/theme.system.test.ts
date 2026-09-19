@@ -83,17 +83,15 @@ describe.each([
   });
 
   /**
-   * El borde de la v2 es una línea **sutil**: agrupa sin encerrar. Deliberadamente
-   * baja del 3:1 que pide un borde significativo de la WCAG, así que lo que este
-   * test fija es el rango: por encima de 1.15 se ve, y por debajo de 2.5 sigue
-   * siendo una línea y no vuelve a ser el borde duro que la v2 abandona.
+   * El borde y el separador de listas son elementos de interfaz (WCAG 1.4.11):
+   * llegan a 3:1 contra cada superficie sobre la que se dibujan. Sigue siendo
+   * la misma línea de 1px que agrupa sin encerrar; lo que subió es el color.
    */
-  it('el borde se ve pero no vuelve a ser un borde duro', () => {
+  it('el borde y el separador llegan a 3:1 (WCAG 1.4.11)', () => {
     for (const [fg, bg] of BORDER_PAIRS) {
       const ratio = contrastRatio(theme[fg], theme[bg]);
 
-      expect(ratio, `${fg} sobre ${bg} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(1.15);
-      expect(ratio, `${fg} sobre ${bg} = ${ratio.toFixed(2)}:1`).toBeLessThanOrEqual(2.5);
+      expect(ratio, `${fg} sobre ${bg} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
     }
   });
 

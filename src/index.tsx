@@ -1,9 +1,6 @@
 import { root } from '@lynx-js/react';
 
 import { bootstrapDatabase } from '@db';
-import { isPreviewStorage } from '@db/storage';
-
-console.log('[strain-debug] preview=' + isPreviewStorage());
 
 import { App } from './App.js';
 

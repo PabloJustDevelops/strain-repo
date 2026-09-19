@@ -109,3 +109,29 @@ jobs:
 
       - name: Comprobar tamaño
         run: node lynx/scripts/check-bundle-size.mjs
+
+  # ---------------------------------------------------------------------------
+  # Seguridad: escaneo de secretos. El fallo más caro y más fácil de cometer.
+  # ---------------------------------------------------------------------------
+  secret-scan:
+    name: Seguridad · escaneo de secretos
+    runs-on: ubuntu-24.04
+    # gitleaks lee los commits de la propuesta a través de la API: necesita
+    # `pull-requests: read` además del contenido.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # Historial completo: gitleaks necesita el rango del cambio para
+      # compararlo con la base.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Versión fijada: la sintaxis de `.gitleaks.toml` ([allowlists]) cambia
+          # entre mayores, y un salto silencioso no debe alterar lo que se detecta.
+          GITLEAKS_VERSION: "8.30.1"

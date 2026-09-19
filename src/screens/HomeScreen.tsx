@@ -36,7 +36,7 @@ export function HomeScreen() {
   const today = formatDateLong(new Date());
 
   async function handleStartEmpty() {
-    await startEmpty(`Workout ${today}`);
+    await startEmpty(`Entrenamiento ${today}`);
     router.push('workout/active');
   }
 
@@ -48,7 +48,7 @@ export function HomeScreen() {
           style={{ backgroundColor: colors.accent }}
           bindtap={() => router.push('workout/active')}
         >
-          <Text role="detail" tone="onAccent">Workout en curso</Text>
+          <Text role="detail" tone="onAccent">Entrenamiento en curso</Text>
           <Text role="title" tone="onAccent">{session.name}</Text>
           <Text role="support" tone="onAccent">
             {session.completedSets} series · {formatDuration(session.elapsedSeconds)}
@@ -57,13 +57,13 @@ export function HomeScreen() {
       ) : (
         <Card>
           <Text role="title" tone="textPrimary">
-            Empieza un workout
+            Empieza un entrenamiento
           </Text>
           <Text role="support" tone="textSecondary">
-            Comienza uno vacío o elige una de tus rutinas.
+            Empieza desde cero o elige una rutina.
           </Text>
           <view className="RowActions">
-            <Button title="Vacío" onPress={handleStartEmpty} />
+            <Button title="Entrenamiento vacío" onPress={handleStartEmpty} />
             <Button
               title="Elegir rutina"
               variant="secondary"

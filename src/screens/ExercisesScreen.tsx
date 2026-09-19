@@ -10,6 +10,7 @@ import { Text } from '@components/Text';
 import {
   MUSCLE_FILTERS,
   equipmentLabel,
+  exerciseCountLabel,
   muscleFilterChip,
   muscleGroupLabel,
   type MuscleFilter,
@@ -45,7 +46,11 @@ export function ExercisesScreen() {
   return (
     <Screen
       title="Ejercicios"
-      subtitle={exercises.loading ? undefined : `${filtered.length} de ${exercises.data.length}`}
+      subtitle={
+        exercises.loading
+          ? undefined
+          : exerciseCountLabel(filtered.length, exercises.data.length)
+      }
     >
       <Input
         className="Input"

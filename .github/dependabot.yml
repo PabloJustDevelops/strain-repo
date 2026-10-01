@@ -1,7 +1,7 @@
 # Dependabot (specs/005, ticket 4).
 #
 # Ecosistemas que existen de verdad en el repo:
-#   - npm: el proyecto (la raíz).
+#   - bun: el proyecto (la raíz).
 #   - gradle: el host Android (`host/android`).
 #   - github-actions: las acciones de `.github/workflows/`.
 #
@@ -11,7 +11,7 @@
 # justificar ruido diario.
 version: 2
 updates:
-  - package-ecosystem: npm
+  - package-ecosystem: bun
     directory: "/"
     schedule:
       interval: weekly
@@ -21,7 +21,7 @@ updates:
       prefix: chore
       include: scope
     groups:
-      npm-minor-y-parche:
+      bun-minor-y-parche:
         patterns: ["*"]
         update-types: ["minor", "patch"]
 

@@ -4,7 +4,7 @@ kotlin = "2.4.20"
 # Versiones del SDK nativo de Lynx, fijadas a las del motor 4.1.0 que usa Lynx Explorer.
 lynx = "4.1.0"
 primjs = "4.1.1"
-coreKtx = "1.19.0"
+coreKtx = "1.19.1"
 # AndroidX Test: solo para la prueba instrumentada del módulo de almacenamiento,
 # que corre en un dispositivo/emulador con `connectedDebugAndroidTest`.
 androidxTestCore = "1.7.0"

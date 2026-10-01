@@ -1,5 +1,5 @@
 [versions]
-agp = "8.11.1"
+agp = "9.4.1"
 kotlin = "2.4.20"
 # Versiones del SDK nativo de Lynx, fijadas a las del motor 4.1.0 que usa Lynx Explorer.
 lynx = "4.1.0"

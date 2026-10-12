@@ -115,13 +115,14 @@ jobs:
       # versión menor: no existe un `platforms;android-37` a secas) y
       # `build-tools;36.0.0` es el que AGP 9.4 usa por defecto. Instalar lo que
       # el host necesita: si el host sube de compileSdk, este job falla y avisa.
+      #
+      # `packages` va en UNA línea separada por espacios: la acción hace
+      # `getInput('packages').split(' ')`, así que un bloque multilínea llega
+      # como un único argumento y sdkmanager no encuentra el paquete.
       - name: Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: |
-            platform-tools
-            platforms;android-37.0
-            build-tools;36.0.0
+          packages: 'platform-tools platforms;android-37.0 build-tools;36.0.0'
           accept-android-sdk-licenses: true
 
       # Caché del Gradle User Home: dependencias Y distribuciones del wrapper

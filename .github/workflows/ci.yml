@@ -19,6 +19,7 @@ jobs:
   project:
     name: Tipos, pruebas y build
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -69,6 +70,7 @@ jobs:
     name: Presupuesto de bundle
     needs: project
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -82,11 +84,73 @@ jobs:
         run: node scripts/check-bundle-size.mjs
 
   # ---------------------------------------------------------------------------
+  # Host Android: compila el APK de debug con Gradle.
+  #
+  # Es el único trabajo que toca JDK y SDK de Android, y el que convierte un
+  # cambio de AGP, de Gradle o del wrapper en un fallo real en vez de un check
+  # verde que no comprueba nada: `project` sólo instala Bun y ejecuta
+  # typecheck/pruebas/build de los bundles, así que un salto de toolchain pasaba
+  # en verde (issue #61). Este trabajo mide; migrar el host es otro trabajo.
+  # ---------------------------------------------------------------------------
+  android:
+    name: Host Android · assembleDebug
+    # Descarga el artefacto `bundles` que produce `project` (ver más abajo).
+    needs: project
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      # JDK 17 fijado explícito: el host declara sourceCompatibility 17 y no
+      # queremos que el resultado dependa del JDK por defecto del runner.
+      - name: JDK 17 (Temurin)
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # El paquete de plataforma se llama `platforms;android-37.0` (API 37 con
+      # versión menor: no existe un `platforms;android-37` a secas) y
+      # `build-tools;36.0.0` es el que AGP 9.4 usa por defecto. Instalar lo que
+      # el host necesita: si el host sube de compileSdk, este job falla y avisa.
+      - name: Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: |
+            platform-tools
+            platforms;android-37.0
+            build-tools;36.0.0
+          accept-android-sdk-licenses: true
+
+      # Caché del Gradle User Home: dependencias Y distribuciones del wrapper
+      # (~/.gradle/wrapper/dists, ~100 MB por run). Sin esto, cada PR vuelve a
+      # bajar Gradle entero. La caché solo se escribe en main; el resto lee.
+      - name: Cache de Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # El bundle lo produce `bun run build` en la raíz y lo copia una tarea de
+      # Gradle (`copyLynxBundle`) desde `dist/`. Lo descargamos del artefacto de
+      # `project` en vez de repetir el build: misma intención que `bundle-budget`.
+      - name: Descargar bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: bundles
+          path: dist
+
+      # El wrapper está en 100755 en git, así que `./gradlew` es ejecutable.
+      - name: Compilar host (assembleDebug)
+        working-directory: host/android
+        run: ./gradlew assembleDebug
+
+  # ---------------------------------------------------------------------------
   # Seguridad: escaneo de secretos. El fallo más caro y más fácil de cometer.
   # ---------------------------------------------------------------------------
   secret-scan:
     name: Seguridad · escaneo de secretos
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     # gitleaks lee los commits de la propuesta a través de la API: necesita
     # `pull-requests: read` además del contenido.
     permissions:
@@ -118,6 +182,7 @@ jobs:
     name: PR · título y triaje
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 

@@ -1,6 +1,7 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
 }
 
 // El bundle que produce `bun run build` en la raíz del repo. Desde el módulo
@@ -11,7 +12,9 @@ val lynxBundle = layout.projectDirectory.file("../../../dist/main.lynx.bundle")
 // se regenera con `bun run build`.
 val assetsDir = layout.projectDirectory.dir("src/main/assets")
 
-val copyLynxBundle by tasks.registering(Copy::class) {
+// `registering` (helper del DSL de Kotlin) desaparece en Gradle 9: el registro
+// explícito con `tasks.register<T>(nombre)` es la forma que sobrevive.
+val copyLynxBundle = tasks.register<Copy>("copyLynxBundle") {
     description = "Copia dist/main.lynx.bundle a los assets del APK."
     group = "build"
 
@@ -31,7 +34,10 @@ val copyLynxBundle by tasks.registering(Copy::class) {
 
 android {
     namespace = "com.strain.app"
-    compileSdk = 36
+    // 37 es lo mínimo que exige `androidx.core` 1.19.1 para compilar
+    // (AGP 9.4 admite hasta API 37). `targetSdk` se queda en 36: compilar
+    // contra 37 no es adoptar el comportamiento de 37.
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.strain.app"
@@ -58,9 +64,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
 
-    kotlinOptions {
-        jvmTarget = "17"
+// `android.kotlinOptions` ya no existe: con la Kotlin integrada de AGP 9 ese DSL
+// (`jvmTarget = "17"` como String, dentro de `android {}`) es un error de
+// compilación del propio build script, no un aviso. El DSL vivo es
+// `kotlin.compilerOptions`, en el nivel de extensión, con el tipo `JvmTarget`.
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 
@@ -83,6 +95,12 @@ dependencies {
     // y los iconos no aparecen.
     implementation(libs.xelement.svg)
     implementation(libs.servalsvg)
+
+    // `xelement-svg` arrastra appcompat 1.0.0, cuyas `vectordrawable` 1.0.0
+    // comparten namespace y rompen el merge de manifests con AGP 9. Forzarlas a
+    // 1.2.0 las sustituye por artefactos con namespaces distintos.
+    implementation(libs.vectordrawable)
+    implementation(libs.vectordrawable.animated)
 
     // Prueba instrumentada: durabilidad y transacciones del módulo de
     // almacenamiento, contra una base de verdad en el dispositivo.

@@ -1,10 +1,17 @@
 [versions]
-agp = "8.11.1"
-kotlin = "2.4.20"
+# AGP 9.4: es la primera línea que admite API 37, y `androidx.core` 1.19.1 exige
+# AGP >= 9.1 y compilar contra API 37. Requiere Gradle >= 9.6 (wrapper) y JDK 17.
+agp = "9.4.1"
 # Versiones del SDK nativo de Lynx, fijadas a las del motor 4.1.0 que usa Lynx Explorer.
 lynx = "4.1.0"
 primjs = "4.1.1"
 coreKtx = "1.19.1"
+# `xelement-svg` 4.1.0 arrastra `androidx.appcompat:appcompat:1.0.0`, que a su vez
+# trae `vectordrawable` y `vectordrawable-animated` 1.0.0. Esos dos artefactos de
+# 2018 declaran el MISMO namespace (`androidx.vectordrawable`) y AGP 9 rechaza el
+# merge ("Namespace ... is used in multiple modules and/or libraries"). Se fijan
+# las versiones modernas, que ya usan namespaces distintos entre sí.
+vectordrawable = "1.2.0"
 # AndroidX Test: solo para la prueba instrumentada del módulo de almacenamiento,
 # que corre en un dispositivo/emulador con `connectedDebugAndroidTest`.
 androidxTestCore = "1.7.0"
@@ -28,11 +35,18 @@ xelement-svg = { group = "org.lynxsdk.lynx", name = "xelement-svg", version.ref 
 # correr en el emulador x86_64.
 servalsvg = { group = "org.lynxsdk.lynx", name = "servalsvg", version = "0.2.4" }
 
+# Sustituyen a las 1.0.0 que entran por `appcompat` 1.0.0 (transitiva de
+# `xelement-svg`): mismo namespace en ambas 1.0.0, colisión que AGP 9 no admite.
+vectordrawable = { group = "androidx.vectordrawable", name = "vectordrawable", version.ref = "vectordrawable" }
+vectordrawable-animated = { group = "androidx.vectordrawable", name = "vectordrawable-animated", version.ref = "vectordrawable" }
+
 # Prueba instrumentada: `ApplicationProvider` (core), el runner y JUnit4.
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 
 [plugins]
+# Ya no se declara `org.jetbrains.kotlin.android`: AGP 9 trae Kotlin integrado
+# (`builtInKotlin`) y aplicar el plugin externo es un error de configuración.
+# El KGP lo aporta el propio AGP (2.2.10 como mínimo).
 android-application = { id = "com.android.application", version.ref = "agp" }
-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

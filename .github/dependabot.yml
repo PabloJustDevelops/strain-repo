@@ -24,6 +24,13 @@ updates:
       bun-minor-y-parche:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    # `typescript` >= 7 no se puede subir todavía (issue #69): la 7 es el
+    # compilador nativo y no publica la API del compilador, que es la que importa
+    # rspeedy en su hook de registro. Quitar este ignore cuando una versión de
+    # rspeedy acepte la 7 (que su peer `typescript` incluya `7.x`).
+    ignore:
+      - dependency-name: typescript
+        versions: [">= 7.0.0"]
 
   - package-ecosystem: gradle
     directory: "/host/android"
